@@ -1,1 +1,252 @@
-[]
+[
+  {
+    "title": "vectera-2019",
+    "url": "https://appsumo.com/products/vectera-2019/",
+    "category": "software"
+  },
+  {
+    "title": "onvocado",
+    "url": "https://appsumo.com/products/onvocado/",
+    "category": "software"
+  },
+  {
+    "title": "yapper",
+    "url": "https://appsumo.com/products/yapper/",
+    "category": "software"
+  },
+  {
+    "title": "agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
+    "category": "software"
+  },
+  {
+    "title": "prettyprompt",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "category": "software"
+  },
+  {
+    "title": "puzzle",
+    "url": "https://appsumo.com/products/puzzle/",
+    "category": "software"
+  },
+  {
+    "title": "dart",
+    "url": "https://appsumo.com/products/dart/",
+    "category": "software"
+  },
+  {
+    "title": "mac-ios-essentials",
+    "url": "https://appsumo.com/products/mac-ios-essentials/",
+    "category": "software"
+  },
+  {
+    "title": "emailit-licensing-v2-sl-select-oct-2025-add-on-1",
+    "url": "https://appsumo.com/products/emailit-licensing-v2-sl-select-oct-2025-add-on-1/",
+    "category": "software"
+  },
+  {
+    "title": "unibee",
+    "url": "https://appsumo.com/products/unibee/",
+    "category": "software"
+  },
+  {
+    "title": "vectera-2019",
+    "url": "https://appsumo.com/products/vectera-2019/",
+    "category": "marketing"
+  },
+  {
+    "title": "onvocado",
+    "url": "https://appsumo.com/products/onvocado/",
+    "category": "marketing"
+  },
+  {
+    "title": "yapper",
+    "url": "https://appsumo.com/products/yapper/",
+    "category": "marketing"
+  },
+  {
+    "title": "agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
+    "category": "marketing"
+  },
+  {
+    "title": "prettyprompt",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "category": "marketing"
+  },
+  {
+    "title": "puzzle",
+    "url": "https://appsumo.com/products/puzzle/",
+    "category": "marketing"
+  },
+  {
+    "title": "dart",
+    "url": "https://appsumo.com/products/dart/",
+    "category": "marketing"
+  },
+  {
+    "title": "mac-ios-essentials",
+    "url": "https://appsumo.com/products/mac-ios-essentials/",
+    "category": "marketing"
+  },
+  {
+    "title": "emailit-licensing-v2-sl-select-oct-2025-add-on-1",
+    "url": "https://appsumo.com/products/emailit-licensing-v2-sl-select-oct-2025-add-on-1/",
+    "category": "marketing"
+  },
+  {
+    "title": "unibee",
+    "url": "https://appsumo.com/products/unibee/",
+    "category": "marketing"
+  },
+  {
+    "title": "vectera-2019",
+    "url": "https://appsumo.com/products/vectera-2019/",
+    "category": "ai"
+  },
+  {
+    "title": "onvocado",
+    "url": "https://appsumo.com/products/onvocado/",
+    "category": "ai"
+  },
+  {
+    "title": "yapper",
+    "url": "https://appsumo.com/products/yapper/",
+    "category": "ai"
+  },
+  {
+    "title": "agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
+    "category": "ai"
+  },
+  {
+    "title": "prettyprompt",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "category": "ai"
+  },
+  {
+    "title": "puzzle",
+    "url": "https://appsumo.com/products/puzzle/",
+    "category": "ai"
+  },
+  {
+    "title": "dart",
+    "url": "https://appsumo.com/products/dart/",
+    "category": "ai"
+  },
+  {
+    "title": "mac-ios-essentials",
+    "url": "https://appsumo.com/products/mac-ios-essentials/",
+    "category": "ai"
+  },
+  {
+    "title": "emailit-licensing-v2-sl-select-oct-2025-add-on-1",
+    "url": "https://appsumo.com/products/emailit-licensing-v2-sl-select-oct-2025-add-on-1/",
+    "category": "ai"
+  },
+  {
+    "title": "unibee",
+    "url": "https://appsumo.com/products/unibee/",
+    "category": "ai"
+  },
+  {
+    "title": "vectera-2019",
+    "url": "https://appsumo.com/products/vectera-2019/",
+    "category": "productivity"
+  },
+  {
+    "title": "onvocado",
+    "url": "https://appsumo.com/products/onvocado/",
+    "category": "productivity"
+  },
+  {
+    "title": "yapper",
+    "url": "https://appsumo.com/products/yapper/",
+    "category": "productivity"
+  },
+  {
+    "title": "agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
+    "category": "productivity"
+  },
+  {
+    "title": "prettyprompt",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "category": "productivity"
+  },
+  {
+    "title": "puzzle",
+    "url": "https://appsumo.com/products/puzzle/",
+    "category": "productivity"
+  },
+  {
+    "title": "dart",
+    "url": "https://appsumo.com/products/dart/",
+    "category": "productivity"
+  },
+  {
+    "title": "mac-ios-essentials",
+    "url": "https://appsumo.com/products/mac-ios-essentials/",
+    "category": "productivity"
+  },
+  {
+    "title": "emailit-licensing-v2-sl-select-oct-2025-add-on-1",
+    "url": "https://appsumo.com/products/emailit-licensing-v2-sl-select-oct-2025-add-on-1/",
+    "category": "productivity"
+  },
+  {
+    "title": "unibee",
+    "url": "https://appsumo.com/products/unibee/",
+    "category": "productivity"
+  },
+  {
+    "title": "vectera-2019",
+    "url": "https://appsumo.com/products/vectera-2019/",
+    "category": "courses"
+  },
+  {
+    "title": "onvocado",
+    "url": "https://appsumo.com/products/onvocado/",
+    "category": "courses"
+  },
+  {
+    "title": "yapper",
+    "url": "https://appsumo.com/products/yapper/",
+    "category": "courses"
+  },
+  {
+    "title": "agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
+    "category": "courses"
+  },
+  {
+    "title": "prettyprompt",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "category": "courses"
+  },
+  {
+    "title": "puzzle",
+    "url": "https://appsumo.com/products/puzzle/",
+    "category": "courses"
+  },
+  {
+    "title": "dart",
+    "url": "https://appsumo.com/products/dart/",
+    "category": "courses"
+  },
+  {
+    "title": "mac-ios-essentials",
+    "url": "https://appsumo.com/products/mac-ios-essentials/",
+    "category": "courses"
+  },
+  {
+    "title": "emailit-licensing-v2-sl-select-oct-2025-add-on-1",
+    "url": "https://appsumo.com/products/emailit-licensing-v2-sl-select-oct-2025-add-on-1/",
+    "category": "courses"
+  },
+  {
+    "title": "unibee",
+    "url": "https://appsumo.com/products/unibee/",
+    "category": "courses"
+  }
+]
