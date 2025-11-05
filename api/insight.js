@@ -1,5 +1,5 @@
 // /api/insight.js
-// Lightweight Insight Pulse skeleton — reads cached data and outputs simple stats
+// Lightweight Insight Pulse skeleton
 
 import { CACHE } from "../lib/proxyCache.js";
 
