@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🚀 TinmanApps AppSumo Feed Builder v7.1 — Headless Browser Edition
-// Works in Render + GitHub Actions with system Chromium fallback
+// 🚀 TinmanApps AppSumo Feed Builder v7.2 — Hardened Headless Mode
+// Compatible with Render & GitHub Actions restricted environments
 
 import fs from "fs";
 import path from "path";
@@ -18,6 +18,7 @@ const CATEGORY_URLS = {
   courses: "https://appsumo.com/courses-more/"
 };
 
+// Extract JSON-LD data from rendered HTML
 async function extractDeals(page, category) {
   const content = await page.content();
   const match = content.match(/<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/);
@@ -33,22 +34,38 @@ async function extractDeals(page, category) {
   }));
 }
 
+// Resolve executable path for Puppeteer
 async function getExecutablePath() {
   try {
     const execPath = await chromium.executablePath;
     if (execPath) return execPath;
   } catch (_) {}
-  // Fallback for GitHub Actions
-  return "/usr/bin/chromium-browser";
+  // fallback path for GitHub runner
+  return "/usr/bin/google-chrome";
 }
 
 async function main() {
-  console.log("🚀 Launching headless Chrome...");
+  console.log("🚀 Launching headless Chrome (safe mode)...");
+
+  const execPath = await getExecutablePath();
+  console.log(`Using Chrome binary: ${execPath}`);
+
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await getExecutablePath(),
-    headless: true
+    executablePath: execPath,
+    headless: true,
+    ignoreHTTPSErrors: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-zygote",
+      "--single-process",
+      "--disable-software-rasterizer",
+      "--disable-extensions",
+      "--mute-audio",
+      "--hide-scrollbars"
+    ]
   });
 
   const page = await browser.newPage();
