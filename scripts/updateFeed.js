@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🔁 TinmanApps AppSumo Feed Builder v4
-// Crawls sitemap index -> product sitemaps -> categories with images
+// 🔁 TinmanApps AppSumo Feed Builder v5
+// Handles both sitemap index + fallback to numbered product sitemaps
 
 import fs from "fs";
 import path from "path";
@@ -11,6 +11,11 @@ const ROOT = path.resolve("./data");
 if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT, { recursive: true });
 
 const SITEMAP_INDEX = "https://appsumo.com/sitemap.xml";
+
+// Fallback range if index fails
+const FALLBACK_SITEMAPS = Array.from({ length: 10 }, (_, i) => 
+  `https://appsumo.com/sitemap-products-${i + 1}.xml`
+);
 
 const CATEGORY_KEYWORDS = {
   software: ["software", "tool", "platform", "saas", "automation"],
@@ -24,7 +29,7 @@ async function safeFetch(url) {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; TinmanBot/4.0; +https://deals.tinmanapps.com)"
+        "Mozilla/5.0 (compatible; TinmanBot/5.0; +https://deals.tinmanapps.com)"
     },
     timeout: 20000
   });
@@ -41,20 +46,33 @@ function classify(title, loc) {
 }
 
 async function getProductSitemaps() {
-  const xml = await safeFetch(SITEMAP_INDEX);
-  const data = await parseStringPromise(xml, { explicitArray: false });
-  const entries = data.sitemapindex.sitemap || [];
-  const urls = (Array.isArray(entries) ? entries : [entries])
-    .map(x => x.loc)
-    .filter(u => u.includes("sitemap-products-"));
-  console.log(`📖 Found ${urls.length} product sitemaps.`);
-  return urls;
+  try {
+    const xml = await safeFetch(SITEMAP_INDEX);
+    if (xml.startsWith("<!DOCTYPE html") || xml.includes("<html")) {
+      console.warn("⚠️ Sitemap index returned HTML, using fallback list.");
+      return FALLBACK_SITEMAPS;
+    }
+    const data = await parseStringPromise(xml, { explicitArray: false });
+    const entries = data.sitemapindex?.sitemap || [];
+    const urls = (Array.isArray(entries) ? entries : [entries])
+      .map(x => x.loc)
+      .filter(u => u.includes("sitemap-products-"));
+    if (urls.length === 0) {
+      console.warn("⚠️ No product sitemaps found, using fallback list.");
+      return FALLBACK_SITEMAPS;
+    }
+    console.log(`📖 Found ${urls.length} product sitemaps.`);
+    return urls;
+  } catch (err) {
+    console.warn(`⚠️ Sitemap index failed (${err.message}), using fallback list.`);
+    return FALLBACK_SITEMAPS;
+  }
 }
 
 async function parseProductSitemap(url) {
   const xml = await safeFetch(url);
   const data = await parseStringPromise(xml, { explicitArray: false });
-  const urls = data.urlset.url || [];
+  const urls = data.urlset?.url || [];
   return Array.isArray(urls) ? urls : [urls];
 }
 
@@ -95,7 +113,7 @@ async function main() {
         }
       }
     } catch (err) {
-      console.log(`⚠️  ${sm} failed: ${err.message}`);
+      console.log(`⚠️ ${sm} failed: ${err.message}`);
     }
   }
 
