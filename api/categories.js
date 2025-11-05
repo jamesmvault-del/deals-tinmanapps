@@ -1,108 +1,75 @@
 // /api/categories.js
-// 🧭 Dynamic category page renderer for TinmanApps Deal Engine
-// Generates minimal HTML + adaptive metadata + CTR-optimised CTAs
+// 🌐 TinmanApps Adaptive Category Renderer v2.0
+// Generates internal links to /api/deal?slug=... with SEO-rich structure
 
 import { CACHE } from "../lib/proxyCache.js";
 
-const BASE_URL = "https://deals.tinmanapps.com"; // fixed fallback domain
+const BASE_URL = "https://deals.tinmanapps.com";
+
+// 🧠 Archetype map for tone and CTA hints
+const ARCHETYPES = {
+  software: { label: "Trust & Reliability", color: "#4a6cf7", cta: "Simplify your workflow →" },
+  marketing: { label: "Opportunity & Growth", color: "#0ea5e9", cta: "Unlock your next win →" },
+  productivity: { label: "Efficiency & Focus", color: "#16a34a", cta: "Work smarter →" },
+  ai: { label: "Novelty & Innovation", color: "#9333ea", cta: "Explore this breakthrough →" },
+  courses: { label: "Authority & Learning", color: "#f59e0b", cta: "Start mastering today →" }
+};
 
 export default async function handler(req, res) {
-  const { cat } = req.query;
-  const categories = CACHE.categories || {};
-  const insights = CACHE.meta?.insights || {}; // optional linkage later
+  const cat = (req.query.cat || "").toLowerCase();
+  const archetype = ARCHETYPES[cat] || ARCHETYPES.software;
 
-  if (!cat || !categories[cat]) {
-    res
-      .status(404)
-      .send(`<h1>Category not found</h1><p>Try /api/categories?cat=software etc.</p>`);
-    return;
-  }
-
-  const deals = categories[cat];
+  const deals = CACHE.categories?.[cat] || [];
   const total = deals.length;
-  const insight = insights[cat] || {};
 
-  // --- Adaptive SEO metadata ---
-  const archetype =
-    insight.archetype ||
-    (cat === "ai"
-      ? "Novelty & Innovation"
-      : cat === "marketing"
-      ? "Opportunity & Growth"
-      : cat === "courses"
-      ? "Authority & Learning"
-      : cat === "productivity"
-      ? "Efficiency & Focus"
-      : "Trust & Reliability");
+  // --- Metadata & Canonical ---
+  const title = `${cat.charAt(0).toUpperCase() + cat.slice(1)} Deals • ${archetype.label} | TinmanApps`;
+  const desc = `Explore ${total} active ${cat} deals embodying ${archetype.label} — discover tools, offers, and resources that match your growth mindset.`;
+  const canonical = `${BASE_URL}/api/categories?cat=${encodeURIComponent(cat)}`;
 
-  const boost = insight.boost || 0.85;
-  const title = `${cat[0].toUpperCase() + cat.slice(1)} Deals • ${archetype}`;
-  const description = `Discover the latest ${cat} tools and lifetime deals on AppSumo — curated by TinmanApps. Updated automatically for maximum value, scarcity, and innovation.`;
-  const keywords = (insight.topKeywords || [])
-    .slice(0, 10)
-    .join(", ");
-
-  // --- CTR-optimised CTA phrasing ---
-  const ctaPhrases = {
-    "Novelty & Innovation": "Explore this breakthrough deal →",
-    "Opportunity & Growth": "Grow faster with this offer →",
-    "Authority & Learning": "Start mastering this skill →",
-    "Efficiency & Focus": "Save hours instantly →",
-    "Trust & Reliability": "Simplify your workflow →"
-  };
-  const cta = ctaPhrases[archetype] || "Check it out →";
-
-  // --- Schema (ItemList) for SEO indexing ---
-  const itemList = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "name": `${cat} deals`,
-    "itemListElement": deals.map((d, i) => ({
-      "@type": "ListItem",
-      "position": i + 1,
-      "url": `${BASE_URL}/deals/${encodeURIComponent(
-        d.title.toLowerCase().replace(/\s+/g, "-")
-      )}`,
-      "name": d.title
-    }))
-  };
-
-  // --- Render minimal HTML ---
+  // --- HTML Render ---
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>${title}</title>
-  <meta name="description" content="${description}" />
-  <meta name="keywords" content="${keywords}" />
-  <link rel="canonical" href="${BASE_URL}/categories/${cat}" />
-  <script type="application/ld+json">${JSON.stringify(itemList)}</script>
+  <meta name="description" content="${desc}" />
+  <link rel="canonical" href="${canonical}" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${desc}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${canonical}" />
   <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 780px; line-height: 1.5; }
-    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .deal { margin: 1.2rem 0; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
-    a { text-decoration: none; color: #0070f3; }
-    a:hover { text-decoration: underline; }
-    .cta { display: inline-block; margin-top: 0.4rem; font-weight: 500; }
-    footer { margin-top: 2rem; font-size: 0.9rem; color: #888; }
+    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 780px; line-height: 1.6; }
+    h1 { color: ${archetype.color}; font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .deal { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+    .deal-title { font-weight: 600; font-size: 1.05rem; color: #222; text-decoration: none; }
+    .deal-title:hover { color: ${archetype.color}; text-decoration: underline; }
+    .cta { color: ${archetype.color}; text-decoration: none; font-size: 0.9rem; }
+    .cta:hover { text-decoration: underline; }
+    footer { margin-top: 2.5rem; font-size: 0.9rem; color: #888; }
   </style>
 </head>
 <body>
-  <h1>${cat[0].toUpperCase() + cat.slice(1)} Deals</h1>
-  <p><em>Adaptive archetype:</em> ${archetype} | <em>Boost:</em> ${boost}</p>
+  <h1>${cat.charAt(0).toUpperCase() + cat.slice(1)} Deals</h1>
+  <p><em>Adaptive archetype:</em> ${archetype.label}</p>
 
   ${deals
     .map(
       (d) => `
-    <div class="deal">
-      <strong>${d.title}</strong><br/>
-      <a href="${d.referralUrl}" class="cta">${cta}</a>
-    </div>`
+      <div class="deal">
+        <a class="deal-title" href="/api/deal?slug=${encodeURIComponent(
+          d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+        )}">${d.title}</a><br/>
+        <a class="cta" href="/api/deal?slug=${encodeURIComponent(
+          d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+        )}">${archetype.cta}</a>
+      </div>`
     )
     .join("")}
 
-  <footer>Updated ${new Date(CACHE.fetchedAt).toLocaleString()}</footer>
+  <footer>Updated ${new Date().toLocaleString()}</footer>
 </body>
 </html>
 `;
