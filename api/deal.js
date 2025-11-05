@@ -1,158 +1,82 @@
 // /api/deal.js
-// 🧠 TinmanApps Deal Engine — Dynamic single-product SEO page
-// Creates a self-optimising, psychology-driven landing page for each AppSumo deal.
+// 🎯 TinmanApps Adaptive Deal Page v2.0 (with CTR tracking)
+// Generates individual deal pages and logs engagement events
 
 import { CACHE } from "../lib/proxyCache.js";
 
 const BASE_URL = "https://deals.tinmanapps.com";
-const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
+const TRACK_URL = `${BASE_URL}/api/track`;
 
-// 🧩 Utility to normalise slug strings
-function slugify(str = "") {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+// Archetypes for adaptive tone and colour
+const ARCHETYPES = {
+  software: { label: "Trust & Reliability", color: "#4a6cf7", cta: "Built to last — explore" },
+  marketing: { label: "Opportunity & Growth", color: "#0ea5e9", cta: "Capture your edge — explore" },
+  productivity: { label: "Efficiency & Focus", color: "#16a34a", cta: "Streamline your day — explore" },
+  ai: { label: "Novelty & Innovation", color: "#9333ea", cta: "Experience the breakthrough — explore" },
+  courses: { label: "Authority & Learning", color: "#f59e0b", cta: "Start mastering — explore" }
+};
 
-// 🧠 Behavioural CTA selector
-function generateCTA(archetype, title) {
-  const short = title.split(" ")[0];
-  const library = {
-    "Novelty & Innovation": [
-      `Try ${short} before everyone else →`,
-      `Explore this breakthrough tool →`,
-      `Discover what’s next in AI →`
-    ],
-    "Opportunity & Growth": [
-      `Grow faster with ${short} →`,
-      `Unlock your next opportunity →`,
-      `Turn ideas into traction →`
-    ],
-    "Efficiency & Focus": [
-      `Cut your workload in half →`,
-      `Boost your focus with ${short} →`,
-      `Save hours every week →`
-    ],
-    "Authority & Learning": [
-      `Start mastering ${short} today →`,
-      `Level-up your skills fast →`,
-      `Learn smarter — not harder →`
-    ],
-    "Trust & Reliability": [
-      `Built to last — explore ${short} →`,
-      `Your reliable new sidekick →`,
-      `Simplify your workflow securely →`
-    ]
-  };
-
-  const options = library[archetype] || [`Check out ${short} →`];
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-// 🧬 Title/description synthesiser using archetype psychology
-function generateMeta(title, archetype) {
-  const templates = {
-    "Novelty & Innovation": `${title} — a cutting-edge tool reshaping what’s possible.`,
-    "Opportunity & Growth": `${title} helps you scale faster, smarter, and with impact.`,
-    "Efficiency & Focus": `${title} keeps you on task and saves time where it matters.`,
-    "Authority & Learning": `${title} teaches you powerful methods to stay ahead.`,
-    "Trust & Reliability": `${title} — built for creators who demand reliability.`
-  };
-  const desc = templates[archetype] || `${title} — discover the full AppSumo offer.`;
-  const metaTitle = `${title} • ${archetype} Deal | TinmanApps`;
-  return { metaTitle, desc };
-}
-
-// ✅ Main handler
 export default async function handler(req, res) {
-  const { slug } = req.query;
-  if (!slug) {
-    res
-      .status(400)
-      .send("<h1>Missing slug</h1><p>Use ?slug=vectera-2019</p>");
+  const slug = (req.query.slug || "").toLowerCase();
+  let found = null, category = "software";
+
+  // Find deal in any category
+  for (const [cat, list] of Object.entries(CACHE.categories || {})) {
+    found = list.find((d) =>
+      d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug
+    );
+    if (found) { category = cat; break; }
+  }
+
+  if (!found) {
+    res.status(404).send(`<h1>Deal not found</h1>`);
     return;
   }
 
-  const allDeals = Object.values(CACHE.categories || {}).flat();
-  const deal = allDeals.find((d) => slugify(d.title) === slug);
+  const arch = ARCHETYPES[category] || ARCHETYPES.software;
+  const dealTitle = found.title;
+  const referral = found.referralUrl;
 
-  if (!deal) {
-    res
-      .status(404)
-      .send("<h1>Deal not found</h1><p>It may have expired or moved.</p>");
-    return;
-  }
+  // --- Build tracking redirect ---
+  const trackingLink = `${TRACK_URL}?deal=${encodeURIComponent(slug)}&cat=${encodeURIComponent(category)}&redirect=${encodeURIComponent(referral)}`;
 
-  // Derive archetype from category
-  const cat = deal.category || "software";
-  const archetype =
-    cat === "ai"
-      ? "Novelty & Innovation"
-      : cat === "marketing"
-      ? "Opportunity & Growth"
-      : cat === "courses"
-      ? "Authority & Learning"
-      : cat === "productivity"
-      ? "Efficiency & Focus"
-      : "Trust & Reliability";
+  // --- Metadata ---
+  const title = `${dealTitle} • ${arch.label} | TinmanApps`;
+  const desc = `Discover ${dealTitle}, a ${category} tool embodying ${arch.label}. Curated by TinmanApps to deliver reliability, performance, and long-term value.`;
+  const canonical = `${BASE_URL}/api/deal?slug=${slug}`;
 
-  const cta = generateCTA(archetype, deal.title);
-  const { metaTitle, desc } = generateMeta(deal.title, archetype);
-  const referral = REF_PREFIX + encodeURIComponent(deal.url);
-
-  // --- Schema markup for Product ---
-  const productSchema = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": deal.title,
-    "category": cat,
-    "url": `${BASE_URL}/deals/${slug}`,
-    "brand": { "@type": "Brand", "name": "AppSumo" },
-    "offers": {
-      "@type": "Offer",
-      "url": referral,
-      "priceCurrency": "USD",
-      "availability": "https://schema.org/InStock"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": (Math.random() * 1.5 + 4).toFixed(1),
-      "reviewCount": Math.floor(Math.random() * 80 + 20)
-    }
-  };
-
-  // --- Minimal HTML render ---
+  // --- Render page ---
   const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${metaTitle}</title>
+  <title>${title}</title>
   <meta name="description" content="${desc}" />
-  <link rel="canonical" href="${BASE_URL}/deals/${slug}" />
-  <meta property="og:title" content="${metaTitle}" />
+  <link rel="canonical" href="${canonical}" />
+  <meta property="og:title" content="${title}" />
   <meta property="og:description" content="${desc}" />
-  <meta property="og:type" content="product" />
-  <meta property="og:url" content="${BASE_URL}/deals/${slug}" />
-  <script type="application/ld+json">${JSON.stringify(productSchema)}</script>
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="${canonical}" />
   <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 700px; line-height: 1.6; }
-    h1 { font-size: 1.8rem; margin-bottom: .4rem; }
-    .cta { display: inline-block; margin-top: 1rem; padding: .6rem 1rem; background: #0070f3; color: #fff;
-      border-radius: 6px; text-decoration: none; font-weight: 600; }
-    .cta:hover { background: #005bd1; }
-    footer { margin-top: 3rem; font-size: .9rem; color: #888; }
+    body { font-family: system-ui, sans-serif; margin: 3rem auto; max-width: 700px; text-align: center; }
+    h1 { color: ${arch.color}; font-size: 2rem; }
+    a.button {
+      display: inline-block; margin-top: 1.5rem; background: ${arch.color};
+      color: #fff; padding: 0.8rem 1.6rem; border-radius: 8px; text-decoration: none;
+      font-weight: 600; transition: 0.2s ease; 
+    }
+    a.button:hover { background: #222; }
+    footer { margin-top: 2rem; font-size: 0.9rem; color: #777; }
   </style>
 </head>
 <body>
-  <h1>${deal.title}</h1>
-  <p><em>Archetype:</em> ${archetype}</p>
-  <a href="${referral}" class="cta">${cta}</a>
+  <h1>${dealTitle}</h1>
+  <p><em>Archetype:</em> ${arch.label}</p>
+  <a class="button" href="${trackingLink}" rel="nofollow">${arch.cta} ${dealTitle} →</a>
   <footer>Generated ${new Date().toLocaleString()}</footer>
 </body>
-</html>
-`;
+</html>`;
 
   res.setHeader("Content-Type", "text/html");
   res.send(html);
