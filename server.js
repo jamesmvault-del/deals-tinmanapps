@@ -1,44 +1,41 @@
 // /server.js
-// 🚀 TinmanApps Deal Engine — Unified Express entry point
-// Automatically maps all /api/*.js routes without needing manual imports
+// 🚀 TinmanApps Deal Engine — Production Server Entry
 
 import express from "express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ✅ API modules
+import appsumoProxy from "./api/appsumo-proxy.js";
+import masterCron from "./api/master-cron.js";
+import insight from "./api/insight.js";
+import categories from "./api/categories.js";
+import ctaPhrases from "./api/cta-phrases.js";
 
 const app = express();
-const PORT = process.env.PORT || 10000;
 
-// ✅ Dynamically load every file in /api/
-const apiPath = path.join(__dirname, "api");
+// ✅ Register routes
+app.get("/api/appsumo-proxy", appsumoProxy);
+app.get("/api/master-cron", masterCron);
+app.get("/api/insight", insight);
+app.get("/api/categories", categories);
+app.get("/api/cta-phrases", ctaPhrases);
 
-fs.readdirSync(apiPath).forEach(async (file) => {
-  if (file.endsWith(".js")) {
-    const route = "/api/" + file.replace(".js", "");
-    try {
-      const module = await import(`./api/${file}`);
-      if (typeof module.default === "function") {
-        app.get(route, module.default);
-        console.log(`✅ Registered route: ${route}`);
-      } else {
-        console.warn(`⚠️ Skipped ${file} — no default export`);
-      }
-    } catch (err) {
-      console.error(`❌ Failed to load ${file}:`, err);
-    }
-  }
-});
-
-// ✅ Root health check
-app.get("/", (_, res) => {
+// ✅ Health check (root)
+app.get("/", (req, res) => {
   res.send("✅ TinmanApps deal engine running");
 });
 
+// ✅ Catch-all handler for 404s
+app.use((req, res) => {
+  res.status(404).json({ error: "Not Found", path: req.originalUrl });
+});
+
 // ✅ Start server
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log("✅ Registered route: /api/appsumo-proxy");
+  console.log("✅ Registered route: /api/master-cron");
+  console.log("✅ Registered route: /api/insight");
+  console.log("✅ Registered route: /api/categories");
+  console.log("✅ Registered route: /api/cta-phrases");
 });
