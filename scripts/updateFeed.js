@@ -1,6 +1,5 @@
 // /scripts/updateFeed.js
-// 🚀 TinmanApps AppSumo Feed Builder v9 — DOM Extraction Mode
-// Works on live AppSumo pages via Puppeteer, no Next.js dependency
+// 🚀 TinmanApps AppSumo Feed Builder v10 — Auto-scroll + Dynamic Loader Edition
 
 import fs from "fs";
 import path from "path";
@@ -17,9 +16,34 @@ const CATEGORY_URLS = {
   courses: "https://appsumo.com/courses-more/"
 };
 
+async function autoScroll(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let totalHeight = 0;
+      const distance = 500;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 300);
+    });
+  });
+}
+
 async function extractDeals(page, category) {
-  // Wait for deal cards to render dynamically
-  await page.waitForSelector("a[href*='/products/']", { timeout: 30000 });
+  try {
+    await page.waitForSelector("a[href*='/products/']", { timeout: 30000 });
+  } catch {
+    console.warn(`⚠️ ${category}: no product anchors found initially, trying scroll...`);
+  }
+
+  // Ensure lazy-loaded products appear
+  await autoScroll(page);
+  await page.waitForTimeout(2000);
 
   const deals = await page.$$eval("a[href*='/products/']", (anchors) => {
     const seen = new Set();
@@ -28,12 +52,12 @@ async function extractDeals(page, category) {
         const url = a.getAttribute("href");
         const title = a.textContent.trim();
         const img = a.querySelector("img")?.src || null;
-        if (!url || seen.has(url)) return null;
+        if (!url || seen.has(url) || !url.includes("/products/")) return null;
         seen.add(url);
         return { title, url: `https://appsumo.com${url}`, image: img };
       })
       .filter(Boolean)
-      .slice(0, 50);
+      .slice(0, 100);
   });
 
   return deals.map((d) => ({
@@ -45,7 +69,7 @@ async function extractDeals(page, category) {
 }
 
 async function main() {
-  console.log("🚀 Launching Puppeteer (DOM mode)...");
+  console.log("🚀 Launching Puppeteer (auto-scroll mode)...");
   const browser = await puppeteer.launch({
     headless: "new",
     args: [
@@ -58,10 +82,12 @@ async function main() {
   });
 
   const page = await browser.newPage();
+  await page.setViewport({ width: 1366, height: 768 });
+
   let total = 0;
 
   for (const [cat, url] of Object.entries(CATEGORY_URLS)) {
-    console.log(`⏳ Fetching ${cat} → ${url}`);
+    console.log(`\n⏳ Fetching ${cat} → ${url}`);
     try {
       await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
       const deals = await extractDeals(page, cat);
@@ -72,12 +98,11 @@ async function main() {
     } catch (err) {
       console.error(`❌ ${cat} error: ${err.message}`);
     }
+    await page.waitForTimeout(5000); // prevent Cloudflare triggers
   }
 
   await browser.close();
-  console.log(
-    `\n✅ Wrote ${total} total deals across ${Object.keys(CATEGORY_URLS).length} categories.`
-  );
+  console.log(`\n✅ Wrote ${total} total deals across ${Object.keys(CATEGORY_URLS).length} categories.`);
 }
 
 main().catch((err) => {
