@@ -2,7 +2,7 @@ name: Update AppSumo Feed
 
 on:
   schedule:
-    - cron: "0 */6 * * *"  # every 6 hours
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -20,29 +20,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install fetch dependency
-        run: npm install node-fetch@3
+      - name: Install dependencies
+        run: npm install puppeteer-core chrome-aws-lambda
 
-      - name: Run per-category feed updater
+      - name: Run headless feed builder
         run: node scripts/updateFeed.js
 
-      - name: Commit & push per-category feeds
+      - name: Commit & push feed data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage only per-category feed files
-          git add -f data/appsumo-software.json
-          git add -f data/appsumo-marketing.json
-          git add -f data/appsumo-productivity.json
-          git add -f data/appsumo-ai.json
-          git add -f data/appsumo-courses.json
-
-          # Commit and push if there are changes
+          git add -f data/appsumo-*.json
           if git diff --cached --quiet; then
-            echo "No feed changes to commit."
+            echo "No changes."
           else
-            git commit -m "🔁 Update AppSumo feeds (per-category)"
+            git commit -m "🔁 Update live AppSumo feeds"
             git push
-            echo "✅ Feeds committed and pushed."
           fi
