@@ -1,75 +1,107 @@
 // /api/categories.js
-// 🌐 TinmanApps Adaptive Category Renderer v3.0
-// Adds CTR-tracking links for every deal card
+// 🧭 TinmanApps SEO Category Renderer
+// Generates static-style HTML per category with adaptive metadata
 
-import { CACHE } from "../lib/proxyCache.js";
+import fs from "fs";
+import path from "path";
+import url from "url";
 
-const BASE_URL = "https://deals.tinmanapps.com";
-const TRACK_URL = `${BASE_URL}/api/track`;
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const dataDir = path.join(__dirname, "../data");
 
-// Archetype map for tone, colour, and CTA
-const ARCHETYPES = {
-  software: { label: "Trust & Reliability", color: "#4a6cf7", cta: "Simplify your workflow →" },
-  marketing: { label: "Opportunity & Growth", color: "#0ea5e9", cta: "Unlock your next win →" },
-  productivity: { label: "Efficiency & Focus", color: "#16a34a", cta: "Work smarter →" },
-  ai: { label: "Novelty & Innovation", color: "#9333ea", cta: "Explore this breakthrough →" },
-  courses: { label: "Authority & Learning", color: "#f59e0b", cta: "Start mastering today →" }
+// ✅ Category names & titles
+const CATEGORIES = {
+  software: "Software Deals",
+  marketing: "Marketing & Sales Tools",
+  productivity: "Productivity Boosters",
+  ai: "AI & Automation Tools",
+  courses: "Courses & Learning"
 };
 
-export default async function handler(req, res) {
-  const cat = (req.query.cat || "").toLowerCase();
-  const archetype = ARCHETYPES[cat] || ARCHETYPES.software;
-  const deals = CACHE.categories?.[cat] || [];
-  const total = deals.length;
+// ✅ Referral prefix
+const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-  const title = `${cat.charAt(0).toUpperCase() + cat.slice(1)} Deals • ${archetype.label} | TinmanApps`;
-  const desc = `Explore ${total} active ${cat} deals embodying ${archetype.label} — discover tools, offers, and resources that match your growth mindset.`;
-  const canonical = `${BASE_URL}/api/categories?cat=${encodeURIComponent(cat)}`;
+// ✅ Safe JSON loader
+function loadJson(file) {
+  try {
+    const p = path.join(dataDir, file);
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch (e) {
+    console.error("❌ Failed to load:", file, e);
+  }
+  return [];
+}
 
-  const html = `
-<!DOCTYPE html>
+// ✅ Helper to build HTML cards
+function renderDealCard(deal) {
+  return `
+  <a class="deal" href="/api/track?deal=${encodeURIComponent(
+    deal.slug
+  )}&cat=${encodeURIComponent(deal.category)}&redirect=${encodeURIComponent(
+    deal.referralUrl
+  )}" target="_blank" rel="noopener">
+    <img src="${deal.image}" alt="${deal.title}" loading="lazy"/>
+    <h3>${deal.title}</h3>
+    <p>${deal.seo?.cta || "Unlock deal →"}</p>
+  </a>`;
+}
+
+// ✅ Main handler
+export default async function categories(req, res) {
+  try {
+    const cat = req.path.split("/").pop();
+    const title = CATEGORIES[cat] || "Deals";
+    const deals = loadJson(`appsumo-${cat}.json`);
+
+    if (!deals.length) {
+      return res
+        .status(404)
+        .send(`<h1>No deals found for ${title}</h1><p>Please check back soon.</p>`);
+    }
+
+    // ✅ SEO meta
+    const metaTitle = `${title} | TinmanApps`;
+    const metaDesc = `Browse the latest ${title} from AppSumo — automatically indexed and updated for maximum value.`;
+    const metaUrl = `https://deals.tinmanapps.com/categories/${cat}`;
+    const metaImg = deals[0]?.image || `https://deals.tinmanapps.com/assets/placeholder.webp`;
+
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>${title}</title>
-  <meta name="description" content="${desc}" />
-  <link rel="canonical" href="${canonical}" />
-  <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${desc}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="${canonical}" />
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 780px; line-height: 1.6; }
-    h1 { color: ${archetype.color}; font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .deal { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
-    .deal-title { font-weight: 600; font-size: 1.05rem; color: #222; text-decoration: none; }
-    .deal-title:hover { color: ${archetype.color}; text-decoration: underline; }
-    .cta { color: ${archetype.color}; text-decoration: none; font-size: 0.9rem; }
-    .cta:hover { text-decoration: underline; }
-    footer { margin-top: 2.5rem; font-size: 0.9rem; color: #888; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${metaTitle}</title>
+<meta name="description" content="${metaDesc}" />
+<meta property="og:title" content="${metaTitle}" />
+<meta property="og:description" content="${metaDesc}" />
+<meta property="og:image" content="${metaImg}" />
+<meta property="og:url" content="${metaUrl}" />
+<link rel="canonical" href="${metaUrl}" />
+<style>
+  body { font-family: system-ui, sans-serif; background:#fafafa; color:#111; margin:0; padding:2rem; }
+  h1 { font-size:1.8rem; margin-bottom:1rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; }
+  .deal { background:#fff; border-radius:12px; padding:1rem; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-decoration:none; color:inherit; transition:transform .2s ease; }
+  .deal:hover { transform:translateY(-4px); box-shadow:0 4px 10px rgba(0,0,0,0.15); }
+  img { width:100%; border-radius:8px; }
+  h3 { margin:0.5rem 0 0.3rem; font-size:1rem; }
+  p { color:#555; margin:0; font-size:0.9rem; }
+  footer { margin-top:2rem; text-align:center; font-size:0.8rem; color:#888; }
+</style>
 </head>
 <body>
-  <h1>${cat.charAt(0).toUpperCase() + cat.slice(1)} Deals</h1>
-  <p><em>Adaptive archetype:</em> ${archetype.label}</p>
-
-  ${deals
-    .map((d) => {
-      const slug = d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const trackingLink = `${TRACK_URL}?deal=${encodeURIComponent(slug)}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(d.referralUrl)}`;
-      return `
-      <div class="deal">
-        <a class="deal-title" href="/api/deal?slug=${slug}">${d.title}</a><br/>
-        <a class="cta" href="${trackingLink}" rel="nofollow">${archetype.cta}</a>
-      </div>`;
-    })
-    .join("")}
-
-  <footer>Updated ${new Date().toLocaleString()}</footer>
+<h1>${title}</h1>
+<div class="grid">
+${deals.slice(0, 100).map(renderDealCard).join("\n")}
+</div>
+<footer>Powered by TinmanApps Adaptive SEO Engine</footer>
 </body>
-</html>
-`;
+</html>`;
 
-  res.setHeader("Content-Type", "text/html");
-  res.send(html);
+    res.setHeader("Content-Type", "text/html");
+    res.send(html);
+  } catch (err) {
+    console.error("❌ Category render error:", err);
+    res.status(500).send("Server error.");
+  }
 }
