@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🚀 TinmanApps AppSumo Feed Builder v8 — Stable Puppeteer Edition
-// Works natively on GitHub Actions + Render (no Lambda dependencies)
+// 🚀 TinmanApps AppSumo Feed Builder v9 — DOM Extraction Mode
+// Works on live AppSumo pages via Puppeteer, no Next.js dependency
 
 import fs from "fs";
 import path from "path";
@@ -18,27 +18,34 @@ const CATEGORY_URLS = {
 };
 
 async function extractDeals(page, category) {
-  const content = await page.content();
-  const match = content.match(
-    /<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/
-  );
-  if (!match) return [];
-  const json = JSON.parse(match[1]);
-  const deals =
-    json?.props?.pageProps?.deals ||
-    json?.props?.pageProps?.data?.deals ||
-    [];
-  return deals.slice(0, 50).map((d) => ({
+  // Wait for deal cards to render dynamically
+  await page.waitForSelector("a[href*='/products/']", { timeout: 30000 });
+
+  const deals = await page.$$eval("a[href*='/products/']", (anchors) => {
+    const seen = new Set();
+    return anchors
+      .map((a) => {
+        const url = a.getAttribute("href");
+        const title = a.textContent.trim();
+        const img = a.querySelector("img")?.src || null;
+        if (!url || seen.has(url)) return null;
+        seen.add(url);
+        return { title, url: `https://appsumo.com${url}`, image: img };
+      })
+      .filter(Boolean)
+      .slice(0, 50);
+  });
+
+  return deals.map((d) => ({
     title: d.title || "Untitled",
-    slug: d.slug || "",
-    url: `https://appsumo.com/products/${d.slug}/`,
-    image: d.image?.url || d.image || null,
+    url: d.url,
+    image: d.image || null,
     category
   }));
 }
 
 async function main() {
-  console.log("🚀 Launching Puppeteer (bundled Chromium)...");
+  console.log("🚀 Launching Puppeteer (DOM mode)...");
   const browser = await puppeteer.launch({
     headless: "new",
     args: [
