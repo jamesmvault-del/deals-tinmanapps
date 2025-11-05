@@ -1,5 +1,5 @@
 // /scripts/updateFeed.js
-// 🚀 TinmanApps AppSumo Feed Builder v10 — Auto-scroll + Dynamic Loader Edition
+// 🚀 TinmanApps AppSumo Feed Builder v10.1 — Auto-scroll + Compatibility Edition
 
 import fs from "fs";
 import path from "path";
@@ -15,6 +15,11 @@ const CATEGORY_URLS = {
   ai: "https://appsumo.com/software/artificial-intelligence/",
   courses: "https://appsumo.com/courses-more/"
 };
+
+// 🕒 universal delay helper
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function autoScroll(page) {
   await page.evaluate(async () => {
@@ -38,12 +43,11 @@ async function extractDeals(page, category) {
   try {
     await page.waitForSelector("a[href*='/products/']", { timeout: 30000 });
   } catch {
-    console.warn(`⚠️ ${category}: no product anchors found initially, trying scroll...`);
+    console.warn(`⚠️ ${category}: no anchors initially, scrolling...`);
   }
 
-  // Ensure lazy-loaded products appear
   await autoScroll(page);
-  await page.waitForTimeout(2000);
+  await sleep(2000); // ⏳ allow lazy images/cards to render
 
   const deals = await page.$$eval("a[href*='/products/']", (anchors) => {
     const seen = new Set();
@@ -98,7 +102,7 @@ async function main() {
     } catch (err) {
       console.error(`❌ ${cat} error: ${err.message}`);
     }
-    await page.waitForTimeout(5000); // prevent Cloudflare triggers
+    await sleep(5000); // 🕐 throttle between pages
   }
 
   await browser.close();
