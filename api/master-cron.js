@@ -1,6 +1,6 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.0
-// Runs full optimisation cycle: Builder → Insight → CTA Evolver → Feeds
+// 🔁 TinmanApps Master Cron v3.1
+// Full optimisation cycle with silent insight + CTA evolver integration
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
 import { evolveCTAs } from "../lib/ctaEvolver.js";
@@ -17,8 +17,12 @@ export default async function handler(req, res) {
     await backgroundRefresh();
     console.log("✅ [Cron] Builder refresh complete");
 
-    // 2️⃣ Run insight analysis
-    await insightHandler({ query: { silent: "1" } }, {});
+    // 2️⃣ Run insight analysis silently (mock res)
+    await insightHandler(
+      { query: { silent: "1" } },
+      { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
+    );
+    console.log("✅ [Cron] Insight refresh complete");
 
     // 3️⃣ Run CTA evolution
     evolveCTAs();
@@ -38,6 +42,8 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error("❌ [Cron] Error:", err);
-    res.status(500).json({ error: "Cron cycle failed", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Cron cycle failed", details: err.message });
   }
 }
