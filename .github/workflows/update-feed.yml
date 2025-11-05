@@ -23,22 +23,26 @@ jobs:
       - name: Install fetch dependency
         run: npm install node-fetch@3
 
-      - name: Run feed updater
+      - name: Run per-category feed updater
         run: node scripts/updateFeed.js
 
-      - name: Commit & push only feed changes
+      - name: Commit & push per-category feeds
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # stage only the feed file (ignore everything else)
-          git add -f data/appsumo-feed.json
+          # Stage only per-category feed files
+          git add -f data/appsumo-software.json
+          git add -f data/appsumo-marketing.json
+          git add -f data/appsumo-productivity.json
+          git add -f data/appsumo-ai.json
+          git add -f data/appsumo-courses.json
 
-          # commit and push if changed
+          # Commit and push if there are changes
           if git diff --cached --quiet; then
             echo "No feed changes to commit."
           else
-            git commit -m "🔁 Update AppSumo feed"
+            git commit -m "🔁 Update AppSumo feeds (per-category)"
             git push
-            echo "✅ Feed committed and pushed."
+            echo "✅ Feeds committed and pushed."
           fi
