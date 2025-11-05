@@ -1,36 +1,25 @@
-// server.js — routes all API endpoints cleanly
+// /server.js
+// Express entry point for TinmanApps Deal Engine
 
-import http from "http";
-import url from "url";
-
-import appsumoBuilder from "./api/appsumo-builder.js";
+import express from "express";
 import appsumoProxy from "./api/appsumo-proxy.js";
 import masterCron from "./api/master-cron.js";
+import insight from "./api/insight.js";
 
-const routes = {
-  "/api/appsumo-builder": appsumoBuilder,
-  "/api/appsumo-proxy": appsumoProxy,
-  "/api/master-cron": masterCron
-};
+const app = express();
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const { pathname } = url.parse(req.url);
-    const match = Object.keys(routes).find((r) => pathname.startsWith(r));
+// ✅ API routes
+app.get("/api/appsumo-proxy", appsumoProxy);
+app.get("/api/master-cron", masterCron);
+app.get("/api/insight", insight);
 
-    if (match) {
-      return routes[match](req, res);
-    }
-
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "text/plain");
-    res.end("✅ TinmanApps deal engine running");
-  } catch (err) {
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "text/plain");
-    res.end("Error: " + err.message);
-  }
+// ✅ Health / root
+app.get("/", (req, res) => {
+  res.send("✅ TinmanApps deal engine running");
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
