@@ -2,7 +2,7 @@ name: Update AppSumo Feed
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */6 * * *" # every 6 hours
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install puppeteer-core chrome-aws-lambda
+        run: npm install --legacy-peer-deps
 
       - name: Run headless feed builder
         run: node scripts/updateFeed.js
