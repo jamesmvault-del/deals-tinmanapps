@@ -1,8 +1,7 @@
 // /api/master-cron.js
-// Purpose: run builder → proxy refresh in background and update cache.
+// Purpose: run builder → proxy refresh cycle in background.
 
-import { setTimeout as delay } from "timers/promises";
-import * as proxyModule from "./appsumo-proxy.js";
+import { backgroundRefresh } from "../lib/proxyCache.js";
 
 const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 let lastRun = 0;
@@ -11,23 +10,11 @@ async function performCycle() {
   const start = Date.now();
   const stamp = new Date().toISOString();
   console.log(`🔁 [Cron] Starting refresh cycle @ ${stamp}`);
-
-  try {
-    // Use proxy’s backgroundRefresh directly
-    if (proxyModule && proxyModule.backgroundRefresh) {
-      await proxyModule.backgroundRefresh();
-    } else if (proxyModule.default && proxyModule.default.backgroundRefresh) {
-      await proxyModule.default.backgroundRefresh();
-    }
-
-    const ms = Date.now() - start;
-    lastRun = Date.now();
-    console.log(`✅ [Cron] Refresh complete in ${ms}ms`);
-    return { status: "ok", ranAt: stamp, duration: ms };
-  } catch (err) {
-    console.error("❌ [Cron] error:", err);
-    return { status: "error", message: err.message };
-  }
+  await backgroundRefresh();
+  const ms = Date.now() - start;
+  lastRun = Date.now();
+  console.log(`✅ [Cron] Refresh complete in ${ms} ms`);
+  return { status: "ok", ranAt: stamp, duration: ms };
 }
 
 export default async function handler(req, res) {
@@ -56,7 +43,7 @@ export default async function handler(req, res) {
     res.end(
       JSON.stringify({
         message: "Cycle triggered in background.",
-        previousRun: lastRun ? new Date(lastRun).toISOString() : null,
+        previousRun: lastRun ? new Date(lastRun).toISOString() : null
       })
     );
   } catch (err) {
