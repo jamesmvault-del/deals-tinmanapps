@@ -1,17 +1,16 @@
-// server.js — upgraded router to handle all /api endpoints
-// Works on Render and with any number of /api/*.js files
+// server.js — routes all API endpoints cleanly
 
 import http from "http";
 import url from "url";
 
-// Import all API handlers
 import appsumoBuilder from "./api/appsumo-builder.js";
 import appsumoProxy from "./api/appsumo-proxy.js";
+import masterCron from "./api/master-cron.js";
 
-// Map of available endpoints
 const routes = {
   "/api/appsumo-builder": appsumoBuilder,
-  "/api/appsumo-proxy": appsumoProxy
+  "/api/appsumo-proxy": appsumoProxy,
+  "/api/master-cron": masterCron
 };
 
 const server = http.createServer(async (req, res) => {
@@ -23,7 +22,6 @@ const server = http.createServer(async (req, res) => {
       return routes[match](req, res);
     }
 
-    // Default response for root or unknown paths
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/plain");
     res.end("✅ TinmanApps deal engine running");
