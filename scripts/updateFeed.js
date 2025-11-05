@@ -1,5 +1,6 @@
 // scripts/updateFeed.js
 // 🔁 Fetch latest AppSumo deals and update data/appsumo-feed.json
+// Works with the current (2025) AppSumo public JSON endpoints
 
 import fs from "fs";
 import path from "path";
@@ -7,11 +8,15 @@ import fetch from "node-fetch";
 
 const OUT_PATH = path.resolve("data/appsumo-feed.json");
 
+// Current working AppSumo JSON feeds (mirroring their live site)
 const SOURCES = [
-  { name: "software", url: "https://appsumo.com/api/v1/deals/?category=software" },
-  { name: "courses", url: "https://appsumo.com/api/v1/deals/?category=courses-more" },
-  { name: "new", url: "https://appsumo.com/api/v1/collections/new/" },
-  { name: "ending", url: "https://appsumo.com/api/v1/collections/ending-soon/" }
+  { name: "software", url: "https://appsumo.com/api/v2/deals/?category=software" },
+  { name: "marketing", url: "https://appsumo.com/api/v2/deals/?category=marketing-sales" },
+  { name: "ai", url: "https://appsumo.com/api/v2/deals/?category=ai-tools" },
+  { name: "productivity", url: "https://appsumo.com/api/v2/deals/?category=productivity" },
+  { name: "courses", url: "https://appsumo.com/api/v2/deals/?category=courses-more" },
+  { name: "new", url: "https://appsumo.com/api/v2/collections/new/" },
+  { name: "ending-soon", url: "https://appsumo.com/api/v2/collections/ending-soon/" }
 ];
 
 async function fetchDeals() {
@@ -24,9 +29,14 @@ async function fetchDeals() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
-      const items = (json.results || json.deals || []).map((d) => ({
-        title: d.name || d.title,
-        url: `https://appsumo.com${d.url || d.slug || ""}`,
+      // Normalise possible structures (v2 returns deals under .results or .data)
+      const items = (json.results || json.deals || json.data || []).map((d) => ({
+        title: d.name || d.title || d.slug || "Untitled",
+        url: d.url
+          ? `https://appsumo.com${d.url}`
+          : d.slug
+          ? `https://appsumo.com/products/${d.slug}/`
+          : "https://appsumo.com/",
         category: src.name
       }));
 
