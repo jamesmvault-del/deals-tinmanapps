@@ -3,9 +3,8 @@
 // Generates minimal HTML + adaptive metadata + CTR-optimised CTAs
 
 import { CACHE } from "../lib/proxyCache.js";
-import { SITE_URL } from "../lib/config.js"; // optional; fallback below
 
-const BASE_URL = SITE_URL || "https://deals.tinmanapps.com";
+const BASE_URL = "https://deals.tinmanapps.com"; // fixed fallback domain
 
 export default async function handler(req, res) {
   const { cat } = req.query;
@@ -15,15 +14,13 @@ export default async function handler(req, res) {
   if (!cat || !categories[cat]) {
     res
       .status(404)
-      .send(`<h1>Category not found</h1><p>Try /categories/software etc.</p>`);
+      .send(`<h1>Category not found</h1><p>Try /api/categories?cat=software etc.</p>`);
     return;
   }
 
   const deals = categories[cat];
   const total = deals.length;
-  const insight =
-    insights[cat] ||
-    {}; /* (placeholder if you later pipe Insight data here automatically) */
+  const insight = insights[cat] || {};
 
   // --- Adaptive SEO metadata ---
   const archetype =
