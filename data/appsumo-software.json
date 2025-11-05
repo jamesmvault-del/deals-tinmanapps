@@ -1,602 +1,102 @@
 [
   {
-    "title": "youbooks",
+    "title": "Youbooks",
     "url": "https://appsumo.com/products/youbooks/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "47 reviews",
-    "url": "https://appsumo.com/products/youbooks/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Heffl",
     "url": "https://appsumo.com/products/heffl/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "28 reviews",
-    "url": "https://appsumo.com/products/heffl/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Yapper",
     "url": "https://appsumo.com/products/yapper/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "10 reviews",
-    "url": "https://appsumo.com/products/yapper/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "CardClan",
+    "title": "Cardclan",
     "url": "https://appsumo.com/products/cardclan/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "70 reviews",
-    "url": "https://appsumo.com/products/cardclan/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Dialora",
     "url": "https://appsumo.com/products/dialora/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "34 reviews",
-    "url": "https://appsumo.com/products/dialora/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "TidyCal",
+    "title": "Tidycal",
     "url": "https://appsumo.com/products/tidycal/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "832 reviews",
-    "url": "https://appsumo.com/products/tidycal/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "WbizTool",
+    "title": "Wbiztool",
     "url": "https://appsumo.com/products/wbiztool/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "74 reviews",
-    "url": "https://appsumo.com/products/wbiztool/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "TagMango",
+    "title": "Tagmango",
     "url": "https://appsumo.com/products/tagmango/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "15 reviews",
-    "url": "https://appsumo.com/products/tagmango/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Phygital+",
+    "title": "Phygital",
     "url": "https://appsumo.com/products/phygital/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "37 reviews",
-    "url": "https://appsumo.com/products/phygital/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Nexuscale AI",
+    "title": "Nexuscale",
     "url": "https://appsumo.com/products/nexuscale/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "43 reviews",
-    "url": "https://appsumo.com/products/nexuscale/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Emailit",
     "url": "https://appsumo.com/products/emailit/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "123 reviews",
-    "url": "https://appsumo.com/products/emailit/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Pretty Prompt",
+    "title": "Prettyprompt",
     "url": "https://appsumo.com/products/prettyprompt/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "14 reviews",
-    "url": "https://appsumo.com/products/prettyprompt/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Feedspace",
     "url": "https://appsumo.com/products/feedspace/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "91 reviews",
-    "url": "https://appsumo.com/products/feedspace/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Puzzle",
     "url": "https://appsumo.com/products/puzzle/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "4 reviews",
-    "url": "https://appsumo.com/products/puzzle/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "FuseBase",
+    "title": "Fusebase",
     "url": "https://appsumo.com/products/fusebase/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "534 reviews",
-    "url": "https://appsumo.com/products/fusebase/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Skillplate",
     "url": "https://appsumo.com/products/skillplate/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "42 reviews",
-    "url": "https://appsumo.com/products/skillplate/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "BrowserAct",
+    "title": "Browseract",
     "url": "https://appsumo.com/products/browseract/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "19 reviews",
-    "url": "https://appsumo.com/products/browseract/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Mootion",
     "url": "https://appsumo.com/products/mootion/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "91 reviews",
-    "url": "https://appsumo.com/products/mootion/#reviews",
-    "image": null,
     "category": "software"
   },
   {
     "title": "Late",
     "url": "https://appsumo.com/products/late/",
-    "image": null,
     "category": "software"
   },
   {
-    "title": "63 reviews",
-    "url": "https://appsumo.com/products/late/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "SendFox",
+    "title": "Sendfox",
     "url": "https://appsumo.com/products/sendfox/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "328 reviews",
-    "url": "https://appsumo.com/products/sendfox/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Snoooz",
-    "url": "https://appsumo.com/products/snoooz/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "30 reviews",
-    "url": "https://appsumo.com/products/snoooz/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "replient.ai",
-    "url": "https://appsumo.com/products/replientai/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "51 reviews",
-    "url": "https://appsumo.com/products/replientai/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Dart - Plus exclusive",
-    "url": "https://appsumo.com/products/dart/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "5 reviews",
-    "url": "https://appsumo.com/products/dart/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "BreezeDoc",
-    "url": "https://appsumo.com/products/breezedoc/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "131 reviews",
-    "url": "https://appsumo.com/products/breezedoc/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "AgencyPro",
-    "url": "https://appsumo.com/products/agencypro/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "1 reviews",
-    "url": "https://appsumo.com/products/agencypro/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Swft Connect",
-    "url": "https://appsumo.com/products/swft-connect/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "43 reviews",
-    "url": "https://appsumo.com/products/swft-connect/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Dynamic Mockups",
-    "url": "https://appsumo.com/products/dynamic-mockups/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "4 reviews",
-    "url": "https://appsumo.com/products/dynamic-mockups/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "AppSumo Bundle Volume 3: Mac + iOS Essentials",
-    "url": "https://appsumo.com/products/mac-ios-essentials/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "3 reviews",
-    "url": "https://appsumo.com/products/mac-ios-essentials/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "t0ggles",
-    "url": "https://appsumo.com/products/t0ggles/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "15 reviews",
-    "url": "https://appsumo.com/products/t0ggles/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "SiteGuru",
-    "url": "https://appsumo.com/products/siteguru/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "517 reviews",
-    "url": "https://appsumo.com/products/siteguru/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "NoCodeBackend",
-    "url": "https://appsumo.com/products/nocodebackend/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "105 reviews",
-    "url": "https://appsumo.com/products/nocodebackend/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "BrandBay",
-    "url": "https://appsumo.com/products/brandbay/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "47 reviews",
-    "url": "https://appsumo.com/products/brandbay/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Local Rank Tracker",
-    "url": "https://appsumo.com/products/local-rank-tracker/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "106 reviews",
-    "url": "https://appsumo.com/products/local-rank-tracker/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Konvey",
-    "url": "https://appsumo.com/products/konvey/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "258 reviews",
-    "url": "https://appsumo.com/products/konvey/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Sociamonials",
-    "url": "https://appsumo.com/products/sociamonials/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "230 reviews",
-    "url": "https://appsumo.com/products/sociamonials/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Connexify",
-    "url": "https://appsumo.com/products/connexify/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "31 reviews",
-    "url": "https://appsumo.com/products/connexify/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "OnlineCourseHost.com",
-    "url": "https://appsumo.com/products/onlinecoursehost/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "165 reviews",
-    "url": "https://appsumo.com/products/onlinecoursehost/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "CSS Peeper",
-    "url": "https://appsumo.com/products/css-peeper/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "19 reviews",
-    "url": "https://appsumo.com/products/css-peeper/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "KingSumo",
-    "url": "https://appsumo.com/products/kingsumo/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "62 reviews",
-    "url": "https://appsumo.com/products/kingsumo/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Release0",
-    "url": "https://appsumo.com/products/release0/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "11 reviews",
-    "url": "https://appsumo.com/products/release0/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "GoBrunch",
-    "url": "https://appsumo.com/products/gobrunch/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "311 reviews",
-    "url": "https://appsumo.com/products/gobrunch/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Reoon Email Verifier",
-    "url": "https://appsumo.com/products/reoon-email-verifier/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "717 reviews",
-    "url": "https://appsumo.com/products/reoon-email-verifier/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Bit Form – WordPress Form Builder Plugin",
-    "url": "https://appsumo.com/products/bit-form/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "50 reviews",
-    "url": "https://appsumo.com/products/bit-form/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "LeadRocks",
-    "url": "https://appsumo.com/products/leadrocks/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "363 reviews",
-    "url": "https://appsumo.com/products/leadrocks/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Claritee",
-    "url": "https://appsumo.com/products/claritee/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "51 reviews",
-    "url": "https://appsumo.com/products/claritee/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Adam by Tyms",
-    "url": "https://appsumo.com/products/adam/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "4 reviews",
-    "url": "https://appsumo.com/products/adam/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Fox Signals",
-    "url": "https://appsumo.com/products/fox-signals/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "77 reviews",
-    "url": "https://appsumo.com/products/fox-signals/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "MarkupGo",
-    "url": "https://appsumo.com/products/markupgo/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "34 reviews",
-    "url": "https://appsumo.com/products/markupgo/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Quizify - Quizzes, Forms & Surveys",
-    "url": "https://appsumo.com/products/quizify/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "24 reviews",
-    "url": "https://appsumo.com/products/quizify/#reviews",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "Memogram",
-    "url": "https://appsumo.com/products/memogram/",
-    "image": null,
-    "category": "software"
-  },
-  {
-    "title": "24 reviews",
-    "url": "https://appsumo.com/products/memogram/#reviews",
-    "image": null,
     "category": "software"
   }
 ]
