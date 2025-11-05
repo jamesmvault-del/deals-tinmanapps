@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🚀 TinmanApps AppSumo Feed Builder v7 (Headless Browser Edition)
-// Executes category pages with Puppeteer to extract embedded JSON
+// 🚀 TinmanApps AppSumo Feed Builder v7.1 — Headless Browser Edition
+// Works in Render + GitHub Actions with system Chromium fallback
 
 import fs from "fs";
 import path from "path";
@@ -19,7 +19,6 @@ const CATEGORY_URLS = {
 };
 
 async function extractDeals(page, category) {
-  // Wait until Next.js renders data
   const content = await page.content();
   const match = content.match(/<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/);
   if (!match) return [];
@@ -27,10 +26,20 @@ async function extractDeals(page, category) {
   const deals = json?.props?.pageProps?.deals || json?.props?.pageProps?.data?.deals || [];
   return deals.slice(0, 50).map((d) => ({
     title: d.title || "Untitled",
+    slug: d.slug || "",
     url: `https://appsumo.com/products/${d.slug}/`,
     image: d.image?.url || d.image || null,
     category
   }));
+}
+
+async function getExecutablePath() {
+  try {
+    const execPath = await chromium.executablePath;
+    if (execPath) return execPath;
+  } catch (_) {}
+  // Fallback for GitHub Actions
+  return "/usr/bin/chromium-browser";
 }
 
 async function main() {
@@ -38,8 +47,8 @@ async function main() {
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless
+    executablePath: await getExecutablePath(),
+    headless: true
   });
 
   const page = await browser.newPage();
