@@ -1,64 +1,120 @@
 // /api/appsumo-proxy.js
-// Purpose: serve cached AppSumo data instantly, refresh in background.
+// 🌍 TinmanApps Adaptive AppSumo Proxy
+// Merges category feeds → adds referral + image + SEO metadata
 
-import { CACHE, backgroundRefresh } from "../lib/proxyCache.js";
+import fs from "fs";
+import path from "path";
+import url from "url";
 
-function okJson(res, code, payload) {
-  res.statusCode = code;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
-  res.end(JSON.stringify(payload, null, 2));
-}
+// ✅ Define file paths relative to project root
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const dataDir = path.join(__dirname, "../data");
 
-function bad(res, code, msg) {
-  okJson(res, code, { error: msg });
-}
+// ✅ Referral prefix (AppSumo affiliate ID)
+const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-export default async function handler(req, res) {
+// ✅ Safe JSON loader
+function loadJson(file) {
   try {
-    if (req.method !== "GET") {
-      return bad(res, 405, "Method not allowed. Use GET.");
+    const fullPath = path.join(dataDir, file);
+    if (fs.existsSync(fullPath)) {
+      const raw = fs.readFileSync(fullPath, "utf8");
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error(`❌ Failed to load ${file}:`, err);
+  }
+  return [];
+}
+
+// ✅ Basic SEO / CTR enhancement
+function enrichDeal(deal, category) {
+  const baseUrl = deal.url || "";
+  const slug = baseUrl.split("/products/")[1]?.replace("/", "") || "unknown";
+
+  return {
+    title: deal.title?.trim() || slug,
+    slug,
+    category,
+    url: baseUrl,
+    referralUrl: REF_PREFIX + encodeURIComponent(baseUrl),
+    image:
+      deal.image ||
+      `https://deals.tinmanapps.com/assets/placeholder.webp`,
+    seo: {
+      clickbait: `Discover ${deal.title} — #1 in ${category}`,
+      keywords: [
+        category,
+        "AppSumo",
+        "lifetime deal",
+        deal.title?.toLowerCase(),
+        "exclusive offer"
+      ],
+      cta: [
+        "Unlock this deal →",
+        "Save big today →",
+        "Get instant lifetime access →",
+        "Upgrade your workflow →"
+      ][Math.floor(Math.random() * 4)]
+    }
+  };
+}
+
+// ✅ API endpoint
+export default async function appsumoProxy(req, res) {
+  try {
+    const { cat, refresh } = req.query;
+    const start = Date.now();
+
+    // Category files to merge
+    const categories = [
+      "software",
+      "marketing",
+      "productivity",
+      "ai",
+      "courses"
+    ];
+
+    // Load all feeds
+    const data = {};
+    let total = 0;
+
+    for (const c of categories) {
+      const deals = loadJson(`appsumo-${c}.json`).map((d) => enrichDeal(d, c));
+      data[c] = deals;
+      total += deals.length;
     }
 
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const cat = (url.searchParams.get("cat") || "").toLowerCase();
-    const wantRefresh = url.searchParams.get("refresh") === "1";
+    const response = {
+      source: "TinmanApps Proxy",
+      fetchedAt: new Date().toISOString(),
+      totalDeals: total,
+      byCategory: Object.fromEntries(
+        categories.map((c) => [c, data[c]?.length || 0])
+      ),
+      categories: data,
+      notes: {
+        lastBuilderRun: new Date().toISOString(),
+        lastRefreshStatus: `ok in ${Date.now() - start} ms (merged ${
+          total
+        } deals)`
+      }
+    };
 
-    // Background refresh trigger
-    if (wantRefresh) {
-      backgroundRefresh(); // async
-      return okJson(res, 200, { message: "Background refresh triggered." });
-    }
-
-    // Category-specific view
-    if (cat) {
-      const deals = CACHE.categories[cat];
-      if (!deals) return bad(res, 404, `Unknown category: ${cat}`);
-      return okJson(res, 200, {
+    // Filter if ?cat= specified
+    if (cat && data[cat]) {
+      res.json({
         source: "TinmanApps Proxy",
         category: cat,
-        fetchedAt: CACHE.fetchedAt,
-        dealCount: deals.length,
-        deals
+        fetchedAt: response.fetchedAt,
+        dealCount: data[cat].length,
+        deals: data[cat]
       });
+    } else {
+      res.json(response);
     }
-
-    // Summary
-    const summary = Object.fromEntries(
-      Object.entries(CACHE.categories).map(([k, v]) => [k, v.length])
-    );
-
-    return okJson(res, 200, {
-      source: "TinmanApps Proxy",
-      fetchedAt: CACHE.fetchedAt,
-      totalDeals: CACHE.meta.totalDeals,
-      byCategory: summary,
-      notes: {
-        lastBuilderRun: CACHE.meta.lastBuilderRun,
-        lastRefreshStatus: CACHE.meta.lastRefreshStatus
-      }
-    });
   } catch (err) {
-    bad(res, 500, `Proxy error: ${err.message}`);
+    console.error("❌ appsumoProxy error:", err);
+    res.status(500).json({ error: "Proxy failure", details: err.message });
   }
 }
