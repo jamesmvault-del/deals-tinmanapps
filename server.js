@@ -1,6 +1,5 @@
 // /server.js
 // 🚀 TinmanApps Deal Engine — Production Server Entry
-// Serves API endpoints, image proxy, and future HTML routes
 
 import express from "express";
 
@@ -19,6 +18,9 @@ const app = express();
 
 // 🔁 ensure CTA phrases file exists on boot
 evolveCTAs();
+
+// ✅ Serve static assets (for images, CSS, etc.)
+app.use("/assets", express.static("public/assets"));
 
 // ✅ Register API routes
 app.get("/api/appsumo-proxy", appsumoProxy);
@@ -48,4 +50,5 @@ app.listen(PORT, () => {
   console.log("✅ Registered route: /api/categories");
   console.log("✅ Registered route: /api/cta-phrases");
   console.log("✅ Registered route: /api/image-proxy");
+  console.log("✅ Static assets available at /assets/*");
 });
