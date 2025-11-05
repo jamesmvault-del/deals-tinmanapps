@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🔁 TinmanApps AppSumo Feed Builder v3 (sitemap-driven)
-// Parses https://appsumo.com/sitemap-products.xml for title, slug, image, and category.
+// 🔁 TinmanApps AppSumo Feed Builder v4
+// Crawls sitemap index -> product sitemaps -> categories with images
 
 import fs from "fs";
 import path from "path";
@@ -10,9 +10,8 @@ import { parseStringPromise } from "xml2js";
 const ROOT = path.resolve("./data");
 if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT, { recursive: true });
 
-const SITEMAP_URL = "https://appsumo.com/sitemap-products.xml";
+const SITEMAP_INDEX = "https://appsumo.com/sitemap.xml";
 
-// Heuristic keyword sets for category classification
 const CATEGORY_KEYWORDS = {
   software: ["software", "tool", "platform", "saas", "automation"],
   marketing: ["marketing", "email", "social", "seo", "sales"],
@@ -25,9 +24,9 @@ async function safeFetch(url) {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; TinmanBot/3.0; +https://deals.tinmanapps.com)"
+        "Mozilla/5.0 (compatible; TinmanBot/4.0; +https://deals.tinmanapps.com)"
     },
-    timeout: 15000
+    timeout: 20000
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.text();
@@ -41,14 +40,27 @@ function classify(title, loc) {
   return "software";
 }
 
-async function processSitemap() {
-  console.log(`⏳ Fetching sitemap...`);
-  const xml = await safeFetch(SITEMAP_URL);
+async function getProductSitemaps() {
+  const xml = await safeFetch(SITEMAP_INDEX);
   const data = await parseStringPromise(xml, { explicitArray: false });
+  const entries = data.sitemapindex.sitemap || [];
+  const urls = (Array.isArray(entries) ? entries : [entries])
+    .map(x => x.loc)
+    .filter(u => u.includes("sitemap-products-"));
+  console.log(`📖 Found ${urls.length} product sitemaps.`);
+  return urls;
+}
 
+async function parseProductSitemap(url) {
+  const xml = await safeFetch(url);
+  const data = await parseStringPromise(xml, { explicitArray: false });
   const urls = data.urlset.url || [];
-  const items = Array.isArray(urls) ? urls : [urls];
-  console.log(`📦 Found ${items.length} URLs in sitemap.`);
+  return Array.isArray(urls) ? urls : [urls];
+}
+
+async function main() {
+  console.log("⏳ Fetching sitemap index...");
+  const productSitemaps = await getProductSitemaps();
 
   const perCategory = {
     software: [],
@@ -57,36 +69,46 @@ async function processSitemap() {
     ai: [],
     courses: []
   };
-
   let total = 0;
 
-  for (const u of items) {
-    const loc = u.loc;
-    const img = u["image:image"]?.["image:loc"] || null;
-    const title = u["image:image"]?.["image:title"] || loc.split("/").slice(-2, -1)[0];
-    const cat = classify(title, loc);
+  for (const sm of productSitemaps) {
+    console.log(`📦 Parsing ${sm}`);
+    try {
+      const items = await parseProductSitemap(sm);
+      for (const u of items) {
+        const loc = u.loc;
+        const img = u["image:image"]?.["image:loc"] || null;
+        const title =
+          u["image:image"]?.["image:title"] ||
+          loc.split("/").slice(-2, -1)[0];
+        const cat = classify(title, loc);
 
-    const deal = {
-      title: title?.trim() || "Untitled",
-      url: loc,
-      image: img,
-      category: cat
-    };
-    perCategory[cat].push(deal);
-    total++;
+        const deal = {
+          title: title?.trim() || "Untitled",
+          url: loc,
+          image: img,
+          category: cat
+        };
+        if (perCategory[cat].length < 50) {
+          perCategory[cat].push(deal);
+          total++;
+        }
+      }
+    } catch (err) {
+      console.log(`⚠️  ${sm} failed: ${err.message}`);
+    }
   }
 
-  // Write per-category files
   for (const [cat, arr] of Object.entries(perCategory)) {
     const file = path.join(ROOT, `appsumo-${cat}.json`);
-    fs.writeFileSync(file, JSON.stringify(arr.slice(0, 50), null, 2));
+    fs.writeFileSync(file, JSON.stringify(arr, null, 2));
     console.log(`💾 Saved ${arr.length} → ${file}`);
   }
 
   console.log(`\n✅ Wrote ${total} total deals across ${Object.keys(perCategory).length} categories.`);
 }
 
-processSitemap().catch(err => {
-  console.error("Fatal updateFeed error:", err);
+main().catch(e => {
+  console.error("Fatal updateFeed error:", e);
   process.exit(1);
 });
