@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// 🔁 TinmanApps AppSumo Feed Builder with OG:image scraping
-// Gathers per-category deal lists and extracts stable thumbnails.
+// 🔁 TinmanApps AppSumo Feed Builder v2
+// Uses AppSumo's JSON API to fetch stable metadata (title + image + URL).
 
 import fs from "fs";
 import path from "path";
@@ -9,6 +9,7 @@ import fetch from "node-fetch";
 const ROOT = path.resolve("./data");
 if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT, { recursive: true });
 
+// Category → listing page URL
 const CATEGORIES = {
   software: "https://appsumo.com/software/",
   marketing: "https://appsumo.com/software/marketing-sales/",
@@ -17,68 +18,69 @@ const CATEGORIES = {
   courses: "https://appsumo.com/courses-more/"
 };
 
-// simple util
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+// Utility delay for politeness
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// fetch page html safely
-async function fetchHTML(url) {
+// Fetch any URL safely
+async function safeFetch(url) {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; TinmanBot/1.0; +https://deals.tinmanapps.com)"
+        "Mozilla/5.0 (compatible; TinmanBot/2.0; +https://deals.tinmanapps.com)"
     },
     timeout: 10000
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return await res.text();
+  return res;
 }
 
-// extract product urls from listing page
-function extractProductLinks(html) {
-  const regex = /href="(\/products\/[a-zA-Z0-9-]+\/)"/g;
+// Extract product slugs from listing HTML
+function extractProductSlugs(html) {
+  const regex = /href="\/products\/([a-zA-Z0-9-]+)\//g;
   const found = new Set();
   let match;
-  while ((match = regex.exec(html))) found.add("https://appsumo.com" + match[1]);
+  while ((match = regex.exec(html))) found.add(match[1]);
   return Array.from(found);
 }
 
-// extract og:image and title from product page
-function extractMeta(html) {
-  const titleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
-  const imageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
+// Query AppSumo API for each slug
+async function getDealData(slug) {
+  const apiUrl = `https://appsumo.com/api/v1/deals/${slug}/`;
+  const res = await safeFetch(apiUrl);
+  const json = await res.json();
   return {
-    title: titleMatch ? titleMatch[1] : "Untitled",
-    image: imageMatch ? imageMatch[1] : null
+    title: json.name || slug,
+    url: `https://appsumo.com/products/${slug}/`,
+    image: json.og_image || json.image || null,
+    category: "unknown"
   };
 }
 
+// Process each category
 async function processCategory(cat, url) {
   const deals = [];
   try {
-    console.log(`⏳ Fetching ${cat}...`);
-    const html = await fetchHTML(url);
-    const links = extractProductLinks(html).slice(0, 10); // sample limit for safety
+    console.log(`⏳ Fetching ${cat} listing...`);
+    const htmlRes = await safeFetch(url);
+    const html = await htmlRes.text();
+    const slugs = extractProductSlugs(html).slice(0, 10); // limit for safety
+    console.log(`🔍 Found ${slugs.length} ${cat} slugs.`);
 
-    for (const link of links) {
+    for (const slug of slugs) {
       try {
-        const productHTML = await fetchHTML(link);
-        const meta = extractMeta(productHTML);
-        deals.push({
-          title: meta.title,
-          url: link,
-          image: meta.image
-        });
+        const deal = await getDealData(slug);
+        deal.category = cat;
+        deals.push(deal);
+        console.log(`✅ ${cat}: ${deal.title}`);
         await sleep(250); // polite delay
       } catch (err) {
-        console.log(`⚠️  ${cat} item error: ${err.message}`);
+        console.log(`⚠️ ${cat} item ${slug} failed: ${err.message}`);
       }
     }
 
     const file = path.join(ROOT, `appsumo-${cat}.json`);
     fs.writeFileSync(file, JSON.stringify(deals, null, 2));
-    console.log(`✅ Saved ${deals.length} → ${file}`);
+    console.log(`💾 Saved ${deals.length} → ${file}`);
     return deals.length;
   } catch (err) {
     console.log(`❌ ${cat} error: ${err.message}`);
@@ -89,8 +91,7 @@ async function processCategory(cat, url) {
 async function main() {
   let total = 0;
   for (const [cat, url] of Object.entries(CATEGORIES)) {
-    const count = await processCategory(cat, url);
-    total += count;
+    total += await processCategory(cat, url);
   }
   console.log(`\n✅ Wrote ${total} total deals across ${Object.keys(CATEGORIES).length} categories.`);
 }
