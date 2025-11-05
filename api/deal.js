@@ -1,6 +1,6 @@
 // /api/deal.js
-// 🎯 TinmanApps Adaptive Deal Renderer v3.0
-// Schema-rich, CTR-aware, fully indexable deal page generator
+// 🎯 TinmanApps Deal Renderer v3.1 — Production Ready
+// Clean, schema-rich, CTR-aware deal page
 
 import { CACHE } from "../lib/proxyCache.js";
 import fs from "fs";
@@ -18,7 +18,6 @@ function loadCTR() {
   }
 }
 
-// archetypes per category
 const ARCHETYPES = {
   software: { color: "#4a6cf7", tone: "Trust & Reliability" },
   marketing: { color: "#0ea5e9", tone: "Opportunity & Growth" },
@@ -27,7 +26,6 @@ const ARCHETYPES = {
   courses: { color: "#f59e0b", tone: "Authority & Learning" }
 };
 
-// CTA evolution
 const CTA_BASE = [
   "Discover how it transforms →",
   "Start exploring →",
@@ -44,43 +42,44 @@ function adaptiveCTA(slug, ctrData) {
 
 export default async function handler(req, res) {
   const slug = (req.query.slug || "").toLowerCase();
-  if (!slug) {
-    res.status(400).send("Missing slug");
-    return;
-  }
+  if (!slug) return res.status(400).send("Missing slug");
 
-  // find deal from cache
-  let found;
-  let foundCat;
+  // find deal in cache
+  let found, foundCat;
   for (const [cat, deals] of Object.entries(CACHE.categories || {})) {
-    found = deals.find((d) => d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug);
-    if (found) { foundCat = cat; break; }
+    found = deals.find(
+      (d) => d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug
+    );
+    if (found) {
+      foundCat = cat;
+      break;
+    }
   }
-
-  if (!found) {
-    res.status(404).send("Deal not found");
-    return;
-  }
+  if (!found) return res.status(404).send("Deal not found");
 
   const ctrData = loadCTR();
   const archetype = ARCHETYPES[foundCat] || ARCHETYPES.software;
   const cta = adaptiveCTA(slug, ctrData);
 
   const pageUrl = `${BASE_URL}/api/deal?slug=${slug}`;
-  const trackLink = `${TRACK_URL}?deal=${encodeURIComponent(slug)}&cat=${encodeURIComponent(foundCat)}&redirect=${encodeURIComponent(found.referralUrl)}`;
+  const trackLink = `${TRACK_URL}?deal=${encodeURIComponent(
+    slug
+  )}&cat=${encodeURIComponent(foundCat)}&redirect=${encodeURIComponent(
+    found.referralUrl
+  )}`;
 
   const schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
-    "name": found.title,
-    "category": foundCat,
-    "url": pageUrl,
-    "brand": "AppSumo",
-    "description": `Exclusive ${foundCat} deal featured via TinmanApps — ${archetype.tone} archetype.`,
-    "offers": {
+    name: found.title,
+    category: foundCat,
+    url: pageUrl,
+    brand: "AppSumo",
+    description: `${found.title} — top-rated ${foundCat} tool built for ${archetype.tone}.`,
+    offers: {
       "@type": "Offer",
-      "url": trackLink,
-      "availability": "https://schema.org/InStock"
+      url: trackLink,
+      availability: "https://schema.org/InStock"
     }
   };
 
@@ -90,7 +89,7 @@ export default async function handler(req, res) {
 <head>
   <meta charset="utf-8"/>
   <title>${found.title} • ${archetype.tone}</title>
-  <meta name="description" content="Discover ${found.title} — a ${foundCat} deal representing ${archetype.tone}. Click to explore via TinmanApps."/>
+  <meta name="description" content="${found.title} — discover this ${foundCat} deal reflecting ${archetype.tone}.">
   <link rel="canonical" href="${pageUrl}"/>
   <script type="application/ld+json">${JSON.stringify(schema)}</script>
   <style>
@@ -105,12 +104,11 @@ export default async function handler(req, res) {
 <body>
   <h1>${found.title}</h1>
   <p><em>Category:</em> ${foundCat.charAt(0).toUpperCase() + foundCat.slice(1)} • Archetype: ${archetype.tone}</p>
-  <p>This deal is part of TinmanApps’ world-class adaptive SEO system — built for maximum visibility, value, and referral integrity.</p>
+  <p>${found.title} helps you achieve more in less time — one of the latest ${foundCat} tools aligned with ${archetype.tone.toLowerCase()}.</p>
   <a class="cta" href="${trackLink}" rel="nofollow">${cta}</a>
   <footer>Last updated ${new Date().toLocaleString()}</footer>
 </body>
 </html>`;
-
   res.setHeader("Content-Type", "text/html");
   res.send(html);
 }
