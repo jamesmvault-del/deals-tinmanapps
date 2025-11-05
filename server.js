@@ -1,18 +1,29 @@
-// server.js — minimal Node HTTP router
-// Purpose: serve /api endpoints like /api/appsumo-builder
-// Run locally via: node server.js
+// server.js — upgraded router to handle all /api endpoints
+// Works on Render and with any number of /api/*.js files
 
 import http from "http";
 import url from "url";
+
+// Import all API handlers
 import appsumoBuilder from "./api/appsumo-builder.js";
+import appsumoProxy from "./api/appsumo-proxy.js";
+
+// Map of available endpoints
+const routes = {
+  "/api/appsumo-builder": appsumoBuilder,
+  "/api/appsumo-proxy": appsumoProxy
+};
 
 const server = http.createServer(async (req, res) => {
-  const { pathname } = url.parse(req.url);
   try {
-    if (pathname.startsWith("/api/appsumo-builder")) {
-      return appsumoBuilder(req, res);
+    const { pathname } = url.parse(req.url);
+    const match = Object.keys(routes).find((r) => pathname.startsWith(r));
+
+    if (match) {
+      return routes[match](req, res);
     }
 
+    // Default response for root or unknown paths
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/plain");
     res.end("✅ TinmanApps deal engine running");
