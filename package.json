@@ -1,0 +1,11 @@
+{
+  "name": "deals-tinmanapps",
+  "version": "1.0.0",
+  "description": "Self-learning AppSumo deal engine — SEO adaptive and referral-safe.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
