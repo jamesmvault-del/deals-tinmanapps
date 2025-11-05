@@ -1,25 +1,44 @@
 // /server.js
-// Express entry point for TinmanApps Deal Engine
+// 🚀 TinmanApps Deal Engine — Unified Express entry point
+// Automatically maps all /api/*.js routes without needing manual imports
 
 import express from "express";
-import appsumoProxy from "./api/appsumo-proxy.js";
-import masterCron from "./api/master-cron.js";
-import insight from "./api/insight.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-// ✅ API routes
-app.get("/api/appsumo-proxy", appsumoProxy);
-app.get("/api/master-cron", masterCron);
-app.get("/api/insight", insight);
+// ✅ Dynamically load every file in /api/
+const apiPath = path.join(__dirname, "api");
 
-// ✅ Health / root
-app.get("/", (req, res) => {
+fs.readdirSync(apiPath).forEach(async (file) => {
+  if (file.endsWith(".js")) {
+    const route = "/api/" + file.replace(".js", "");
+    try {
+      const module = await import(`./api/${file}`);
+      if (typeof module.default === "function") {
+        app.get(route, module.default);
+        console.log(`✅ Registered route: ${route}`);
+      } else {
+        console.warn(`⚠️ Skipped ${file} — no default export`);
+      }
+    } catch (err) {
+      console.error(`❌ Failed to load ${file}:`, err);
+    }
+  }
+});
+
+// ✅ Root health check
+app.get("/", (_, res) => {
   res.send("✅ TinmanApps deal engine running");
 });
 
 // ✅ Start server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
