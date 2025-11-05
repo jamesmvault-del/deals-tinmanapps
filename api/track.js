@@ -1,6 +1,6 @@
 // /api/track.js
-// 📊 TinmanApps CTR Feedback Tracker v1.0
-// Records click and engagement events for adaptive optimisation
+// 📊 TinmanApps CTR Feedback Tracker v2.0
+// Logs engagement and redirects instantly to referral URL
 
 import fs from "fs";
 import path from "path";
@@ -20,7 +20,7 @@ function saveCTRData(data) {
 }
 
 export default async function handler(req, res) {
-  const { deal, cat } = req.query;
+  const { deal, cat, redirect } = req.query;
 
   if (!deal) {
     res.status(400).json({ error: "Missing deal slug" });
@@ -28,17 +28,10 @@ export default async function handler(req, res) {
   }
 
   const data = loadCTRData();
-
-  // 🔹 Update global counter
   data.totalClicks++;
-
-  // 🔹 Per-deal tracking
   data.byDeal[deal] = (data.byDeal[deal] || 0) + 1;
-
-  // 🔹 Per-category tracking
   if (cat) data.byCategory[cat] = (data.byCategory[cat] || 0) + 1;
 
-  // 🔹 Log recent events (keep last 100)
   data.recent.unshift({
     deal,
     cat: cat || "unknown",
@@ -48,6 +41,15 @@ export default async function handler(req, res) {
 
   saveCTRData(data);
 
+  // ✅ If redirect param exists, send user there immediately
+  if (redirect) {
+    const target = decodeURIComponent(redirect);
+    res.writeHead(302, { Location: target });
+    res.end();
+    return;
+  }
+
+  // Fallback JSON for test mode
   res.json({
     message: "CTR recorded",
     total: data.totalClicks,
