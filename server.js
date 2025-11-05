@@ -3,14 +3,20 @@
 
 import express from "express";
 
-// ✅ API modules
+// ✅ Core API modules
 import appsumoProxy from "./api/appsumo-proxy.js";
 import masterCron from "./api/master-cron.js";
 import insight from "./api/insight.js";
 import categories from "./api/categories.js";
 import ctaPhrases from "./api/cta-phrases.js";
 
+// ✅ Auto-initialise CTA Evolver on startup
+import { evolveCTAs } from "./lib/ctaEvolver.js";
+
 const app = express();
+
+// 🔁 ensure CTA phrases file exists (runs once on boot)
+evolveCTAs();
 
 // ✅ Register routes
 app.get("/api/appsumo-proxy", appsumoProxy);
