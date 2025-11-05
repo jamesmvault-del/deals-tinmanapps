@@ -1,53 +1,43 @@
 // /api/master-cron.js
-// Purpose: run builder → proxy refresh cycle in background.
+// 🔁 TinmanApps Master Cron v3.0
+// Runs full optimisation cycle: Builder → Insight → CTA Evolver → Feeds
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
-
-const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
-let lastRun = 0;
-
-async function performCycle() {
-  const start = Date.now();
-  const stamp = new Date().toISOString();
-  console.log(`🔁 [Cron] Starting refresh cycle @ ${stamp}`);
-  await backgroundRefresh();
-  const ms = Date.now() - start;
-  lastRun = Date.now();
-  console.log(`✅ [Cron] Refresh complete in ${ms} ms`);
-  return { status: "ok", ranAt: stamp, duration: ms };
-}
+import { evolveCTAs } from "../lib/ctaEvolver.js";
+import insightHandler from "./insight.js";
 
 export default async function handler(req, res) {
+  const force = req.query.force === "1";
+  const startTime = Date.now();
+
   try {
-    if (req.method !== "GET") {
-      res.statusCode = 405;
-      return res.end(JSON.stringify({ error: "Use GET" }));
-    }
+    console.log("🔁 [Cron] Starting refresh cycle @", new Date().toISOString());
 
-    const now = Date.now();
-    const force =
-      new URL(req.url, `http://${req.headers.host}`).searchParams.get("force") ===
-      "1";
+    // 1️⃣ Refresh AppSumo data
+    await backgroundRefresh();
+    console.log("✅ [Cron] Builder refresh complete");
 
-    if (!force && now - lastRun < REFRESH_INTERVAL_MS) {
-      const next = new Date(lastRun + REFRESH_INTERVAL_MS).toISOString();
-      res.setHeader("Content-Type", "application/json");
-      return res.end(
-        JSON.stringify({ message: `Next scheduled run @ ${next}`, lastRun })
-      );
-    }
+    // 2️⃣ Run insight analysis
+    await insightHandler({ query: { silent: "1" } }, {});
 
-    performCycle(); // run async
+    // 3️⃣ Run CTA evolution
+    evolveCTAs();
+    console.log("✅ [Cron] CTA evolution complete");
 
-    res.setHeader("Content-Type", "application/json");
-    res.end(
-      JSON.stringify({
-        message: "Cycle triggered in background.",
-        previousRun: lastRun ? new Date(lastRun).toISOString() : null
-      })
-    );
+    // (optional) 4️⃣ Feed refresh placeholder
+    console.log("📡 [Cron] Feed refresh pending integration...");
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ [Cron] Full cycle complete in ${duration} ms`);
+
+    res.json({
+      message: "Cycle triggered in background.",
+      duration,
+      previousRun: new Date().toISOString(),
+      steps: ["builder", "insight", "cta-evolver"]
+    });
   } catch (err) {
-    res.statusCode = 500;
-    res.end(JSON.stringify({ error: err.message }));
+    console.error("❌ [Cron] Error:", err);
+    res.status(500).json({ error: "Cron cycle failed", details: err.message });
   }
 }
