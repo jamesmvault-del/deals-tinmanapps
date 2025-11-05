@@ -1,12 +1,13 @@
 // /api/categories.js
-// 🌐 TinmanApps Adaptive Category Renderer v2.0
-// Generates internal links to /api/deal?slug=... with SEO-rich structure
+// 🌐 TinmanApps Adaptive Category Renderer v3.0
+// Adds CTR-tracking links for every deal card
 
 import { CACHE } from "../lib/proxyCache.js";
 
 const BASE_URL = "https://deals.tinmanapps.com";
+const TRACK_URL = `${BASE_URL}/api/track`;
 
-// 🧠 Archetype map for tone and CTA hints
+// Archetype map for tone, colour, and CTA
 const ARCHETYPES = {
   software: { label: "Trust & Reliability", color: "#4a6cf7", cta: "Simplify your workflow →" },
   marketing: { label: "Opportunity & Growth", color: "#0ea5e9", cta: "Unlock your next win →" },
@@ -18,16 +19,13 @@ const ARCHETYPES = {
 export default async function handler(req, res) {
   const cat = (req.query.cat || "").toLowerCase();
   const archetype = ARCHETYPES[cat] || ARCHETYPES.software;
-
   const deals = CACHE.categories?.[cat] || [];
   const total = deals.length;
 
-  // --- Metadata & Canonical ---
   const title = `${cat.charAt(0).toUpperCase() + cat.slice(1)} Deals • ${archetype.label} | TinmanApps`;
   const desc = `Explore ${total} active ${cat} deals embodying ${archetype.label} — discover tools, offers, and resources that match your growth mindset.`;
   const canonical = `${BASE_URL}/api/categories?cat=${encodeURIComponent(cat)}`;
 
-  // --- HTML Render ---
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -56,17 +54,15 @@ export default async function handler(req, res) {
   <p><em>Adaptive archetype:</em> ${archetype.label}</p>
 
   ${deals
-    .map(
-      (d) => `
+    .map((d) => {
+      const slug = d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const trackingLink = `${TRACK_URL}?deal=${encodeURIComponent(slug)}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(d.referralUrl)}`;
+      return `
       <div class="deal">
-        <a class="deal-title" href="/api/deal?slug=${encodeURIComponent(
-          d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-        )}">${d.title}</a><br/>
-        <a class="cta" href="/api/deal?slug=${encodeURIComponent(
-          d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-        )}">${archetype.cta}</a>
-      </div>`
-    )
+        <a class="deal-title" href="/api/deal?slug=${slug}">${d.title}</a><br/>
+        <a class="cta" href="${trackingLink}" rel="nofollow">${archetype.cta}</a>
+      </div>`;
+    })
     .join("")}
 
   <footer>Updated ${new Date().toLocaleString()}</footer>
