@@ -1,5 +1,6 @@
 // /server.js
 // 🚀 TinmanApps Deal Engine — Production Server Entry
+// Serves API endpoints, image proxy, and future HTML routes
 
 import express from "express";
 
@@ -9,28 +10,30 @@ import masterCron from "./api/master-cron.js";
 import insight from "./api/insight.js";
 import categories from "./api/categories.js";
 import ctaPhrases from "./api/cta-phrases.js";
+import imageProxy from "./api/image-proxy.js";
 
-// ✅ Auto-initialise CTA Evolver on startup
+// ✅ Evolver auto-init
 import { evolveCTAs } from "./lib/ctaEvolver.js";
 
 const app = express();
 
-// 🔁 ensure CTA phrases file exists (runs once on boot)
+// 🔁 ensure CTA phrases file exists on boot
 evolveCTAs();
 
-// ✅ Register routes
+// ✅ Register API routes
 app.get("/api/appsumo-proxy", appsumoProxy);
 app.get("/api/master-cron", masterCron);
 app.get("/api/insight", insight);
 app.get("/api/categories", categories);
 app.get("/api/cta-phrases", ctaPhrases);
+app.get("/api/image-proxy", imageProxy);
 
 // ✅ Health check (root)
 app.get("/", (req, res) => {
   res.send("✅ TinmanApps deal engine running");
 });
 
-// ✅ Catch-all handler for 404s
+// ✅ 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found", path: req.originalUrl });
 });
@@ -44,4 +47,5 @@ app.listen(PORT, () => {
   console.log("✅ Registered route: /api/insight");
   console.log("✅ Registered route: /api/categories");
   console.log("✅ Registered route: /api/cta-phrases");
+  console.log("✅ Registered route: /api/image-proxy");
 });
