@@ -1,11 +1,13 @@
 // /api/insight.js
+// Lightweight Insight Pulse skeleton — reads cached data and outputs simple stats
+
 import { CACHE } from "../lib/proxyCache.js";
 
 export default async function handler(req, res) {
   const start = Date.now();
   const summary = {};
 
-  for (const [cat, deals] of Object.entries(CACHE.categories)) {
+  for (const [cat, deals] of Object.entries(CACHE.categories || {})) {
     const titles = deals.map((d) => d.title?.toLowerCase() || "");
     const words = titles.join(" ").split(/\W+/);
     const unique = new Set(words.filter((w) => w.length > 4));
