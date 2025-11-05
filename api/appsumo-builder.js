@@ -135,7 +135,7 @@ function filterLikelyProductUrls(urls) {
   });
 }
 
-async function buildAll({ limit = 4000 } = {}) {
+async function buildAll({ limit = 50 } = {}) {
   const t0 = Date.now();
   const sitemapList = await discoverSitemaps();
   let productUrlCandidates = [];
