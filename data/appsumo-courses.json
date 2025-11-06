@@ -15,7 +15,7 @@
         "depositphotos",
         "exclusive offer"
       ],
-      "cta": "See what it replaces »",
+      "cta": "See what it replaces →",
       "subtitle": "Get 320M+ stock visual &amp; music files",
       "archetype": "Authority & Learning"
     }
@@ -36,8 +36,8 @@
         "headway",
         "exclusive offer"
       ],
-      "cta": "Discover courses ↗",
-      "subtitle": "Learn practical skills you can apply today.",
+      "cta": "Discover courses →",
+      "subtitle": "Build your career with actionable learning.",
       "archetype": "Authority & Learning"
     }
   },
@@ -79,7 +79,7 @@
         "exclusive offer"
       ],
       "cta": "Learn how to courses →",
-      "subtitle": "Master in-demand skills from proven creators.",
+      "subtitle": "Turn knowledge into results — faster.",
       "archetype": "Authority & Learning"
     }
   },
@@ -99,8 +99,8 @@
         "no-code-mba-deal",
         "exclusive offer"
       ],
-      "cta": "See courses →",
-      "subtitle": "Build your career with actionable learning.",
+      "cta": "See courses ↗",
+      "subtitle": "Level up your expertise with step-by-step guidance.",
       "archetype": "Authority & Learning"
     }
   },
@@ -121,7 +121,7 @@
         "exclusive offer"
       ],
       "cta": "Preview what it replaces →",
-      "subtitle": "Master in-demand skills from proven creators.",
+      "subtitle": "Level up your expertise with step-by-step guidance.",
       "archetype": "Authority & Learning"
     }
   },
@@ -141,7 +141,7 @@
         "candyicons",
         "exclusive offer"
       ],
-      "cta": "Backed by real user outcomes →",
+      "cta": "Backed by real user outcomes ↗",
       "subtitle": "Level up your expertise with step-by-step guidance.",
       "archetype": "Authority & Learning"
     }
@@ -163,7 +163,7 @@
         "exclusive offer"
       ],
       "cta": "Learn how to what it replaces →",
-      "subtitle": "Build your career with actionable learning.",
+      "subtitle": "Master in-demand skills from proven creators.",
       "archetype": "Authority & Learning"
     }
   },
@@ -205,7 +205,7 @@
         "exclusive offer"
       ],
       "cta": "Learn how to courses →",
-      "subtitle": "Level up your expertise with step-by-step guidance.",
+      "subtitle": "Master in-demand skills from proven creators.",
       "archetype": "Authority & Learning"
     }
   },
@@ -225,8 +225,8 @@
         "notioly",
         "exclusive offer"
       ],
-      "cta": "Backed by real user outcomes »",
-      "subtitle": "Turn knowledge into results — faster.",
+      "cta": "Backed by real user outcomes →",
+      "subtitle": "Level up your expertise with step-by-step guidance.",
       "archetype": "Authority & Learning"
     }
   },
@@ -252,6 +252,27 @@
     }
   },
   {
+    "title": "Unlimphotos - Access stunning stock photos",
+    "slug": "unlimphotos",
+    "category": "courses",
+    "url": "https://appsumo.com/products/unlimphotos/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=unlimphotos&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Funlimphotos%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FThumbnails_-_1_4.png",
+    "seo": {
+      "clickbait": "Discover Unlimphotos - Access stunning stock photos — #1 in courses",
+      "keywords": [
+        "courses",
+        "AppSumo",
+        "lifetime deal",
+        "unlimphotos",
+        "exclusive offer"
+      ],
+      "cta": "Explore what it replaces »",
+      "subtitle": "Access stunning stock photos",
+      "archetype": "Authority & Learning"
+    }
+  },
+  {
     "title": "Flat Icons - 32,000+ icons (2D, 3D, and Animated)",
     "slug": "flat-icons-27900-icons",
     "category": "courses",
@@ -273,27 +294,6 @@
     }
   },
   {
-    "title": "Unlimphotos - Access stunning stock photos",
-    "slug": "unlimphotos",
-    "category": "courses",
-    "url": "https://appsumo.com/products/unlimphotos/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=unlimphotos&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Funlimphotos%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FThumbnails_-_1_4.png",
-    "seo": {
-      "clickbait": "Discover Unlimphotos - Access stunning stock photos — #1 in courses",
-      "keywords": [
-        "courses",
-        "AppSumo",
-        "lifetime deal",
-        "unlimphotos",
-        "exclusive offer"
-      ],
-      "cta": "Explore what it replaces →",
-      "subtitle": "Access stunning stock photos",
-      "archetype": "Authority & Learning"
-    }
-  },
-  {
     "title": "Podcast Launch Strategy",
     "slug": "podcast-launch-strategy",
     "category": "courses",
@@ -309,8 +309,8 @@
         "podcast-launch-strategy",
         "exclusive offer"
       ],
-      "cta": "See why teams are switching »",
-      "subtitle": "Level up your expertise with step-by-step guidance.",
+      "cta": "See why teams are switching ↗",
+      "subtitle": "Learn practical skills you can apply today.",
       "archetype": "Authority & Learning"
     }
   },
@@ -330,7 +330,7 @@
         "marketplace-graphue-presentation-templates",
         "exclusive offer"
       ],
-      "cta": "Backed by real user outcomes →",
+      "cta": "Backed by real user outcomes ↗",
       "subtitle": "Get templates",
       "archetype": "Authority & Learning"
     }
@@ -351,8 +351,8 @@
         "notion-agency-kit",
         "exclusive offer"
       ],
-      "cta": "What Notion Agency Kit makes easy ↗",
-      "subtitle": "Turn knowledge into results — faster.",
+      "cta": "What Notion Agency Kit makes easy »",
+      "subtitle": "Master in-demand skills from proven creators.",
       "archetype": "Authority & Learning"
     }
   },
@@ -373,7 +373,7 @@
         "exclusive offer"
       ],
       "cta": "What Coaches &amp; Course Creators Canva Template Bundle makes…",
-      "subtitle": "Learn practical skills you can apply today.",
+      "subtitle": "Build your career with actionable learning.",
       "archetype": "Authority & Learning"
     }
   },
