@@ -3,7 +3,10 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.6.1 (subtitle overflow fix)
+// v3.6.2 (robust subtitle clamp + CTA separation, cross-browser safe)
+// - Cross-browser subtitle clamp: adds max-height fallback matching 2 lines
+// - Stronger spacing: larger subtitle margin-bottom, CTA always on its own row
+// - No visual overlap: explicit stacking contexts + layout guards
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -264,6 +267,7 @@ export default async function categories(req, res) {
   .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:16px; }
 
   .card {
+    position: relative; /* establish stacking context to avoid overlap illusions */
     background:var(--card); border-radius:16px; padding:14px;
     box-shadow:var(--shadow);
     display:flex; flex-direction:column; gap:10px;
@@ -310,26 +314,33 @@ export default async function categories(req, res) {
     border-radius: 6px;
     outline-offset: 4px;
   }
+
+  /* Cross-browser subtitle clamp (2 lines) with safe spacing */
   .subtitle {
+    position: relative;
     color: var(--muted);
     font-size: 13px;
     line-height: 1.4;
-    margin: 2px 0 8px;
-    min-height: 2.8em;
+    margin: 2px 0 12px; /* extra separation from CTA */
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 2;           /* webkit browsers */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
+
+    /* Fallback clamp for non-webkit (e.g., Firefox) */
+    max-height: calc(1.4em * 2);     /* 2 lines */
   }
 
   /* CTA */
   .cta {
+    position: relative; /* ensure it paints above preceding content if any */
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-top: auto;
+    margin-top: auto;                 /* always push CTA to the bottom of the card */
     font-size: 14px;
     text-decoration: none;
     color: #ffffff;
