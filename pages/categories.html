@@ -4,38 +4,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AppSumo Deals by Category</title>
+    <title>Explore AppSumo Deals</title>
     <style>
       body {
         font-family: system-ui, sans-serif;
         background: #fafafa;
-        color: #222;
+        color: #111;
         margin: 0;
         padding: 2rem;
       }
       h1 {
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
       }
       .card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.2rem;
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: all 0.25s ease;
+        text-align: center;
       }
       .card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
       }
       a {
         text-decoration: none;
         color: inherit;
+      }
+      h3 {
+        margin: 0.6rem 0;
+      }
+      p {
+        color: #666;
+        margin: 0.2rem 0 0 0;
       }
     </style>
   </head>
@@ -45,19 +55,43 @@
 
     <script>
       async function loadCategories() {
-        const res = await fetch("/api/categories");
-        const data = await res.json();
-        const grid = document.getElementById("categoryGrid");
+        try {
+          const res = await fetch("/api/categories");
+          const data = await res.json();
 
-        const order = ["software", "marketing", "productivity", "ai", "courses"];
-        for (const slug of order) {
-          const cat = data.categories.find((c) => c.slug === slug);
-          if (!cat) continue;
-          const el = document.createElement("a");
-          el.href = `/categories/${slug}`;
-          el.className = "card";
-          el.innerHTML = `<h3>${cat.name}</h3><p>${cat.count} deals</p>`;
-          grid.appendChild(el);
+          // ✅ Handle both modern + legacy API shapes
+          const categories = data.categories
+            ? data.categories
+            : Object.keys(data.byCategory || {}).map((key) => ({
+                slug: key,
+                name:
+                  key.charAt(0).toUpperCase() +
+                  key.slice(1).replace("-", " "),
+                count: data.byCategory[key],
+              }));
+
+          const grid = document.getElementById("categoryGrid");
+
+          if (!categories.length) {
+            grid.innerHTML =
+              "<p style='text-align:center'>No data found or feed empty.</p>";
+            return;
+          }
+
+          categories.forEach((cat) => {
+            const el = document.createElement("a");
+            el.href = `/categories/${cat.slug}`;
+            el.className = "card";
+            el.innerHTML = `
+              <h3>${cat.name}</h3>
+              <p>${cat.count || 0} live deals</p>
+            `;
+            grid.appendChild(el);
+          });
+        } catch (err) {
+          console.error("Failed to load categories", err);
+          document.getElementById("categoryGrid").innerHTML =
+            "<p style='text-align:center;color:red;'>Failed to load data.</p>";
         }
       }
       loadCategories();
