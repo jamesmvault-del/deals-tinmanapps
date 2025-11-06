@@ -3,22 +3,7 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.6 (expanded long-form to match your working baseline)
-//
-// What this file does:
-// • Renders a category page (software / marketing / productivity / ai / courses)
-// • Reads prebuilt JSON feeds in /data (written by scripts/updateFeed.js)
-// • Masks all outbound links via /api/track + affiliate chain (never shows raw URLs)
-// • Uses image-proxy with graceful placeholder fallbacks
-// • Adds deterministic, non-spammy CTAs (or uses the one embedded by your feed)
-// • Injects subtitle (if present) beneath the title (e.g., “Heffl — Run your business…”)
-// • Adds JSON-LD (Breadcrumb + ItemList) for discoverability
-// • Adds a subtle CTA “pulse” the first time a card enters viewport (no analytics)
-// • Fully respects prefers-reduced-motion
-//
-// Notes:
-// • Keep this file ESM (package “type”: “module”).
-// • Safe to cache at CDN for a few minutes (public, max-age=300).
+// v3.6.1 (subtitle overflow fix)
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -33,14 +18,11 @@ import url from "url";
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
 
-// Public origin (used for canonicals, tracking urls, og:image fallback)
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 
-// Masked referral base (kept invisible to users)
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-// Category labels
 const CATS = {
   software: "Software Deals",
   marketing: "Marketing & Sales Tools",
@@ -49,7 +31,6 @@ const CATS = {
   courses: "Courses & Learning",
 };
 
-// Archetype by category (used for tone lines, footer)
 const ARCH = {
   software: "Trust & Reliability",
   marketing: "Opportunity & Growth",
@@ -58,7 +39,6 @@ const ARCH = {
   courses: "Authority & Learning",
 };
 
-// Deterministic CTA pool (used only when item.seo?.cta absent)
 const CTA_POOL = [
   "Unlock deal →",
   "Get instant lifetime access →",
@@ -106,13 +86,11 @@ function hashStr(s) {
   return h >>> 0;
 }
 
-// Deterministic CTA (only when item doesn’t already have one)
 function ctaFor(slug) {
   const idx = hashStr(slug) % CTA_POOL.length;
   return CTA_POOL[idx];
 }
 
-// Track URL builder (masked → /api/track → affiliate redirect)
 function trackedUrl({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
@@ -120,26 +98,16 @@ function trackedUrl({ slug, cat, url }) {
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
 
-// Best-effort image (proxy with graceful fallback to placeholder)
 function imageFor(slug, provided) {
-  if (provided) return provided; // the feed usually embeds a proxied image already
+  if (provided) return provided;
   const guess = `https://appsumo2-cdn.appsumo.com/media/products/${slug}/logo.png`;
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(guess)}`;
 }
 
-// Extracts brand + subtitle from a full title.
-// Examples this handles well:
-//   "Heffl - Run your whole business on one platform"
-//   "Yapper — Create viral content with AI"
-//   "CardClan – Send personalized cards at scale"
-// If no clear split is found, returns {brand: full, subtitle: ""}.
 function splitTitle(fullTitle = "") {
   const raw = (fullTitle || "").trim();
-
-  // Quick bail
   if (!raw) return { brand: "", subtitle: "" };
 
-  // Prefer an em dash / en dash split
   const DASH_SEPS = [" — ", " – ", " —", " –"];
   for (const sep of DASH_SEPS) {
     const idx = raw.indexOf(sep);
@@ -150,8 +118,6 @@ function splitTitle(fullTitle = "") {
     }
   }
 
-  // Fallback: single hyphen pattern like "Brand - Subtitle"
-  // But avoid cases where brand itself contains hyphens (e.g., "tagmango - …" is okay).
   const hyIdx = raw.indexOf(" - ");
   if (hyIdx > 0 && hyIdx < raw.length - 3) {
     const brand = raw.slice(0, hyIdx).trim();
@@ -159,7 +125,6 @@ function splitTitle(fullTitle = "") {
     if (brand && subtitle) return { brand, subtitle };
   }
 
-  // No clean subtitle found
   return { brand: raw, subtitle: "" };
 }
 
@@ -170,17 +135,10 @@ function splitTitle(fullTitle = "") {
 export default async function categories(req, res) {
   const cat = String(req.params.cat || "").toLowerCase();
   const title = CATS[cat];
+  if (!title) return res.status(404).send("Category not found.");
 
-  if (!title) {
-    res.status(404).send("Category not found.");
-    return;
-  }
-
-  // Load category data built by the feed updater
   const deals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const total = deals.length;
-
-  // CTR insights (optional; used for subtle “freshness” mention)
   const ctr = loadJsonSafe("ctr-insights.json", {
     totalClicks: 0,
     byDeal: {},
@@ -188,39 +146,25 @@ export default async function categories(req, res) {
     recent: [],
   });
 
-  // Derive "last refreshed" timestamp
   let lastRefreshed = new Date();
   try {
     const stat = fs.statSync(path.join(DATA_DIR, `appsumo-${cat}.json`));
     lastRefreshed = stat.mtime;
   } catch {}
 
-  // Canonical + meta
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
   const pageDesc = `Browse ${total} live ${title.toLowerCase()} indexed automatically — referral-safe, fast, and SEO-optimized.`;
 
-  // JSON-LD: Breadcrumbs
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Categories",
-        item: `${SITE_ORIGIN}/categories`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: title,
-        item: canonical,
-      },
+      { "@type": "ListItem", position: 1, name: "Categories", item: `${SITE_ORIGIN}/categories` },
+      { "@type": "ListItem", position: 2, name: title, item: canonical },
     ],
   };
 
-  // JSON-LD: CollectionPage + top ItemList slice
   const SLICE = Math.min(30, total);
   const itemListLd = {
     "@context": "https://schema.org",
@@ -249,58 +193,41 @@ export default async function categories(req, res) {
     },
   };
 
-  // Build card HTML
   const cardsHtml = deals
     .map((d) => {
-      // Normalize shape (compat with older feeds)
       const slug =
         d.slug ||
         d.url?.match(/products\/([^/]+)/)?.[1] ||
         d.title?.toLowerCase().replace(/\s+/g, "-") ||
         "deal";
-
-      // Title + subtitle split (rendering enhancement)
       const { brand, subtitle } = splitTitle(d.title || slug);
-
-      // Prefer precomputed CTA from feed; else pick deterministic fallback
-      const resolvedCta = (d.seo && d.seo.cta) ? d.seo.cta : ctaFor(slug);
-
-      // Image (feed usually contains a proxied image; else guess)
+      const resolvedCta = d.seo?.cta || ctaFor(slug);
       const img = imageFor(slug, d.image);
-
-      // Outbound (masked + tracked)
       const link = trackedUrl({ slug, cat, url: d.url });
 
-      // Schema choice: we keep SoftwareApplication for generic software/courses
-      // (strictly, some are courses/assets; this is fine for list detail).
       return `
       <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
           <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
         </a>
-
         <h3 class="title-wrap" itemprop="name">
           <a class="title" href="${link}">${escapeHtml(brand)}</a>
         </h3>
-
         ${
           subtitle
             ? `<div class="subtitle" itemprop="description">${escapeHtml(subtitle)}</div>`
             : ``
         }
-
         <a class="cta" href="${link}" data-cta>${escapeHtml(resolvedCta)}</a>
       </article>`;
     })
     .join("\n");
 
-  // Dynamic micro-footer (SEO signal without visual noise)
   const footerVisible = `${escapeHtml(ARCH[cat])} • ${total} deals • Updated automatically`;
   const footerHidden = `This page indexes verified AppSumo lifetime deals for ${title.toLowerCase()} with referral integrity, CTR optimization, and structured metadata. Refreshed ${fmtDateISO(
     lastRefreshed
   )}. Total clicks recorded: ${Number(ctr.totalClicks || 0)}.`;
 
-  // HTML
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -336,7 +263,6 @@ export default async function categories(req, res) {
   main { padding:12px 16px 36px; max-width:1200px; margin:0 auto; }
   .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:16px; }
 
-  /* Card */
   .card {
     background:var(--card); border-radius:16px; padding:14px;
     box-shadow:var(--shadow);
@@ -351,7 +277,6 @@ export default async function categories(req, res) {
     border-color: rgba(42,99,246,.18);
   }
 
-  /* Media */
   .media { display:block; border-radius:12px; overflow:hidden; position:relative; }
   .media::after {
     content:""; position:absolute; inset:0;
@@ -370,67 +295,107 @@ export default async function categories(req, res) {
   .card:hover img { transform: scale(1.015); }
 
   /* Title + subtitle */
-  .title-wrap { margin:2px 0 0; font-size:16px; line-height:1.35; letter-spacing:0; }
-  .title { color:inherit; text-decoration:none; }
-  .title:focus-visible { outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
+  .title-wrap {
+    margin: 2px 0 0;
+    font-size: 16px;
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+  .title {
+    color: inherit;
+    text-decoration: none;
+  }
+  .title:focus-visible {
+    outline: 2px solid var(--ring);
+    border-radius: 6px;
+    outline-offset: 4px;
+  }
   .subtitle {
-    color:var(--muted);
-    font-size:13px; line-height:1.35;
-    margin-top:2px;
-    min-height: 1.35em; /* prevents layout shift for cards with/without subtitle */
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 2px 0 8px;
+    min-height: 2.8em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
   }
 
   /* CTA */
   .cta {
-    display:inline-flex; align-items:center; gap:8px;
-    margin-top:6px; font-size:14px; text-decoration:none;
-    color:#ffffff; background:var(--brand); padding:10px 12px; border-radius:10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    font-size: 14px;
+    text-decoration: none;
+    color: #ffffff;
+    background: var(--brand);
+    padding: 10px 12px;
+    border-radius: 10px;
     transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
     box-shadow: 0 2px 0 rgba(42,99,246,.35);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .card:hover .cta { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(42,99,246,.25); }
-  .cta:active { transform: translateY(0); box-shadow: 0 2px 0 rgba(42,99,246,.35); background:var(--brand-dark); }
-  .cta:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+  .card:hover .cta {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(42,99,246,.25);
+  }
+  .cta:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 rgba(42,99,246,.35);
+    background: var(--brand-dark);
+  }
+  .cta:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
 
-  footer { padding:22px 16px 36px; text-align:center; color:var(--muted); font-size:13px; }
-  .visually-hidden { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  footer {
+    padding: 22px 16px 36px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .visually-hidden {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
 
-  /* Reduced motion respect */
   @media (prefers-reduced-motion: reduce) {
-    .card, .card img, .cta, .media::after { transition:none !important; }
-    .card:hover { transform:none !important; }
-    .card:hover img { transform:none !important; }
+    .card, .card img, .cta, .media::after { transition: none !important; }
+    .card:hover { transform: none !important; }
+    .card:hover img { transform: none !important; }
   }
 </style>
 
-<script type="application/ld+json">
-${JSON.stringify(breadcrumbLd)}
-</script>
-<script type="application/ld+json">
-${JSON.stringify(itemListLd)}
-</script>
+<script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
+<script type="application/ld+json">${JSON.stringify(itemListLd)}</script>
 </head>
 <body>
   <header>
     <h1>${escapeHtml(title)}</h1>
     <div class="sub">${escapeHtml(ARCH[cat])} • ${total} deals</div>
   </header>
-
   <main>
     <section class="grid" itemscope itemtype="https://schema.org/ItemList">
       ${cardsHtml || `<p>No deals available right now. Check back soon.</p>`}
     </section>
   </main>
-
   <footer>
     <div class="visually-hidden">${escapeHtml(footerHidden)}</div>
     ${escapeHtml(footerVisible)}
   </footer>
-
   <script>
-    // Lightweight, no-analytics “attention nudge”:
-    // When a card first becomes prominent in viewport, gently pulse its CTA once.
-    // This subtly increases CTR without appearing spammy or distracting.
     (function(){
       try {
         if (!("IntersectionObserver" in window)) return;
@@ -444,14 +409,12 @@ ${JSON.stringify(itemListLd)}
             seen.add(slug);
             const btn = card.querySelector("[data-cta]");
             if (!btn) { io.unobserve(card); continue; }
-
-            // Skip if user prefers reduced motion
             const rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             if (!rm && btn.animate) {
               btn.animate(
                 [
                   { transform:"translateY(-1px)", boxShadow:"0 8px 22px rgba(42,99,246,.30)" },
-                  { transform:"translateY(0)",    boxShadow:"0 2px 0 rgba(42,99,246,.35)" }
+                  { transform:"translateY(0)", boxShadow:"0 2px 0 rgba(42,99,246,.35)" }
                 ],
                 { duration: 520, easing: "cubic-bezier(.22,.61,.36,1)" }
               );
@@ -459,15 +422,13 @@ ${JSON.stringify(itemListLd)}
             io.unobserve(card);
           }
         }, { threshold: 0.55 });
-
         document.querySelectorAll(".card").forEach(c => io.observe(c));
-      } catch (_) { /* no-op */ }
+      } catch(_) {}
     })();
   </script>
 </body>
 </html>`;
 
-  // Cache lightly to help indexing and speed
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
   res.send(html);
