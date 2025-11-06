@@ -3,9 +3,11 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.6.8-r2 (Cross-engine Lockbox, Render-safe)
-// - Removes stray label (syntax error) from v3.6.8
-// - Keeps bleed-proof CTA structure and full SEO / animation logic intact
+// v3.7 (Authority Layout)
+// - Final structural separation: media → body → CTA (no absolute positioning)
+// - Guaranteed spacing: subtitle has margin-bottom; CTA in its own footer row
+// - 3-line visual clamp for authority-grade scannability
+// - All SEO/JSON-LD, referral masking, and micro-anim preserved
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -259,28 +261,67 @@ export default async function categories(req, res) {
   header{padding:28px 24px 12px;}
   h1{margin:0 0 6px;font-size:28px;letter-spacing:-0.01em;}
   .sub{color:var(--muted);font-size:14px;}
+
   main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
-  .card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease,border-color .28s ease;height:100%;}
-  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
-  .media{display:block;border-radius:12px;overflow:hidden;position:relative;}
-  .media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0)60%,rgba(42,99,246,0.06)100%);opacity:0;transition:opacity .28s ease;}
-  .card:hover .media::after{opacity:1;}
-  .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;display:block;aspect-ratio:16/9;transition:transform .35s ease;}
-  .card:hover img{transform:scale(1.015);}
-  .card-body{flex:1;display:flex;flex-direction:column;padding-top:8px;min-height:calc(1lh * 4.8);}
-  .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
-  .title{color:inherit;text-decoration:none;}
-  .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
-  .subtitle{color:var(--muted);font-size:13px;line-height:1.4;margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;max-height:calc(1.45em*2);}
-  .card-cta{margin-top:auto;padding-top:12px;}
-  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;line-height:1;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);border-radius:10px;padding:0 14px;transition:background .2s ease,transform .2s ease,box-shadow .2s ease;box-shadow:0 2px 0 rgba(42,99,246,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
-  .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
-  .cta:active{transform:translateY(0);background:var(--brand-dark);box-shadow:0 2px 0 rgba(42,99,246,.35);}
-  .cta:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
-  footer{padding:22px 16px 36px;text-align:center;color:var(--muted);font-size:13px;}
-  .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
-  @media(prefers-reduced-motion:reduce){.card,.card img,.cta,.media::after{transition:none!important;}.card:hover{transform:none!important;}}
+
+  .card{
+    background:var(--card); border-radius:16px; padding:14px;
+    box-shadow:var(--shadow); border:1px solid rgba(16,19,38,.06);
+    display:flex; flex-direction:column;
+    transition:transform .28s cubic-bezier(.22,.61,.36,1), box-shadow .28s ease, border-color .28s ease;
+    height:100%;
+  }
+  .card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-hover); border-color:rgba(42,99,246,.18); }
+
+  .media{ display:block; border-radius:12px; overflow:hidden; position:relative; }
+  .media::after{ content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(0,0,0,0) 60%, rgba(42,99,246,0.06) 100%); opacity:0; transition:opacity .28s ease; }
+  .card:hover .media::after{ opacity:1; }
+  .card img{ width:100%; height:150px; object-fit:cover; background:#eef1f6; display:block; aspect-ratio:16/9; transition:transform .35s ease; }
+  .card:hover img{ transform:scale(1.015); }
+
+  /* Body: natural growth. Subtitle visually limited to 3 lines but always
+     leaves a breathing gap above CTA. */
+  .card-body{ flex:1; display:flex; flex-direction:column; padding-top:8px; }
+  .title-wrap{ margin:2px 0 0; font-size:16px; line-height:1.35; }
+  .title{ color:inherit; text-decoration:none; }
+  .title:focus-visible{ outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
+
+  .subtitle{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.45;            /* slightly taller for legibility & authority */
+    margin:6px 0 12px;           /* <-- GUARANTEED GAP ABOVE CTA */
+    display:-webkit-box;
+    -webkit-line-clamp:3;        /* authoritative 3-line scan */
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    word-break:break-word;
+  }
+
+  /* CTA row (lockbox) */
+  .card-cta{ margin-top:auto; }
+  .cta{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    height:44px; line-height:1; font-size:14px; text-decoration:none;
+    color:#fff; background:var(--brand);
+    border-radius:10px; padding:0 14px;
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+    box-shadow:0 2px 0 rgba(42,99,246,.35);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;
+  }
+  .card:hover .cta{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(42,99,246,.25); }
+  .cta:active{ transform:translateY(0); background:var(--brand-dark); box-shadow:0 2px 0 rgba(42,99,246,.35); }
+  .cta:focus-visible{ outline:2px solid var(--ring); outline-offset:3px; }
+
+  footer{ padding:22px 16px 36px; text-align:center; color:var(--muted); font-size:13px; }
+  .visually-hidden{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .card img, .cta, .media::after{ transition:none !important; }
+    .card:hover{ transform:none !important; }
+  }
 </style>
 
 <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
@@ -300,6 +341,8 @@ export default async function categories(req, res) {
     <div class="visually-hidden">${escapeHtml(footerHidden)}</div>
     ${footerVisible}
   </footer>
+
+  <!-- Subtle one-time CTA micro-anim (reduced-motion aware) -->
   <script>
     (function(){
       try{
