@@ -16,6 +16,7 @@
         "exclusive offer"
       ],
       "cta": "Learn how to what it replaces →",
+      "subtitle": "Run your whole business on one platform",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -35,7 +36,8 @@
         "cardclan",
         "exclusive offer"
       ],
-      "cta": "Preview marketing ↗",
+      "cta": "Preview marketing →",
+      "subtitle": "Send personalized cards at scale",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -56,6 +58,7 @@
         "exclusive offer"
       ],
       "cta": "What WbizTool makes easy →",
+      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -76,6 +79,7 @@
         "exclusive offer"
       ],
       "cta": "Learn how to marketing →",
+      "subtitle": "Send emails with SMTP and API",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -95,7 +99,8 @@
         "phygital",
         "exclusive offer"
       ],
-      "cta": "Discover marketing »",
+      "cta": "Discover marketing →",
+      "subtitle": "Access 20+ AI tools in one workspace",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -115,7 +120,8 @@
         "nexuscale",
         "exclusive offer"
       ],
-      "cta": "Explore marketing ↗",
+      "cta": "Explore marketing →",
+      "subtitle": "Generate and close B2B leads 24/7",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -136,6 +142,7 @@
         "exclusive offer"
       ],
       "cta": "See what it replaces »",
+      "subtitle": "Capture video testimonials with a link",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -156,6 +163,7 @@
         "exclusive offer"
       ],
       "cta": "What SendFox - Automate email marketing on a budget makes easy →",
+      "subtitle": "Automate email marketing on a budget",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -175,7 +183,8 @@
         "replientai",
         "exclusive offer"
       ],
-      "cta": "Discover what it replaces ↗",
+      "cta": "Discover what it replaces →",
+      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -195,7 +204,8 @@
         "swft-connect",
         "exclusive offer"
       ],
-      "cta": "Preview marketing →",
+      "cta": "Preview marketing ↗",
+      "subtitle": "Smart digital business cards",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -215,7 +225,8 @@
         "agencypro",
         "exclusive offer"
       ],
-      "cta": "Preview marketing ↗",
+      "cta": "Preview marketing »",
+      "subtitle": "Manage clients with a branded portal",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -236,6 +247,7 @@
         "exclusive offer"
       ],
       "cta": "What SiteGuru - Optimize your SEO strategy like a pro makes eas…",
+      "subtitle": "Optimize your SEO strategy like a pro",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -255,7 +267,8 @@
         "kingsumo",
         "exclusive offer"
       ],
-      "cta": "Learn how to marketing →",
+      "cta": "Learn how to marketing ↗",
+      "subtitle": "Drive leads with viral giveaways",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -276,6 +289,7 @@
         "exclusive offer"
       ],
       "cta": "Discover marketing →",
+      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -295,7 +309,8 @@
         "sociamonials",
         "exclusive offer"
       ],
-      "cta": "What Sociamonials - Optimize social media campaigns makes easy »",
+      "cta": "What Sociamonials - Optimize social media campaigns makes easy →",
+      "subtitle": "Optimize social media campaigns",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -316,6 +331,7 @@
         "exclusive offer"
       ],
       "cta": "Preview what it replaces »",
+      "subtitle": "Turn engagement into revenue — effortlessly.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -335,7 +351,8 @@
         "local-rank-tracker",
         "exclusive offer"
       ],
-      "cta": "See marketing →",
+      "cta": "See marketing ↗",
+      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -356,26 +373,7 @@
         "exclusive offer"
       ],
       "cta": "What LeadRocks makes easy →",
-      "archetype": "Opportunity & Growth"
-    }
-  },
-  {
-    "title": "Switchy - Boost conversions with retargeting links",
-    "slug": "switchy",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/switchy/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=switchy&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fswitchy%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Switchy_1.jpg",
-    "seo": {
-      "clickbait": "Discover Switchy - Boost conversions with retargeting links — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "switchy",
-        "exclusive offer"
-      ],
-      "cta": "Learn how to what it replaces ↗",
+      "subtitle": "Marketing tools that make every click count.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -395,7 +393,29 @@
         "onvocado",
         "exclusive offer"
       ],
-      "cta": "Learn how to marketing »",
+      "cta": "Learn how to marketing →",
+      "subtitle": "Marketing tools that make every click count.",
+      "archetype": "Opportunity & Growth"
+    }
+  },
+  {
+    "title": "Switchy - Boost conversions with retargeting links",
+    "slug": "switchy",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/switchy/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=switchy&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fswitchy%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Switchy_1.jpg",
+    "seo": {
+      "clickbait": "Discover Switchy - Boost conversions with retargeting links — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "switchy",
+        "exclusive offer"
+      ],
+      "cta": "Learn how to what it replaces →",
+      "subtitle": "Boost conversions with retargeting links",
       "archetype": "Opportunity & Growth"
     }
   }
