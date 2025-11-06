@@ -1,10 +1,12 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v3 — minimal logs, production ready
+// TinmanApps Adaptive Feed Engine v3.5 — Puppeteer + Psychographic CTA Enrichment
+// Combines dynamic AppSumo scraping with self-optimising CTA generation.
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import puppeteer from "puppeteer";
+import { createCtaEngine } from "../lib/ctaEngine.js"; // 🧠 Added adaptive CTA enrichment
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Config
@@ -32,22 +34,6 @@ const MAX_PER_CATEGORY = Number(process.env.MAX_PER_CATEGORY || 120);
 const DETAIL_CONCURRENCY = Number(process.env.DETAIL_CONCURRENCY || 8);
 const NAV_TIMEOUT_MS = 45_000;
 
-// CTA pool (deterministic per slug)
-const CTA_POOL = [
-  "Save hours every week →",
-  "Get instant lifetime access →",
-  "Explore what it replaces →",
-  "See real user results →",
-  "Unlock deal →",
-  "Compare to your stack →",
-  "Cut costs without compromise →",
-  "Automate the boring stuff →",
-  "Upgrade your workflow now →",
-  "Turn ideas into results →",
-  "Level up in minutes →",
-  "Discover smarter ways to grow →",
-];
-
 // ───────────────────────────────────────────────────────────────────────────────
 // Utils
 // ───────────────────────────────────────────────────────────────────────────────
@@ -66,10 +52,6 @@ function hash32(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return h >>> 0;
-}
-
-function ctaFor(slug) {
-  return CTA_POOL[hash32(slug) % CTA_POOL.length];
 }
 
 function toSlugFromUrl(url) {
@@ -105,12 +87,11 @@ function normalizeRecord({ slug, title, url, cat, image }) {
     seo: {
       clickbait: `Discover ${title || safeSlug} — #1 in ${cat}`,
       keywords: [cat, "AppSumo", "lifetime deal", safeSlug, "exclusive offer"],
-      cta: ctaFor(safeSlug),
     },
   };
 }
 
-// Minimal OG parser (no extra deps)
+// Minimal OG parser
 function extractOg(html) {
   const get = (prop) => {
     const rx = new RegExp(
@@ -149,7 +130,7 @@ async function fetchText(url, timeoutMs = 25_000) {
 // Crawlers
 // ───────────────────────────────────────────────────────────────────────────────
 async function launchBrowser() {
-  const browser = await puppeteer.launch({
+  return await puppeteer.launch({
     headless: "new",
     args: [
       "--no-sandbox",
@@ -159,31 +140,26 @@ async function launchBrowser() {
       "--disable-dev-shm-usage",
     ],
   });
-  return browser;
 }
 
 async function collectProductLinks(page, listUrl) {
   await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
-
-  // Try to grab a batch immediately; if low count, auto-scroll a bit
   let links = await page.$$eval("a[href*='/products/']", (as) =>
     as.map((a) => a.href)
   );
+
   if (links.length < 20) {
-    // gentle auto-scroll – keep it quick
     for (let i = 0; i < 6; i++) {
       await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.25));
       await sleep(400);
       const more = await page.$$eval("a[href*='/products/']", (as) =>
         as.map((a) => a.href)
       );
-      links = [...links, ...more];
-      links = [...new Set(links)];
+      links = [...new Set([...links, ...more])];
       if (links.length >= MAX_PER_CATEGORY) break;
     }
   }
 
-  // Normalize to unique product URLs
   const products = [...new Set(
     links
       .map((u) => {
@@ -231,12 +207,13 @@ async function withConcurrency(items, limit, worker) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Main
+// Main Build Logic
 // ───────────────────────────────────────────────────────────────────────────────
-async function buildCategory(browser, cat, listUrl) {
+async function buildCategory(browser, engine, cat, listUrl) {
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(NAV_TIMEOUT_MS);
 
+  console.log(`⏳ Fetching ${cat} → ${listUrl}`);
   const links = await collectProductLinks(page, listUrl);
 
   const records = await withConcurrency(
@@ -245,22 +222,29 @@ async function buildCategory(browser, cat, listUrl) {
     (url) => fetchProductDetail(url, cat)
   );
 
-  writeJson(`appsumo-${cat}.json`, records);
-  console.log(`Saved ${records.length} → data/appsumo-${cat}.json`);
+  const enriched = engine.enrichDeals(records, cat); // 🧠 adaptive CTA injection
+  writeJson(`appsumo-${cat}.json`, enriched);
 
+  console.log(`✅ Saved ${enriched.length} → data/appsumo-${cat}.json`);
   await page.close();
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Entry
+// ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   const browser = await launchBrowser();
+  const engine = createCtaEngine(); // 🧩 added here
 
   try {
     for (const [cat, listUrl] of Object.entries(CATEGORY_URLS)) {
-      await buildCategory(browser, cat, listUrl);
+      await buildCategory(browser, engine, cat, listUrl);
     }
   } finally {
     await browser.close();
   }
+
+  console.log("\n✨ All categories refreshed and enriched with adaptive CTAs.");
 }
 
 main().catch((err) => {
