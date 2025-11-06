@@ -1,7 +1,7 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA)
-// v4.1 “Bulletproof + Adaptive”: subtitle-safe, bottom-locked CTA, dynamic psychographic CTA
+// v4.2 “Bulletproof CTA Display”: guarantees JSON-enriched CTA priority + clean subtitle fallback
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -43,7 +43,7 @@ const CTA_POOL = [
   "Try it in action →",
 ];
 
-// Local subtitle templates (fallback if none from feed)
+// Local subtitle templates (fallback)
 const SUBTITLE_TEMPLATES = {
   software: [
     "Run your business smarter with AI-powered efficiency.",
@@ -158,7 +158,6 @@ function fallbackSubtitle(cat) {
 export default async function categories(req, res) {
   const cat = String(req.params.cat || "").toLowerCase();
   const title = CATS[cat];
-
   if (!title) return res.status(404).send("Category not found.");
 
   const deals = loadJsonSafe(`appsumo-${cat}.json`, []);
@@ -218,7 +217,7 @@ export default async function categories(req, res) {
     },
   };
 
-  // 🧠 Instantiate adaptive CTA engine
+  // 🧠 Adaptive CTA engine
   const engine = createCtaEngine();
 
   const cardsHtml = deals
@@ -237,9 +236,11 @@ export default async function categories(req, res) {
         subtitle = "";
       }
 
-      // 🧩 Dynamic CTA generation
-      let ctaText = (d.seo?.cta || "").trim();
-      if (!ctaText) {
+      // ✅ Robust CTA prioritization
+      let ctaText = "";
+      if (d.seo && typeof d.seo.cta === "string" && d.seo.cta.replace(/&[^;]+;/g, "").trim().length > 0) {
+        ctaText = d.seo.cta.trim();
+      } else {
         try {
           ctaText = engine.generate({
             title: brand,
@@ -250,6 +251,10 @@ export default async function categories(req, res) {
         } catch {
           ctaText = ctaFor(slug);
         }
+      }
+
+      if (process.env.DEBUG_CTA === "1") {
+        console.log(`[CTA:${cat}] ${slug} → ${ctaText}`);
       }
 
       const img = imageFor(slug, d.image);
@@ -377,38 +382,6 @@ export default async function categories(req, res) {
     <div class="visually-hidden">${escapeHtml(footerHidden)}</div>
     ${escapeHtml(footerVisible)}
   </footer>
-
-  <script>
-    (function(){
-      try{
-        if(!("IntersectionObserver" in window))return;
-        const seen=new Set();
-        const io=new IntersectionObserver((entries)=>{
-          for(const e of entries){
-            if(!e.isIntersecting)continue;
-            const card=e.target;
-            const slug=card.getAttribute("data-slug")||"";
-            if(seen.has(slug))continue;
-            seen.add(slug);
-            const btn=card.querySelector("[data-cta]");
-            if(!btn){io.unobserve(card);continue;}
-            const rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            if(!rm&&btn.animate){
-              btn.animate(
-                [
-                  {transform:"translateY(-2px)",boxShadow:"0 8px 22px rgba(42,99,246,.30)"},
-                  {transform:"translateY(0)",boxShadow:"0 2px 0 rgba(42,99,246,.35)"}
-                ],
-                {duration:520,easing:"cubic-bezier(.22,.61,.36,1)"}
-              );
-            }
-            io.unobserve(card);
-          }
-        },{threshold:0.55});
-        document.querySelectorAll(".card").forEach(c=>io.observe(c));
-      }catch(_){}
-    })();
-  </script>
 </body>
 </html>`;
 
