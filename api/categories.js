@@ -3,11 +3,10 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.6.6 (Final integrity version)
-// - Retains bleed-proof dynamic layout from v3.6.5
-// - Restores IntersectionObserver CTA micro-animation (CTR psychology layer)
-// - Keeps all SEO, schema, referral, and accessibility systems intact
-// - Zero assumptions: full continuity with all prior functionality
+// v3.6.7 (Adaptive Clamp Reserve)
+// - Fix: subtitle bleed eliminated across browsers and zoom levels
+// - Dynamic clamp-based card padding for reliable CTA clearance
+// - All SEO, schema, referral, and CTA animation logic preserved
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -259,18 +258,18 @@ export default async function categories(req, res) {
   .sub{color:var(--muted);font-size:14px;}
   main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
-  .card{position:relative;background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease;border:1px solid rgba(16,19,38,.06);height:100%;}
+  .card{position:relative;background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease;border:1px solid rgba(16,19,38,.06);height:100%;overflow:hidden;}
   .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
   .media{display:block;border-radius:12px;overflow:hidden;position:relative;}
   .media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0)60%,rgba(42,99,246,0.06)100%);opacity:0;transition:opacity .28s ease;}
   .card:hover .media::after{opacity:1;}
   .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;display:block;aspect-ratio:16/9;transition:transform .35s ease;}
   .card:hover img{transform:scale(1.015);}
-  .card-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:8px;padding-bottom:64px;}
+  .card-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:8px;padding-bottom:clamp(64px,10vh,72px);}
   .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
   .title{color:inherit;text-decoration:none;}
   .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
-  .subtitle{color:var(--muted);font-size:13px;line-height:1.4;margin:4px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;max-height:calc(1.4em*2);}
+  .subtitle{color:var(--muted);font-size:13px;line-height:1.4;margin:4px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;max-height:calc(1.45em*2);}
   .cta{position:absolute;left:14px;right:14px;bottom:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);height:44px;line-height:1;border-radius:10px;transition:background .2s,transform .2s,box-shadow .2s;box-shadow:0 2px 0 rgba(42,99,246,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
   .cta:active{transform:translateY(0);background:var(--brand-dark);box-shadow:0 2px 0 rgba(42,99,246,.35);}
@@ -298,7 +297,6 @@ export default async function categories(req, res) {
     ${footerVisible}
   </footer>
   <script>
-    // Subtle CTA reveal animation: once per card view, reduced-motion aware
     (function(){
       try{
         if(!("IntersectionObserver" in window))return;
