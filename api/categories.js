@@ -3,11 +3,10 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.7 (Authority Layout)
-// - Final structural separation: media → body → CTA (no absolute positioning)
-// - Guaranteed spacing: subtitle has margin-bottom; CTA in its own footer row
-// - 3-line visual clamp for authority-grade scannability
-// - All SEO/JSON-LD, referral masking, and micro-anim preserved
+// v3.8 (GridLock Final, SEO-Optimized)
+// - True 3-row CSS Grid layout (media / body / CTA) → no bleed possible
+// - Subtitle safely clamped to 3 lines for authority-grade consistency
+// - Maintains all structured data, CTR tracking, referral masking, and animation
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -107,7 +106,6 @@ function imageFor(slug, provided) {
 function splitTitle(fullTitle = "") {
   const raw = (fullTitle || "").trim();
   if (!raw) return { brand: "", subtitle: "" };
-
   const DASH_SEPS = [" — ", " – ", " —", " –"];
   for (const sep of DASH_SEPS) {
     const idx = raw.indexOf(sep);
@@ -117,14 +115,12 @@ function splitTitle(fullTitle = "") {
       if (brand && subtitle) return { brand, subtitle };
     }
   }
-
   const hyIdx = raw.indexOf(" - ");
   if (hyIdx > 0 && hyIdx < raw.length - 3) {
     const brand = raw.slice(0, hyIdx).trim();
     const subtitle = raw.slice(hyIdx + 3).trim();
     if (brand && subtitle) return { brand, subtitle };
   }
-
   return { brand: raw, subtitle: "" };
 }
 
@@ -210,7 +206,6 @@ export default async function categories(req, res) {
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
           <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
         </a>
-
         <div class="card-body">
           <h3 class="title-wrap" itemprop="name">
             <a class="title" href="${link}">${escapeHtml(brand)}</a>
@@ -221,7 +216,6 @@ export default async function categories(req, res) {
               : ``
           }
         </div>
-
         <div class="card-cta">
           <a class="cta" href="${link}" data-cta>${escapeHtml(resolvedCta)}</a>
         </div>
@@ -265,62 +259,57 @@ export default async function categories(req, res) {
   main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
 
+  /* True grid lock: media / body / CTA in distinct rows */
   .card{
-    background:var(--card); border-radius:16px; padding:14px;
-    box-shadow:var(--shadow); border:1px solid rgba(16,19,38,.06);
-    display:flex; flex-direction:column;
-    transition:transform .28s cubic-bezier(.22,.61,.36,1), box-shadow .28s ease, border-color .28s ease;
-    height:100%;
+    background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);
+    display:grid;grid-template-rows:auto 1fr auto;
+    transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease,border-color .28s ease;
   }
-  .card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-hover); border-color:rgba(42,99,246,.18); }
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
+  .media{display:block;border-radius:12px;overflow:hidden;position:relative;}
+  .media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0)60%,rgba(42,99,246,0.06)100%);opacity:0;transition:opacity .28s ease;}
+  .card:hover .media::after{opacity:1;}
+  .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;display:block;aspect-ratio:16/9;transition:transform .35s ease;}
+  .card:hover img{transform:scale(1.015);}
 
-  .media{ display:block; border-radius:12px; overflow:hidden; position:relative; }
-  .media::after{ content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(0,0,0,0) 60%, rgba(42,99,246,0.06) 100%); opacity:0; transition:opacity .28s ease; }
-  .card:hover .media::after{ opacity:1; }
-  .card img{ width:100%; height:150px; object-fit:cover; background:#eef1f6; display:block; aspect-ratio:16/9; transition:transform .35s ease; }
-  .card:hover img{ transform:scale(1.015); }
-
-  /* Body: natural growth. Subtitle visually limited to 3 lines but always
-     leaves a breathing gap above CTA. */
-  .card-body{ flex:1; display:flex; flex-direction:column; padding-top:8px; }
-  .title-wrap{ margin:2px 0 0; font-size:16px; line-height:1.35; }
-  .title{ color:inherit; text-decoration:none; }
-  .title:focus-visible{ outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
+  .card-body{padding-top:8px;}
+  .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
+  .title{color:inherit;text-decoration:none;}
+  .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
 
   .subtitle{
     color:var(--muted);
     font-size:13px;
-    line-height:1.45;            /* slightly taller for legibility & authority */
-    margin:6px 0 12px;           /* <-- GUARANTEED GAP ABOVE CTA */
+    line-height:1.45;
+    margin:6px 0 0;
     display:-webkit-box;
-    -webkit-line-clamp:3;        /* authoritative 3-line scan */
+    -webkit-line-clamp:3;
     -webkit-box-orient:vertical;
     overflow:hidden;
     text-overflow:ellipsis;
     word-break:break-word;
   }
 
-  /* CTA row (lockbox) */
-  .card-cta{ margin-top:auto; }
+  .card-cta{padding-top:12px;}
   .cta{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    height:44px; line-height:1; font-size:14px; text-decoration:none;
-    color:#fff; background:var(--brand);
-    border-radius:10px; padding:0 14px;
-    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    height:44px;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);
+    border-radius:10px;padding:0 14px;
+    transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
     box-shadow:0 2px 0 rgba(42,99,246,.35);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
   }
-  .card:hover .cta{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(42,99,246,.25); }
-  .cta:active{ transform:translateY(0); background:var(--brand-dark); box-shadow:0 2px 0 rgba(42,99,246,.35); }
-  .cta:focus-visible{ outline:2px solid var(--ring); outline-offset:3px; }
+  .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
+  .cta:active{transform:translateY(0);background:var(--brand-dark);box-shadow:0 2px 0 rgba(42,99,246,.35);}
+  .cta:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
 
-  footer{ padding:22px 16px 36px; text-align:center; color:var(--muted); font-size:13px; }
-  .visually-hidden{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  footer{padding:22px 16px 36px;text-align:center;color:var(--muted);font-size:13px;}
+  .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
 
-  @media (prefers-reduced-motion: reduce){
-    .card, .card img, .cta, .media::after{ transition:none !important; }
-    .card:hover{ transform:none !important; }
+  @media(prefers-reduced-motion:reduce){
+    .card,.card img,.cta,.media::after{transition:none!important;}
+    .card:hover{transform:none!important;}
   }
 </style>
 
@@ -342,7 +331,6 @@ export default async function categories(req, res) {
     ${footerVisible}
   </footer>
 
-  <!-- Subtle one-time CTA micro-anim (reduced-motion aware) -->
   <script>
     (function(){
       try{
