@@ -63,27 +63,6 @@
     }
   },
   {
-    "title": "Yapper - Create viral content with AI",
-    "slug": "yapper",
-    "category": "software",
-    "url": "https://appsumo.com/products/yapper/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=yapper&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fyapper%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fyapper-as-Header-Yapper-16_9.png",
-    "seo": {
-      "clickbait": "Discover Yapper - Create viral content with AI — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "yapper",
-        "exclusive offer"
-      ],
-      "cta": "Automate smarter using Yapper →",
-      "subtitle": "Create viral content with AI",
-      "archetype": "Trust & Reliability"
-    }
-  },
-  {
     "title": "Dart - Plus exclusive - Manage projects with AI support",
     "slug": "dart",
     "category": "software",
@@ -101,6 +80,27 @@
       ],
       "cta": "Automate smarter using Dart →",
       "subtitle": "Plus exclusive – Manage projects with AI support",
+      "archetype": "Trust & Reliability"
+    }
+  },
+  {
+    "title": "Yapper - Create viral content with AI",
+    "slug": "yapper",
+    "category": "software",
+    "url": "https://appsumo.com/products/yapper/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=yapper&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fyapper%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fyapper-as-Header-Yapper-16_9.png",
+    "seo": {
+      "clickbait": "Discover Yapper - Create viral content with AI — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "yapper",
+        "exclusive offer"
+      ],
+      "cta": "Automate smarter using Yapper →",
+      "subtitle": "Create viral content with AI",
       "archetype": "Trust & Reliability"
     }
   },
@@ -210,27 +210,6 @@
     }
   },
   {
-    "title": "Emailit - Send emails with SMTP and API",
-    "slug": "emailit",
-    "category": "software",
-    "url": "https://appsumo.com/products/emailit/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
-    "seo": {
-      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "emailit",
-        "exclusive offer"
-      ],
-      "cta": "Build faster on Emailit →",
-      "subtitle": "Send emails with SMTP and API",
-      "archetype": "Trust & Reliability"
-    }
-  },
-  {
     "title": "Phygital+ - Access 20+ AI tools in one workspace",
     "slug": "phygital",
     "category": "software",
@@ -248,6 +227,27 @@
       ],
       "cta": "Unlock AI efficiency with Phygital+ →",
       "subtitle": "Access 20+ AI tools in one workspace",
+      "archetype": "Trust & Reliability"
+    }
+  },
+  {
+    "title": "Emailit - Send emails with SMTP and API",
+    "slug": "emailit",
+    "category": "software",
+    "url": "https://appsumo.com/products/emailit/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
+    "seo": {
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "emailit",
+        "exclusive offer"
+      ],
+      "cta": "Build faster on Emailit →",
+      "subtitle": "Send emails with SMTP and API",
       "archetype": "Trust & Reliability"
     }
   },
