@@ -88,28 +88,6 @@
     }
   },
   {
-    "title": "Emailit - Send emails with SMTP and API",
-    "slug": "emailit",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/emailit/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
-    "seo": {
-      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "emailit",
-        "exclusive offer"
-      ],
-      "cta": "Learn how to marketing →",
-      "subtitle": "Send emails with SMTP and API",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
     "title": "Nexuscale AI - Generate and close B2B leads 24/7",
     "slug": "nexuscale",
     "category": "marketing",
@@ -132,6 +110,28 @@
     }
   },
   {
+    "title": "Emailit - Send emails with SMTP and API",
+    "slug": "emailit",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/emailit/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
+    "seo": {
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "emailit",
+        "exclusive offer"
+      ],
+      "cta": "Learn how to marketing →",
+      "subtitle": "Send emails with SMTP and API",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45"
+    }
+  },
+  {
     "title": "Feedspace - Capture video testimonials with a link",
     "slug": "feedspace",
     "category": "marketing",
@@ -147,7 +147,7 @@
         "feedspace",
         "exclusive offer"
       ],
-      "cta": "See what it replaces →",
+      "cta": "See what it replaces ↗",
       "subtitle": "Capture video testimonials with a link",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
@@ -169,7 +169,7 @@
         "sendfox",
         "exclusive offer"
       ],
-      "cta": "What SendFox - Automate email marketing on a budget makes easy →",
+      "cta": "What SendFox - Automate email marketing on a budget makes easy »",
       "subtitle": "Automate email marketing on a budget",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
@@ -191,8 +191,8 @@
         "replientai",
         "exclusive offer"
       ],
-      "cta": "Discover what it replaces »",
-      "subtitle": "Marketing tools that make every click count.",
+      "cta": "Discover what it replaces →",
+      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
@@ -257,7 +257,7 @@
         "agencypro",
         "exclusive offer"
       ],
-      "cta": "Preview marketing →",
+      "cta": "Preview marketing ↗",
       "subtitle": "Manage clients with a branded portal",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
@@ -279,7 +279,7 @@
         "sociamonials",
         "exclusive offer"
       ],
-      "cta": "What Sociamonials - Optimize social media campaigns makes easy ↗",
+      "cta": "What Sociamonials - Optimize social media campaigns makes easy →",
       "subtitle": "Optimize social media campaigns",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
@@ -301,8 +301,8 @@
         "reoon-email-verifier",
         "exclusive offer"
       ],
-      "cta": "Discover marketing →",
-      "subtitle": "Grow your audience faster with data-driven insights.",
+      "cta": "Discover marketing ↗",
+      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
@@ -345,8 +345,8 @@
         "local-rank-tracker",
         "exclusive offer"
       ],
-      "cta": "See marketing »",
-      "subtitle": "Grow your audience faster with data-driven insights.",
+      "cta": "See marketing →",
+      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
@@ -367,8 +367,8 @@
         "connexify",
         "exclusive offer"
       ],
-      "cta": "Preview what it replaces ↗",
-      "subtitle": "Grow your audience faster with data-driven insights.",
+      "cta": "Preview what it replaces →",
+      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
@@ -389,8 +389,8 @@
         "leadrocks",
         "exclusive offer"
       ],
-      "cta": "What LeadRocks makes easy ↗",
-      "subtitle": "Turn engagement into revenue — effortlessly.",
+      "cta": "What LeadRocks makes easy →",
+      "subtitle": "Marketing tools that make every click count.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
@@ -411,30 +411,30 @@
         "switchy",
         "exclusive offer"
       ],
-      "cta": "Learn how to what it replaces »",
+      "cta": "Learn how to what it replaces →",
       "subtitle": "Boost conversions with retargeting links",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
   },
   {
-    "title": "Creaitor.ai - Create SEO content with AI",
-    "slug": "creaitorai",
+    "title": "FormRobin - Build forms for any use case with AI",
+    "slug": "formrobin",
     "category": "marketing",
-    "url": "https://appsumo.com/products/creaitorai/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=creaitorai&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcreaitorai%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-Creaitor.ai-16_9.png",
+    "url": "https://appsumo.com/products/formrobin/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formrobin&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformrobin%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-FormRobin_-_16_9.png",
     "seo": {
-      "clickbait": "Discover Creaitor.ai - Create SEO content with AI — #1 in marketing",
+      "clickbait": "Discover FormRobin - Build forms for any use case with AI — #1 in marketing",
       "keywords": [
         "marketing",
         "AppSumo",
         "lifetime deal",
-        "creaitorai",
+        "formrobin",
         "exclusive offer"
       ],
-      "cta": "See what it replaces →",
-      "subtitle": "Create SEO content with AI",
+      "cta": "Explore marketing →",
+      "subtitle": "Build forms for any use case with AI",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45"
     }
