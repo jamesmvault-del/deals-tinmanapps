@@ -15,6 +15,11 @@
     "category": "marketing"
   },
   {
+    "title": "Emailit",
+    "url": "https://appsumo.com/products/emailit/",
+    "category": "marketing"
+  },
+  {
     "title": "Phygital",
     "url": "https://appsumo.com/products/phygital/",
     "category": "marketing"
@@ -22,11 +27,6 @@
   {
     "title": "Nexuscale",
     "url": "https://appsumo.com/products/nexuscale/",
-    "category": "marketing"
-  },
-  {
-    "title": "Emailit",
-    "url": "https://appsumo.com/products/emailit/",
     "category": "marketing"
   },
   {
@@ -45,13 +45,13 @@
     "category": "marketing"
   },
   {
-    "title": "Agencypro",
-    "url": "https://appsumo.com/products/agencypro/",
+    "title": "Replientai",
+    "url": "https://appsumo.com/products/replientai/",
     "category": "marketing"
   },
   {
-    "title": "Replientai",
-    "url": "https://appsumo.com/products/replientai/",
+    "title": "Agencypro",
+    "url": "https://appsumo.com/products/agencypro/",
     "category": "marketing"
   },
   {
@@ -60,8 +60,18 @@
     "category": "marketing"
   },
   {
+    "title": "Reoon Email Verifier",
+    "url": "https://appsumo.com/products/reoon-email-verifier/",
+    "category": "marketing"
+  },
+  {
     "title": "Siteguru",
     "url": "https://appsumo.com/products/siteguru/",
+    "category": "marketing"
+  },
+  {
+    "title": "Kingsumo",
+    "url": "https://appsumo.com/products/kingsumo/",
     "category": "marketing"
   },
   {
@@ -80,23 +90,13 @@
     "category": "marketing"
   },
   {
-    "title": "Kingsumo",
-    "url": "https://appsumo.com/products/kingsumo/",
-    "category": "marketing"
-  },
-  {
-    "title": "Reoon Email Verifier",
-    "url": "https://appsumo.com/products/reoon-email-verifier/",
+    "title": "Creaitorai",
+    "url": "https://appsumo.com/products/creaitorai/",
     "category": "marketing"
   },
   {
     "title": "Leadrocks",
     "url": "https://appsumo.com/products/leadrocks/",
-    "category": "marketing"
-  },
-  {
-    "title": "Switchy",
-    "url": "https://appsumo.com/products/switchy/",
     "category": "marketing"
   }
 ]
