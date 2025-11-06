@@ -1,6 +1,6 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v3.7 — Puppeteer + Self-Optimising CTA + Subtitle Enrichment
-// Combines dynamic AppSumo scraping with the psychographic CTA Engine for full SEO coverage.
+// TinmanApps Adaptive Feed Engine v3.8 — Puppeteer + Self-Optimising CTA + Subtitle Enrichment
+// Fixes CTA duplication by cleaning long titles before enrichment.
 
 import fs from "fs";
 import path from "path";
@@ -213,8 +213,15 @@ async function buildCategory(browser, engine, cat, listUrl) {
     (url) => fetchProductDetail(url, cat)
   );
 
+  // 🧠 Title cleanup to remove long subtitles before enrichment
+  const cleanRecords = rawRecords.map((r) => {
+    const parts = (r.title || "").split(/\s*[-–—]\s*/);
+    const brand = parts[0]?.trim() || r.slug;
+    return { ...r, title: brand };
+  });
+
   // 🧠 Psychographic CTA + Subtitle Enrichment
-  const enriched = engine.enrichDeals(rawRecords, cat);
+  const enriched = engine.enrichDeals(cleanRecords, cat);
 
   // ✅ Sanity check log
   const preview = enriched
