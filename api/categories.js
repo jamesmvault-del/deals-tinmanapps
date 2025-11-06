@@ -1,12 +1,13 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA)
-// v4.0 “Bulletproof”: local subtitle fallback + bottom-locked CTA + no bleed.
+// v4.1 “Bulletproof + Adaptive”: subtitle-safe, bottom-locked CTA, dynamic psychographic CTA
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import url from "url";
+import { createCtaEngine } from "../lib/ctaEngine.js"; // 🧠 Adaptive CTA generator
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
@@ -32,7 +33,7 @@ const ARCH = {
   courses: "Authority & Learning",
 };
 
-// Deterministic CTA pool (stable per slug)
+// Deterministic CTA pool (fallback)
 const CTA_POOL = [
   "Learn how it replaces →",
   "Preview software →",
@@ -135,7 +136,6 @@ function imageFor(slug, provided) {
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(guess)}`;
 }
 
-// Split a “Brand — Subtitle” style title
 function splitTitle(fullTitle = "") {
   const raw = (fullTitle || "").trim();
   if (!raw) return { brand: "", subtitle: "" };
@@ -146,7 +146,6 @@ function splitTitle(fullTitle = "") {
   return { brand: raw, subtitle: "" };
 }
 
-// Local subtitle generator (fallback if feed is missing one)
 function fallbackSubtitle(cat) {
   const pool =
     SUBTITLE_TEMPLATES[cat] || SUBTITLE_TEMPLATES.software || ["Get more done, faster."];
@@ -219,6 +218,9 @@ export default async function categories(req, res) {
     },
   };
 
+  // 🧠 Instantiate adaptive CTA engine
+  const engine = createCtaEngine();
+
   const cardsHtml = deals
     .map((d) => {
       const slug =
@@ -229,14 +231,27 @@ export default async function categories(req, res) {
 
       const { brand, subtitle: fromTitle } = splitTitle(d.title || slug);
 
-      // Prefer feed subtitle if present; otherwise fallback; never duplicate against brand
       let subtitle =
         (d.seo?.subtitle || fromTitle || "").trim() || fallbackSubtitle(cat);
       if (subtitle && brand.toLowerCase().includes(subtitle.toLowerCase())) {
-        subtitle = ""; // avoid duplicate-looking lines
+        subtitle = "";
       }
 
-      const ctaText = (d.seo?.cta || "").trim() || ctaFor(slug);
+      // 🧩 Dynamic CTA generation
+      let ctaText = (d.seo?.cta || "").trim();
+      if (!ctaText) {
+        try {
+          ctaText = engine.generate({
+            title: brand,
+            category: cat,
+            slug,
+            subtitle,
+          });
+        } catch {
+          ctaText = ctaFor(slug);
+        }
+      }
+
       const img = imageFor(slug, d.image);
       const link = trackedUrl({ slug, cat, url: d.url });
 
@@ -364,7 +379,6 @@ export default async function categories(req, res) {
   </footer>
 
   <script>
-    // One-time, reduced-motion-aware CTA nudge when card enters viewport
     (function(){
       try{
         if(!("IntersectionObserver" in window))return;
