@@ -15,7 +15,7 @@
         "youbooks",
         "exclusive offer"
       ],
-      "cta": "Learn how to what it replaces »",
+      "cta": "Learn how to what it replaces →",
       "subtitle": "Use AI to write quality nonfiction books",
       "archetype": "Trust & Reliability"
     }
@@ -42,6 +42,27 @@
     }
   },
   {
+    "title": "TidyCal - Scheduling and booking made easy",
+    "slug": "tidycal",
+    "category": "software",
+    "url": "https://appsumo.com/products/tidycal/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=tidycal&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftidycal%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-TidyCal_-_16_9_uuid_f96cf889-43d2-4d7f-a4a8-e03d9c08b7b5.png",
+    "seo": {
+      "clickbait": "Discover TidyCal - Scheduling and booking made easy — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "tidycal",
+        "exclusive offer"
+      ],
+      "cta": "Preview software →",
+      "subtitle": "Scheduling and booking made easy",
+      "archetype": "Trust & Reliability"
+    }
+  },
+  {
     "title": "Yapper - Create viral content with AI",
     "slug": "yapper",
     "category": "software",
@@ -57,7 +78,7 @@
         "yapper",
         "exclusive offer"
       ],
-      "cta": "Preview what it replaces ↗",
+      "cta": "Preview what it replaces →",
       "subtitle": "Create viral content with AI",
       "archetype": "Trust & Reliability"
     }
@@ -78,7 +99,7 @@
         "dart",
         "exclusive offer"
       ],
-      "cta": "See what it replaces »",
+      "cta": "See what it replaces →",
       "subtitle": "Plus exclusive – Manage projects with AI support",
       "archetype": "Trust & Reliability"
     }
@@ -101,27 +122,6 @@
       ],
       "cta": "Preview software →",
       "subtitle": "Send personalized cards at scale",
-      "archetype": "Trust & Reliability"
-    }
-  },
-  {
-    "title": "TidyCal - Scheduling and booking made easy",
-    "slug": "tidycal",
-    "category": "software",
-    "url": "https://appsumo.com/products/tidycal/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=tidycal&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftidycal%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-TidyCal_-_16_9_uuid_f96cf889-43d2-4d7f-a4a8-e03d9c08b7b5.png",
-    "seo": {
-      "clickbait": "Discover TidyCal - Scheduling and booking made easy — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "tidycal",
-        "exclusive offer"
-      ],
-      "cta": "Preview software →",
-      "subtitle": "Scheduling and booking made easy",
       "archetype": "Trust & Reliability"
     }
   },
@@ -163,7 +163,7 @@
         "exclusive offer"
       ],
       "cta": "What WbizTool makes easy »",
-      "subtitle": "Simplify your daily workflow — everything in one place.",
+      "subtitle": "Empower your team with seamless automation.",
       "archetype": "Trust & Reliability"
     }
   },
@@ -183,7 +183,7 @@
         "prettyprompt",
         "exclusive offer"
       ],
-      "cta": "Explore software →",
+      "cta": "Explore software ↗",
       "subtitle": "Improve AI prompts in seconds",
       "archetype": "Trust & Reliability"
     }
@@ -204,7 +204,7 @@
         "tagmango",
         "exclusive offer"
       ],
-      "cta": "What TagMango - Offer branded courses and workshops makes easy ↗",
+      "cta": "What TagMango - Offer branded courses and workshops makes easy →",
       "subtitle": "Offer branded courses and workshops",
       "archetype": "Trust & Reliability"
     }
@@ -225,7 +225,7 @@
         "emailit",
         "exclusive offer"
       ],
-      "cta": "Learn how to software »",
+      "cta": "Learn how to software →",
       "subtitle": "Send emails with SMTP and API",
       "archetype": "Trust & Reliability"
     }
@@ -267,7 +267,7 @@
         "nexuscale",
         "exclusive offer"
       ],
-      "cta": "Explore software →",
+      "cta": "Explore software »",
       "subtitle": "Generate and close B2B leads 24/7",
       "archetype": "Trust & Reliability"
     }
@@ -288,7 +288,7 @@
         "fusebase",
         "exclusive offer"
       ],
-      "cta": "Learn how to what it replaces →",
+      "cta": "Learn how to what it replaces ↗",
       "subtitle": "Collaborate with AI – powered workspaces",
       "archetype": "Trust & Reliability"
     }
@@ -330,7 +330,7 @@
         "puzzle",
         "exclusive offer"
       ],
-      "cta": "Discover what it replaces »",
+      "cta": "Discover what it replaces ↗",
       "subtitle": "Turn complex processes into visual maps",
       "archetype": "Trust & Reliability"
     }
@@ -351,7 +351,7 @@
         "browseract",
         "exclusive offer"
       ],
-      "cta": "Discover software ↗",
+      "cta": "Discover software →",
       "subtitle": "Scrape any website, code – free",
       "archetype": "Trust & Reliability"
     }
