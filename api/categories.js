@@ -170,13 +170,16 @@ export default async function categories(req, res) {
       let titleText = d.title || slug;
 let subtitle = d.seo?.subtitle?.trim() || "";
 
-// 🧹 Prevent duplicate subtitles (if title already contains subtitle text)
-if (subtitle && titleText.toLowerCase().includes(subtitle.toLowerCase())) {
+// 🧠 Extract the post-dash phrase (if any)
+const dashPart = titleText.split(/\s*[-–—]\s*/)[1]?.trim() || "";
+
+// 🧹 Clean title (keep only brand / main name)
+titleText = titleText.split(/\s*[-–—]\s*/)[0].trim();
+
+// 🧩 Only hide subtitle if it matches the post-dash phrase exactly
+if (subtitle && dashPart && subtitle.toLowerCase() === dashPart.toLowerCase()) {
   subtitle = "";
 }
-
-// 🧹 Clean up titles like "Heffl – Run your whole business..."
-titleText = titleText.split(/\s*[-–—]\s*/)[0].trim();
 
 const enrichedCTA = d.seo?.cta?.trim() || ctaFor(slug);
 
