@@ -1,5 +1,5 @@
 // /api/categories.js
-// TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA + hover CTR boost)
+// TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA + hover CTR boost + subtitle support)
 
 import fs from "fs";
 import path from "path";
@@ -89,10 +89,19 @@ function trackedUrl({ slug, cat, url }) {
 // Best-effort image via proxy (falls back to placeholder on fetch failure)
 function imageFor(slug, provided) {
   if (provided) return provided;
-  // Guess a reasonable product key on CDN; proxy handles failures gracefully.
   const guess = `https://appsumo2-cdn.appsumo.com/media/products/${slug}/logo.png`;
   const proxied = `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(guess)}`;
   return proxied;
+}
+
+// Extract subtitle (text after dash/en-dash/em-dash)
+function splitTitle(fullTitle = "") {
+  const raw = (fullTitle || "").trim();
+  const match = raw.match(/^(.*?)[\s–—-]+\s*(.*)$/);
+  if (match && match[2]) {
+    return { title: match[1].trim(), subtitle: match[2].trim() };
+  }
+  return { title: raw, subtitle: "" };
 }
 
 // Tiny util for meta safety
@@ -117,11 +126,9 @@ export default async function categories(req, res) {
     return;
   }
 
-  // Load category data built by the feed updater
   const deals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const total = deals.length;
 
-  // CTR insights (optional; used for subtle “freshness” mention)
   const ctr = loadJsonSafe("ctr-insights.json", {
     totalClicks: 0,
     byDeal: {},
@@ -129,19 +136,16 @@ export default async function categories(req, res) {
     recent: [],
   });
 
-  // Derive "last refreshed" timestamp
   let lastRefreshed = new Date();
   try {
     const stat = fs.statSync(path.join(DATA_DIR, `appsumo-${cat}.json`));
     lastRefreshed = stat.mtime;
   } catch {}
 
-  // Canonical + meta
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
   const pageDesc = `Browse ${total} live ${title.toLowerCase()} indexed automatically — referral-safe, fast, and SEO-optimized.`;
 
-  // Breadcrumb JSON-LD
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -161,7 +165,6 @@ export default async function categories(req, res) {
     ],
   };
 
-  // CollectionPage + ItemList schema (top slice)
   const SLICE = Math.min(30, total);
   const itemListLd = {
     "@context": "https://schema.org",
@@ -198,30 +201,34 @@ export default async function categories(req, res) {
         d.url?.match(/products\/([^/]+)/)?.[1] ||
         d.title?.toLowerCase().replace(/\s+/g, "-") ||
         "deal";
+      const { title: cleanTitle, subtitle } = splitTitle(d.title || "");
       const img = imageFor(slug, d.image);
       const cta = ctaFor(slug);
       const link = trackedUrl({ slug, cat, url: d.url });
 
       return `
       <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
-        <a class="media" href="${link}" aria-label="${escapeHtml(d.title)}">
-          <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
+        <a class="media" href="${link}" aria-label="${escapeHtml(cleanTitle)}">
+          <img src="${img}" alt="${escapeHtml(cleanTitle)}" loading="lazy" />
         </a>
         <h3 itemprop="name">
-          <a class="title" href="${link}">${escapeHtml(d.title)}</a>
+          <a class="title" href="${link}">${escapeHtml(cleanTitle)}</a>
         </h3>
+        ${
+          subtitle
+            ? `<div class="card-subtitle">${escapeHtml(subtitle)}</div>`
+            : ""
+        }
         <a class="cta" href="${link}" data-cta>${escapeHtml(cta)}</a>
       </article>`;
     })
     .join("\n");
 
-  // Dynamic micro-footer (SEO signal without visual noise)
   const footerVisible = `${escapeHtml(ARCH[cat])} • ${total} deals • Updated automatically`;
   const footerHidden = `This page indexes verified AppSumo lifetime deals for ${title.toLowerCase()} with referral integrity, CTR optimization, and structured metadata. Refreshed ${fmtDateISO(
     lastRefreshed
   )}. Total clicks recorded: ${Number(ctr.totalClicks || 0)}.`;
 
-  // HTML with **CTR-optimized hover** + **polished motion** (reduced-motion aware)
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -259,7 +266,6 @@ export default async function categories(req, res) {
     box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px;
     transition:transform .28s cubic-bezier(.22,.61,.36,1), box-shadow .28s ease, border-color .28s ease;
     border:1px solid rgba(16,19,38,.06);
-    will-change:transform, box-shadow;
   }
   .card:hover, .card:focus-within {
     transform: translateY(-4px);
@@ -268,30 +274,38 @@ export default async function categories(req, res) {
   }
 
   .media { display:block; border-radius:12px; overflow:hidden; position:relative; }
-  .media::after {
-    content:""; position:absolute; inset:0;
-    background: linear-gradient(0deg, rgba(0,0,0,.00) 60%, rgba(42,99,246,.06) 100%);
-    opacity:0; transition:opacity .28s ease;
-  }
-  .card:hover .media::after { opacity:1; }
-
   .card img {
     width:100%; height:150px; object-fit:cover; background:#eef1f6; display:block;
     aspect-ratio: 16 / 9;
     transform:scale(1.001);
     transition: transform .35s cubic-bezier(.22,.61,.36,1);
-    will-change:transform;
   }
   .card:hover img { transform: scale(1.015); }
 
   .title { color:inherit; text-decoration:none; }
   .title:focus-visible { outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
 
-  .card h3 { margin:2px 0 2px; font-size:16px; line-height:1.35; letter-spacing:0; }
+  .card h3 { margin:2px 0 2px; font-size:16px; line-height:1.35; }
+
+  /* Beautiful subtitle styling */
+  .card-subtitle {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.45;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    max-height: 3.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
 
   .cta {
     display:inline-flex; align-items:center; gap:8px;
-    margin-top:4px; font-size:14px; text-decoration:none;
+    margin-top:6px; font-size:14px; text-decoration:none;
     color:#ffffff; background:var(--brand); padding:10px 12px; border-radius:10px;
     transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
     box-shadow: 0 2px 0 rgba(42,99,246,.35);
@@ -304,17 +318,12 @@ export default async function categories(req, res) {
   .visually-hidden { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
   @media (prefers-reduced-motion: reduce) {
-    .card, .card img, .cta, .media::after { transition:none !important; }
+    .card, .card img, .cta { transition:none !important; }
     .card:hover { transform:none !important; }
-    .card:hover img { transform:none !important; }
   }
 </style>
-<script type="application/ld+json">
-${JSON.stringify(breadcrumbLd)}
-</script>
-<script type="application/ld+json">
-${JSON.stringify(itemListLd)}
-</script>
+<script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
+<script type="application/ld+json">${JSON.stringify(itemListLd)}</script>
 </head>
 <body>
   <header>
@@ -334,8 +343,6 @@ ${JSON.stringify(itemListLd)}
   </footer>
 
   <script>
-    // Lightweight, no-analytics "attention nudge":
-    // If a card enters viewport and hasn't been seen, gently pulse the CTA once.
     (function(){
       if (!("IntersectionObserver" in window)) return;
       const seen = new Set();
@@ -351,11 +358,11 @@ ${JSON.stringify(itemListLd)}
           btn.animate(
             [{ transform:"translateY(-1px)", boxShadow:"0 8px 22px rgba(42,99,246,.30)" },
              { transform:"translateY(0)", boxShadow:"0 2px 0 rgba(42,99,246,.35)" }],
-            { duration: 520, easing: "cubic-bezier(.22,.61,.36,1)" }
+            { duration:520, easing:"cubic-bezier(.22,.61,.36,1)" }
           );
           io.unobserve(card);
         }
-      }, { threshold: 0.55 });
+      }, { threshold:0.55 });
       document.querySelectorAll(".card").forEach(c => io.observe(c));
     })();
   </script>
