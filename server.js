@@ -1,50 +1,65 @@
 // /server.js
-// Main entry — TinmanApps Adaptive SEO Engine Core
-
+// Express entry point for TinmanApps Adaptive Deal Engine
 import express from "express";
 import path from "path";
-import url from "url";
+import { fileURLToPath } from "url";
 
-import categories from "./api/categories.js";
-import category from "./api/category.js";
+// ✅ Resolve paths
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import appsumoProxy from "./api/appsumo-proxy.js";
+import masterCron from "./api/master-cron.js";
+import insight from "./api/insight.js";
 import imageProxy from "./api/image-proxy.js";
-import imageHealer from "./api/image-healer.js"; // ✅ NEW
-import fs from "fs";
+import categoriesApi from "./api/categories.js";
+import categoryApi from "./api/category.js";
 
 const app = express();
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
-// Serve static assets
-app.use("/assets", express.static(path.join(__dirname, "assets")));
-app.use(express.json());
+// ✅ Serve static assets (placeholder, css, etc.)
+app.use("/assets", express.static(path.join(__dirname, "public", "assets")));
+app.use("/data", express.static(path.join(__dirname, "data")));
+app.use("/pages", express.static(path.join(__dirname, "pages")));
 
-// ────────────────────────────────────────────────────────────────
-// API ROUTES
-// ────────────────────────────────────────────────────────────────
-app.get("/api/categories", categories);
-app.get("/api/category/:slug", category);
+// ✅ API routes
+app.get("/api/appsumo-proxy", appsumoProxy);
+app.get("/api/master-cron", masterCron);
+app.get("/api/insight", insight);
 app.get("/api/image-proxy", imageProxy);
-app.get("/api/image-healer", imageHealer); // ✅ NEW self-healing route
+app.get("/api/categories", categoriesApi);
+app.get("/api/category/:slug", categoryApi);
 
-// ────────────────────────────────────────────────────────────────
-// FRONTEND ROUTES
-// ────────────────────────────────────────────────────────────────
+// ✅ Dynamic pages (SSR-lite style)
+app.get("/categories", (req, res) => {
+  res.sendFile(path.join(__dirname, "pages", "categories.html"));
+});
+
+app.get("/categories/:slug", (req, res) => {
+  res.sendFile(path.join(__dirname, "pages", "category.html"));
+});
+
+// ✅ Root / Healthcheck
 app.get("/", (req, res) => {
-  res.redirect("/categories");
+  res.send("✅ TinmanApps Adaptive Deal Engine running");
 });
 
-app.get("/categories/:slug?", async (req, res) => {
-  const slug = req.params.slug;
-  const pagePath = slug
-    ? path.join(__dirname, "pages", "category.html")
-    : path.join(__dirname, "pages", "categories.html");
-
-  if (fs.existsSync(pagePath)) res.sendFile(pagePath);
-  else res.status(404).send("Page not found");
+// ✅ Error fallback for unknown routes
+app.use((req, res) => {
+  res.status(404).send("❌ Page not found");
 });
 
-// ────────────────────────────────────────────────────────────────
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ TinmanApps Adaptive SEO Engine live on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("✅ Registered routes:");
+  console.log("/api/appsumo-proxy");
+  console.log("/api/master-cron");
+  console.log("/api/insight");
+  console.log("/api/image-proxy");
+  console.log("/api/categories");
+  console.log("/api/category/:slug");
+  console.log("/categories");
+  console.log("/categories/:slug");
 });
