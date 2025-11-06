@@ -1,80 +1,82 @@
 // /api/image-proxy.js
-// 🖼️ TinmanApps Image Proxy & Cache Layer (v2.0)
-// Securely serves AppSumo thumbnails via your domain for SEO originality and CTR performance.
+// TinmanApps — Intelligent image proxy & fallback system
 
 import https from "https";
+import http from "http";
 import fs from "fs";
 import path from "path";
-import { setTimeout as delay } from "timers/promises";
+import url from "url";
 
-// Directory for cached images (inside /data/images/)
-const CACHE_DIR = path.resolve("./data/images");
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const CACHE_DIR = path.join(__dirname, "../data/image-cache");
+const PLACEHOLDER = path.join(__dirname, "../public/assets/placeholder.webp");
+
+// Ensure cache folder exists
 if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
 
-// Cache validity (in hours)
-const CACHE_HOURS = 48;
-
-// Helper: download and save an image locally
-async function downloadImage(url, destPath) {
+// ────────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────────
+function fetchRemoteImage(remoteUrl) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destPath);
-    https
-      .get(url, (response) => {
-        if (response.statusCode !== 200) {
-          file.close();
-          fs.unlinkSync(destPath);
-          return reject(new Error(`HTTP ${response.statusCode}`));
+    const client = remoteUrl.startsWith("https") ? https : http;
+    client
+      .get(remoteUrl, (resp) => {
+        if (resp.statusCode !== 200) {
+          reject(new Error(`HTTP ${resp.statusCode}`));
+          return;
         }
-        response.pipe(file);
-        file.on("finish", () => file.close(resolve));
+        const chunks = [];
+        resp.on("data", (chunk) => chunks.push(chunk));
+        resp.on("end", () => resolve(Buffer.concat(chunks)));
       })
-      .on("error", (err) => {
-        try {
-          fs.unlinkSync(destPath);
-        } catch {}
-        reject(err);
-      });
+      .on("error", reject)
+      .setTimeout(7000, () => reject(new Error("timeout")));
   });
 }
 
-// ✅ Main handler
-export default async function handler(req, res) {
+// ────────────────────────────────────────────────────────────────
+// Main proxy handler
+// ────────────────────────────────────────────────────────────────
+export default async function imageProxy(req, res) {
+  const src = req.query.src;
+  if (!src) {
+    res.status(400).send("Missing src parameter");
+    return;
+  }
+
   try {
-    const src = decodeURIComponent(req.query.src || "").trim();
-    if (!src) {
-      return res.status(400).json({ error: "Missing ?src parameter" });
-    }
+    const urlObj = new URL(src);
+    const slug = path.basename(urlObj.pathname).replace(/[^a-zA-Z0-9._-]/g, "");
+    const cachePath = path.join(CACHE_DIR, slug);
 
-    // Clean filename for local cache
-    const name = src.split("/").pop().replace(/[^a-zA-Z0-9.-]/g, "_");
-    const localPath = path.join(CACHE_DIR, name);
-
-    // Use cache if available and recent
-    if (fs.existsSync(localPath)) {
-      const ageHours =
-        (Date.now() - fs.statSync(localPath).mtimeMs) / 1000 / 3600;
-      if (ageHours < CACHE_HOURS) {
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return fs.createReadStream(localPath).pipe(res);
-      }
-    }
-
-    // Otherwise fetch fresh image
-    console.log("🖼️ Refreshing image:", src);
-    await downloadImage(src, localPath);
-    await delay(100); // ensure disk write
-
-    res.setHeader("Cache-Control", "public, max-age=86400");
-    fs.createReadStream(localPath).pipe(res);
-  } catch (err) {
-    console.error("❌ Image proxy error:", err);
-    const fallbackPath = path.resolve("./public/assets/placeholder.webp");
-    if (fs.existsSync(fallbackPath)) {
+    // Serve cached if available
+    if (fs.existsSync(cachePath)) {
+      res.setHeader("Content-Type", "image/webp");
       res.setHeader("Cache-Control", "public, max-age=86400");
-      return fs.createReadStream(fallbackPath).pipe(res);
-    } else {
-      // Final fail-safe: plain text notice
-      res.status(404).send("⚠️ Fallback image missing (placeholder.webp)");
+      res.send(fs.readFileSync(cachePath));
+      return;
+    }
+
+    // Attempt to fetch remote
+    const buf = await fetchRemoteImage(src);
+
+    // Cache result
+    fs.writeFileSync(cachePath, buf);
+    res.setHeader("Content-Type", "image/webp");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("X-Image-Reason", "live");
+    res.send(buf);
+  } catch (err) {
+    // Fallback to placeholder
+    try {
+      const ph = fs.readFileSync(PLACEHOLDER);
+      res.setHeader("Content-Type", "image/webp");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("X-Image-Reason", "placeholder");
+      res.send(ph);
+    } catch {
+      res.status(404).send("Placeholder not found");
     }
   }
 }
