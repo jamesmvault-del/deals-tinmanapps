@@ -15,7 +15,7 @@
         "heffl",
         "exclusive offer"
       ],
-      "cta": "Learn how to what it replaces →",
+      "cta": "See what Heffl makes easy →",
       "subtitle": "Run your whole business on one platform",
       "archetype": "Opportunity & Growth"
     }
@@ -36,7 +36,7 @@
         "cardclan",
         "exclusive offer"
       ],
-      "cta": "Preview marketing ↗",
+      "cta": "See what CardClan makes easy →",
       "subtitle": "Send personalized cards at scale",
       "archetype": "Opportunity & Growth"
     }
@@ -57,8 +57,29 @@
         "wbiztool",
         "exclusive offer"
       ],
-      "cta": "What WbizTool makes easy →",
-      "subtitle": "Marketing tools that make every click count.",
+      "cta": "Achieve more with WbizTool — marketing →",
+      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
+      "archetype": "Opportunity & Growth"
+    }
+  },
+  {
+    "title": "Emailit - Send emails with SMTP and API",
+    "slug": "emailit",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/emailit/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
+    "seo": {
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "emailit",
+        "exclusive offer"
+      ],
+      "cta": "Ship features via Emailit →",
+      "subtitle": "Send emails with SMTP and API",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -78,7 +99,7 @@
         "phygital",
         "exclusive offer"
       ],
-      "cta": "Discover marketing →",
+      "cta": "Automate smarter using Phygital+ →",
       "subtitle": "Access 20+ AI tools in one workspace",
       "archetype": "Opportunity & Growth"
     }
@@ -99,29 +120,8 @@
         "nexuscale",
         "exclusive offer"
       ],
-      "cta": "Explore marketing →",
+      "cta": "Automate smarter using Nexuscale AI →",
       "subtitle": "Generate and close B2B leads 24/7",
-      "archetype": "Opportunity & Growth"
-    }
-  },
-  {
-    "title": "Emailit - Send emails with SMTP and API",
-    "slug": "emailit",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/emailit/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
-    "seo": {
-      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "emailit",
-        "exclusive offer"
-      ],
-      "cta": "Learn how to marketing →",
-      "subtitle": "Send emails with SMTP and API",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -141,7 +141,7 @@
         "feedspace",
         "exclusive offer"
       ],
-      "cta": "See marketing »",
+      "cta": "Edit faster, publish quicker — Feedspace →",
       "subtitle": "Capture video testimonials with a link",
       "archetype": "Opportunity & Growth"
     }
@@ -162,7 +162,7 @@
         "sendfox",
         "exclusive offer"
       ],
-      "cta": "What SendFox - Automate email marketing on a budget makes easy →",
+      "cta": "Grow your list with SendFox →",
       "subtitle": "Automate email marketing on a budget",
       "archetype": "Opportunity & Growth"
     }
@@ -183,29 +183,8 @@
         "replientai",
         "exclusive offer"
       ],
-      "cta": "Discover what it replaces »",
-      "subtitle": "Automate campaigns, capture leads, and convert with ease.",
-      "archetype": "Opportunity & Growth"
-    }
-  },
-  {
-    "title": "AgencyPro - Manage clients with a branded portal",
-    "slug": "agencypro",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/agencypro/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
-    "seo": {
-      "clickbait": "Discover AgencyPro - Manage clients with a branded portal — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "agencypro",
-        "exclusive offer"
-      ],
-      "cta": "Preview marketing →",
-      "subtitle": "Manage clients with a branded portal",
+      "cta": "Unlock AI efficiency with replient.ai →",
+      "subtitle": "Turn engagement into revenue — effortlessly.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -225,8 +204,29 @@
         "swft-connect",
         "exclusive offer"
       ],
-      "cta": "Preview marketing →",
+      "cta": "Preview Swft Connect in action →",
       "subtitle": "Smart digital business cards",
+      "archetype": "Opportunity & Growth"
+    }
+  },
+  {
+    "title": "AgencyPro - Manage clients with a branded portal",
+    "slug": "agencypro",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/agencypro/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
+    "seo": {
+      "clickbait": "Discover AgencyPro - Manage clients with a branded portal — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "agencypro",
+        "exclusive offer"
+      ],
+      "cta": "Create on-brand assets — AgencyPro →",
+      "subtitle": "Manage clients with a branded portal",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -246,29 +246,8 @@
         "siteguru",
         "exclusive offer"
       ],
-      "cta": "What SiteGuru - Optimize your SEO strategy like a pro makes eas…",
+      "cta": "Grow organic traffic via SiteGuru →",
       "subtitle": "Optimize your SEO strategy like a pro",
-      "archetype": "Opportunity & Growth"
-    }
-  },
-  {
-    "title": "Reoon Email Verifier",
-    "slug": "reoon-email-verifier",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/reoon-email-verifier/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=reoon-email-verifier&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freoon-email-verifier%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
-    "seo": {
-      "clickbait": "Discover Reoon Email Verifier — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "reoon-email-verifier",
-        "exclusive offer"
-      ],
-      "cta": "Discover marketing →",
-      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -288,8 +267,29 @@
         "sociamonials",
         "exclusive offer"
       ],
-      "cta": "What Sociamonials - Optimize social media campaigns makes easy →",
+      "cta": "Schedule & grow with Sociamonials →",
       "subtitle": "Optimize social media campaigns",
+      "archetype": "Opportunity & Growth"
+    }
+  },
+  {
+    "title": "Reoon Email Verifier",
+    "slug": "reoon-email-verifier",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/reoon-email-verifier/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=reoon-email-verifier&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freoon-email-verifier%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
+    "seo": {
+      "clickbait": "Discover Reoon Email Verifier — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "reoon-email-verifier",
+        "exclusive offer"
+      ],
+      "cta": "Improve deliverability with Reoon Email Verifier →",
+      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -309,7 +309,7 @@
         "kingsumo",
         "exclusive offer"
       ],
-      "cta": "Learn how to marketing →",
+      "cta": "Organize leads faster with KingSumo →",
       "subtitle": "Drive leads with viral giveaways",
       "archetype": "Opportunity & Growth"
     }
@@ -330,8 +330,8 @@
         "local-rank-tracker",
         "exclusive offer"
       ],
-      "cta": "See marketing →",
-      "subtitle": "Marketing tools that make every click count.",
+      "cta": "Fix SEO issues with Local Rank Tracker →",
+      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -351,8 +351,8 @@
         "connexify",
         "exclusive offer"
       ],
-      "cta": "Preview what it replaces ↗",
-      "subtitle": "Stand out, sell more, and scale faster.",
+      "cta": "Preview Connexify in action →",
+      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -372,8 +372,8 @@
         "leadrocks",
         "exclusive offer"
       ],
-      "cta": "What LeadRocks makes easy ↗",
-      "subtitle": "Grow your audience faster with data-driven insights.",
+      "cta": "See what LeadRocks makes easy →",
+      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -393,29 +393,29 @@
         "switchy",
         "exclusive offer"
       ],
-      "cta": "Learn how to what it replaces ↗",
+      "cta": "See what Switchy makes easy →",
       "subtitle": "Boost conversions with retargeting links",
       "archetype": "Opportunity & Growth"
     }
   },
   {
-    "title": "FormRobin - Build forms for any use case with AI",
-    "slug": "formrobin",
+    "title": "LiGo - Generate LinkedIn content in your own voice",
+    "slug": "ligo",
     "category": "marketing",
-    "url": "https://appsumo.com/products/formrobin/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formrobin&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformrobin%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-FormRobin_-_16_9.png",
+    "url": "https://appsumo.com/products/ligo/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=ligo&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fligo%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fligo-as-Header-LiGo-16_9_zFHnNta.png",
     "seo": {
-      "clickbait": "Discover FormRobin - Build forms for any use case with AI — #1 in marketing",
+      "clickbait": "Discover LiGo - Generate LinkedIn content in your own voice — #1 in marketing",
       "keywords": [
         "marketing",
         "AppSumo",
         "lifetime deal",
-        "formrobin",
+        "ligo",
         "exclusive offer"
       ],
-      "cta": "Explore marketing ↗",
-      "subtitle": "Build forms for any use case with AI",
+      "cta": "Boost engagement using LiGo →",
+      "subtitle": "Generate LinkedIn content in your own voice",
       "archetype": "Opportunity & Growth"
     }
   }
