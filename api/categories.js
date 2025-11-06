@@ -1,12 +1,12 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
-// subtitle support, hover CTR boost, reduced-motion aware).
+// TinmanApps — Category renderer (Authority GridLock+ v3.9)
+// SEO-first, referral-safe, visually uniform, bleed-proof category layout.
 //
-// v3.8 (GridLock Final, SEO-Optimized)
-// - True 3-row CSS Grid layout (media / body / CTA) → no bleed possible
-// - Subtitle safely clamped to 3 lines for authority-grade consistency
-// - Maintains all structured data, CTR tracking, referral masking, and animation
+// - True CSS Grid (media / body / CTA separated in grid rows)
+// - Fixed image aspect ratio + height normalization
+// - Subtitle 3-line clamp + min-height for alignment
+// - Uniform card heights per row (perfect SEO layout stability)
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -50,18 +50,15 @@ const CTA_POOL = [
 // ───────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ───────────────────────────────────────────────────────────────────────────────
-
 function loadJsonSafe(file, fallback = []) {
   try {
     const p = path.join(DATA_DIR, file);
     if (!fs.existsSync(p)) return fallback;
-    const raw = fs.readFileSync(p, "utf8");
-    return JSON.parse(raw);
+    return JSON.parse(fs.readFileSync(p, "utf8"));
   } catch {
     return fallback;
   }
 }
-
 function fmtDateISO(dt) {
   try {
     return new Date(dt).toISOString();
@@ -69,7 +66,6 @@ function fmtDateISO(dt) {
     return new Date().toISOString();
   }
 }
-
 function escapeHtml(s = "") {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -78,31 +74,26 @@ function escapeHtml(s = "") {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
-
 function hashStr(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h >>> 0;
 }
-
 function ctaFor(slug) {
   const idx = hashStr(slug) % CTA_POOL.length;
   return CTA_POOL[idx];
 }
-
 function trackedUrl({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
-
 function imageFor(slug, provided) {
   if (provided) return provided;
   const guess = `https://appsumo2-cdn.appsumo.com/media/products/${slug}/logo.png`;
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(guess)}`;
 }
-
 function splitTitle(fullTitle = "") {
   const raw = (fullTitle || "").trim();
   if (!raw) return { brand: "", subtitle: "" };
@@ -127,7 +118,6 @@ function splitTitle(fullTitle = "") {
 // ───────────────────────────────────────────────────────────────────────────────
 // Main handler
 // ───────────────────────────────────────────────────────────────────────────────
-
 export default async function categories(req, res) {
   const cat = String(req.params.cat || "").toLowerCase();
   const title = CATS[cat];
@@ -204,7 +194,9 @@ export default async function categories(req, res) {
       return `
       <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
-          <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
+          <div class="img-wrap">
+            <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
+          </div>
         </a>
         <div class="card-body">
           <h3 class="title-wrap" itemprop="name">
@@ -251,15 +243,14 @@ export default async function categories(req, res) {
     --brand:#2a63f6; --brand-dark:#1d4fe6; --ring:rgba(42,99,246,.35);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
   header{padding:28px 24px 12px;}
   h1{margin:0 0 6px;font-size:28px;letter-spacing:-0.01em;}
   .sub{color:var(--muted);font-size:14px;}
 
   main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;grid-auto-rows:1fr;}
 
-  /* True grid lock: media / body / CTA in distinct rows */
   .card{
     background:var(--card);border-radius:16px;padding:14px;
     box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);
@@ -267,48 +258,48 @@ export default async function categories(req, res) {
     transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease,border-color .28s ease;
   }
   .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
-  .media{display:block;border-radius:12px;overflow:hidden;position:relative;}
-  .media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0)60%,rgba(42,99,246,0.06)100%);opacity:0;transition:opacity .28s ease;}
-  .card:hover .media::after{opacity:1;}
-  .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;display:block;aspect-ratio:16/9;transition:transform .35s ease;}
+
+  .img-wrap{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#eef1f6;}
+  .card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
   .card:hover img{transform:scale(1.015);}
 
   .card-body{padding-top:8px;}
   .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
-  .title{color:inherit;text-decoration:none;}
+  .title{text-decoration:none;color:inherit;}
   .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
 
   .subtitle{
     color:var(--muted);
     font-size:13px;
     line-height:1.45;
-    margin:6px 0 0;
+    margin:6px 0 12px;
     display:-webkit-box;
     -webkit-line-clamp:3;
     -webkit-box-orient:vertical;
     overflow:hidden;
     text-overflow:ellipsis;
     word-break:break-word;
+    min-height:3.9em; /* visual alignment guarantee */
   }
 
-  .card-cta{padding-top:12px;}
+  .card-cta{margin-top:auto;}
   .cta{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
     height:44px;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);
-    border-radius:10px;padding:0 14px;
+    border-radius:10px;padding:0 14px;width:100%;
     transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
     box-shadow:0 2px 0 rgba(42,99,246,.35);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
-  .cta:active{transform:translateY(0);background:var(--brand-dark);box-shadow:0 2px 0 rgba(42,99,246,.35);}
+  .cta:active{transform:translateY(0);background:var(--brand-dark);}
   .cta:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
 
   footer{padding:22px 16px 36px;text-align:center;color:var(--muted);font-size:13px;}
   .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
 
   @media(prefers-reduced-motion:reduce){
-    .card,.card img,.cta,.media::after{transition:none!important;}
+    .card,.card img,.cta{transition:none!important;}
     .card:hover{transform:none!important;}
   }
 </style>
@@ -330,38 +321,6 @@ export default async function categories(req, res) {
     <div class="visually-hidden">${escapeHtml(footerHidden)}</div>
     ${footerVisible}
   </footer>
-
-  <script>
-    (function(){
-      try{
-        if(!("IntersectionObserver" in window))return;
-        const seen=new Set();
-        const io=new IntersectionObserver((entries)=>{
-          for(const e of entries){
-            if(!e.isIntersecting)continue;
-            const card=e.target;
-            const slug=card.getAttribute("data-slug")||"";
-            if(seen.has(slug))continue;
-            seen.add(slug);
-            const btn=card.querySelector("[data-cta]");
-            if(!btn){io.unobserve(card);continue;}
-            const rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            if(!rm&&btn.animate){
-              btn.animate(
-                [
-                  {transform:"translateY(-2px)",boxShadow:"0 8px 22px rgba(42,99,246,.30)"},
-                  {transform:"translateY(0)",boxShadow:"0 2px 0 rgba(42,99,246,.35)"}
-                ],
-                {duration:520,easing:"cubic-bezier(.22,.61,.36,1)"}
-              );
-            }
-            io.unobserve(card);
-          }
-        },{threshold:0.55});
-        document.querySelectorAll(".card").forEach(c=>io.observe(c));
-      }catch(_){}
-    })();
-  </script>
 </body>
 </html>`;
 
