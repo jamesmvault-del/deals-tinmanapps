@@ -15,7 +15,7 @@
         "heffl",
         "exclusive offer"
       ],
-      "cta": "See what Heffl makes easy →",
+      "cta": "Learn how to what it replaces ↗",
       "subtitle": "Run your whole business on one platform",
       "archetype": "Opportunity & Growth"
     }
@@ -36,7 +36,7 @@
         "cardclan",
         "exclusive offer"
       ],
-      "cta": "See what CardClan makes easy →",
+      "cta": "Preview marketing →",
       "subtitle": "Send personalized cards at scale",
       "archetype": "Opportunity & Growth"
     }
@@ -57,7 +57,7 @@
         "wbiztool",
         "exclusive offer"
       ],
-      "cta": "Achieve more with WbizTool — marketing →",
+      "cta": "What WbizTool makes easy →",
       "subtitle": "Automate campaigns, capture leads, and convert with ease.",
       "archetype": "Opportunity & Growth"
     }
@@ -78,7 +78,7 @@
         "phygital",
         "exclusive offer"
       ],
-      "cta": "Automate smarter using Phygital+ →",
+      "cta": "Discover marketing →",
       "subtitle": "Access 20+ AI tools in one workspace",
       "archetype": "Opportunity & Growth"
     }
@@ -99,7 +99,7 @@
         "emailit",
         "exclusive offer"
       ],
-      "cta": "Ship features via Emailit →",
+      "cta": "Learn how to marketing »",
       "subtitle": "Send emails with SMTP and API",
       "archetype": "Opportunity & Growth"
     }
@@ -120,7 +120,7 @@
         "nexuscale",
         "exclusive offer"
       ],
-      "cta": "Automate smarter using Nexuscale AI →",
+      "cta": "Explore marketing →",
       "subtitle": "Generate and close B2B leads 24/7",
       "archetype": "Opportunity & Growth"
     }
@@ -141,7 +141,7 @@
         "feedspace",
         "exclusive offer"
       ],
-      "cta": "Edit faster, publish quicker — Feedspace →",
+      "cta": "See what it replaces →",
       "subtitle": "Capture video testimonials with a link",
       "archetype": "Opportunity & Growth"
     }
@@ -162,7 +162,7 @@
         "sendfox",
         "exclusive offer"
       ],
-      "cta": "Grow your list with SendFox →",
+      "cta": "See marketing →",
       "subtitle": "Automate email marketing on a budget",
       "archetype": "Opportunity & Growth"
     }
@@ -183,8 +183,8 @@
         "replientai",
         "exclusive offer"
       ],
-      "cta": "Unlock AI efficiency with replient.ai →",
-      "subtitle": "Turn engagement into revenue — effortlessly.",
+      "cta": "Discover what it replaces →",
+      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -204,7 +204,7 @@
         "agencypro",
         "exclusive offer"
       ],
-      "cta": "Create on-brand assets — AgencyPro →",
+      "cta": "Preview marketing →",
       "subtitle": "Manage clients with a branded portal",
       "archetype": "Opportunity & Growth"
     }
@@ -225,7 +225,7 @@
         "swft-connect",
         "exclusive offer"
       ],
-      "cta": "Preview Swft Connect in action →",
+      "cta": "Preview marketing →",
       "subtitle": "Smart digital business cards",
       "archetype": "Opportunity & Growth"
     }
@@ -246,29 +246,8 @@
         "siteguru",
         "exclusive offer"
       ],
-      "cta": "Grow organic traffic via SiteGuru →",
+      "cta": "What SiteGuru - Optimize your SEO strategy like a pro makes eas…",
       "subtitle": "Optimize your SEO strategy like a pro",
-      "archetype": "Opportunity & Growth"
-    }
-  },
-  {
-    "title": "Reoon Email Verifier",
-    "slug": "reoon-email-verifier",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/reoon-email-verifier/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=reoon-email-verifier&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freoon-email-verifier%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
-    "seo": {
-      "clickbait": "Discover Reoon Email Verifier — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "reoon-email-verifier",
-        "exclusive offer"
-      ],
-      "cta": "Improve deliverability with Reoon Email Verifier →",
-      "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -288,8 +267,29 @@
         "sociamonials",
         "exclusive offer"
       ],
-      "cta": "Schedule & grow with Sociamonials →",
+      "cta": "What Sociamonials - Optimize social media campaigns makes easy »",
       "subtitle": "Optimize social media campaigns",
+      "archetype": "Opportunity & Growth"
+    }
+  },
+  {
+    "title": "Reoon Email Verifier",
+    "slug": "reoon-email-verifier",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/reoon-email-verifier/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=reoon-email-verifier&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freoon-email-verifier%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
+    "seo": {
+      "clickbait": "Discover Reoon Email Verifier — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "reoon-email-verifier",
+        "exclusive offer"
+      ],
+      "cta": "Discover marketing →",
+      "subtitle": "Stand out, sell more, and scale faster.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -309,7 +309,7 @@
         "kingsumo",
         "exclusive offer"
       ],
-      "cta": "Organize leads faster with KingSumo →",
+      "cta": "Learn how to marketing →",
       "subtitle": "Drive leads with viral giveaways",
       "archetype": "Opportunity & Growth"
     }
@@ -330,8 +330,8 @@
         "local-rank-tracker",
         "exclusive offer"
       ],
-      "cta": "Fix SEO issues with Local Rank Tracker →",
-      "subtitle": "Stand out, sell more, and scale faster.",
+      "cta": "See marketing →",
+      "subtitle": "Marketing tools that make every click count.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -351,7 +351,7 @@
         "connexify",
         "exclusive offer"
       ],
-      "cta": "Preview Connexify in action →",
+      "cta": "Preview what it replaces ↗",
       "subtitle": "Grow your audience faster with data-driven insights.",
       "archetype": "Opportunity & Growth"
     }
@@ -372,8 +372,8 @@
         "leadrocks",
         "exclusive offer"
       ],
-      "cta": "See what LeadRocks makes easy →",
-      "subtitle": "Stand out, sell more, and scale faster.",
+      "cta": "What LeadRocks makes easy →",
+      "subtitle": "Turn engagement into revenue — effortlessly.",
       "archetype": "Opportunity & Growth"
     }
   },
@@ -393,7 +393,7 @@
         "switchy",
         "exclusive offer"
       ],
-      "cta": "See what Switchy makes easy →",
+      "cta": "Learn how to what it replaces »",
       "subtitle": "Boost conversions with retargeting links",
       "archetype": "Opportunity & Growth"
     }
@@ -414,7 +414,7 @@
         "creaitorai",
         "exclusive offer"
       ],
-      "cta": "Scale your output with Creaitor.ai →",
+      "cta": "See what it replaces →",
       "subtitle": "Create SEO content with AI",
       "archetype": "Opportunity & Growth"
     }
