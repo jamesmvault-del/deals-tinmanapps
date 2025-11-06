@@ -167,9 +167,18 @@ export default async function categories(req, res) {
         "deal";
       const link = trackedUrl({ slug, cat, url: d.url });
       const img = imageFor(slug, d.image);
-      const titleText = d.title || slug;
-      const enrichedCTA = d.seo?.cta?.trim() || ctaFor(slug);
-      const subtitle = d.seo?.subtitle?.trim() || "";
+      let titleText = d.title || slug;
+let subtitle = d.seo?.subtitle?.trim() || "";
+
+// 🧹 Prevent duplicate subtitles (if title already contains subtitle text)
+if (subtitle && titleText.toLowerCase().includes(subtitle.toLowerCase())) {
+  subtitle = "";
+}
+
+// 🧹 Clean up titles like "Heffl – Run your whole business..."
+titleText = titleText.split(/\s*[-–—]\s*/)[0].trim();
+
+const enrichedCTA = d.seo?.cta?.trim() || ctaFor(slug);
 
       return `
       <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
