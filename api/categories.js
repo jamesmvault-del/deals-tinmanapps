@@ -3,10 +3,11 @@
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA,
 // subtitle support, hover CTR boost, reduced-motion aware).
 //
-// v3.6.7 (Adaptive Clamp Reserve)
-// - Fix: subtitle bleed eliminated across browsers and zoom levels
-// - Dynamic clamp-based card padding for reliable CTA clearance
-// - All SEO, schema, referral, and CTA animation logic preserved
+// v3.6.8 (Cross-engine Lockbox)
+// - Final, bleed-proof structure: CTA lives in its own footer row (.card-cta)
+// - No absolute positioning; no dependency on line-clamp height math
+// - Subtitle still visually clamped to 2 lines, but overflow cannot collide
+// - SEO schema, referral masking, accessibility, and micro-anim retained
 //
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ export default async function categories(req, res) {
   if (!title) return res.status(404).send("Category not found.");
 
   const deals = loadJsonSafe(`appsumo-${cat}.json`, []);
+  theTotal:
   const total = deals.length;
   const ctr = loadJsonSafe("ctr-insights.json", {
     totalClicks: 0,
@@ -209,6 +211,7 @@ export default async function categories(req, res) {
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
           <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
         </a>
+
         <div class="card-body">
           <h3 class="title-wrap" itemprop="name">
             <a class="title" href="${link}">${escapeHtml(brand)}</a>
@@ -219,7 +222,10 @@ export default async function categories(req, res) {
               : ``
           }
         </div>
-        <a class="cta" href="${link}" data-cta>${escapeHtml(resolvedCta)}</a>
+
+        <div class="card-cta">
+          <a class="cta" href="${link}" data-cta>${escapeHtml(resolvedCta)}</a>
+        </div>
       </article>`;
     })
     .join("\n");
@@ -256,27 +262,68 @@ export default async function categories(req, res) {
   header{padding:28px 24px 12px;}
   h1{margin:0 0 6px;font-size:28px;letter-spacing:-0.01em;}
   .sub{color:var(--muted);font-size:14px;}
+
   main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
-  .card{position:relative;background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease;border:1px solid rgba(16,19,38,.06);height:100%;overflow:hidden;}
-  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
-  .media{display:block;border-radius:12px;overflow:hidden;position:relative;}
-  .media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,0)60%,rgba(42,99,246,0.06)100%);opacity:0;transition:opacity .28s ease;}
-  .card:hover .media::after{opacity:1;}
-  .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;display:block;aspect-ratio:16/9;transition:transform .35s ease;}
-  .card:hover img{transform:scale(1.015);}
-  .card-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:8px;padding-bottom:clamp(64px,10vh,72px);}
-  .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
-  .title{color:inherit;text-decoration:none;}
-  .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
-  .subtitle{color:var(--muted);font-size:13px;line-height:1.4;margin:4px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;max-height:calc(1.45em*2);}
-  .cta{position:absolute;left:14px;right:14px;bottom:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);height:44px;line-height:1;border-radius:10px;transition:background .2s,transform .2s,box-shadow .2s;box-shadow:0 2px 0 rgba(42,99,246,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
-  .cta:active{transform:translateY(0);background:var(--brand-dark);box-shadow:0 2px 0 rgba(42,99,246,.35);}
-  .cta:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
-  footer{padding:22px 16px 36px;text-align:center;color:var(--muted);font-size:13px;}
-  .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
-  @media(prefers-reduced-motion:reduce){.card,.card img,.cta,.media::after{transition:none!important;}.card:hover{transform:none!important;}}
+
+  .card{
+    background:var(--card); border-radius:16px; padding:14px;
+    box-shadow:var(--shadow); border:1px solid rgba(16,19,38,.06);
+    display:flex; flex-direction:column; transition:transform .28s cubic-bezier(.22,.61,.36,1), box-shadow .28s ease, border-color .28s ease;
+    height:100%;
+  }
+  .card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-hover); border-color:rgba(42,99,246,.18); }
+
+  .media{ display:block; border-radius:12px; overflow:hidden; position:relative; }
+  .media::after{ content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(0,0,0,0) 60%, rgba(42,99,246,0.06) 100%); opacity:0; transition:opacity .28s ease; }
+  .card:hover .media::after{ opacity:1; }
+  .card img{ width:100%; height:150px; object-fit:cover; background:#eef1f6; display:block; aspect-ratio:16/9; transition:transform .35s ease; }
+  .card:hover img{ transform:scale(1.015); }
+
+  /* Text region expands naturally. Subtitle is visually clamped but cannot collide with CTA,
+     because CTA lives in its own footer row below. */
+  .card-body{
+    flex:1; display:flex; flex-direction:column; padding-top:8px;
+    /* Optional min height to stabilize grid feel on two-line subtitles */
+    min-height: calc(1lh * 4.8); /* ~ title + two subtitle lines */
+  }
+
+  .title-wrap{ margin:2px 0 0; font-size:16px; line-height:1.35; }
+  .title{ color:inherit; text-decoration:none; }
+  .title:focus-visible{ outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
+
+  .subtitle{
+    color:var(--muted); font-size:13px; line-height:1.4;
+    margin:4px 0 0;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    overflow:hidden; text-overflow:ellipsis; word-break:break-word;
+    max-height:calc(1.45em * 2); /* tolerant to rounding differences */
+  }
+
+  /* CTA LOCKBOX: dedicated footer row; never overlaps with body text */
+  .card-cta{
+    margin-top:auto; padding-top:12px;
+  }
+  .cta{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    height:44px; line-height:1; font-size:14px; text-decoration:none;
+    color:#fff; background:var(--brand);
+    border-radius:10px; padding:0 14px;
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+    box-shadow:0 2px 0 rgba(42,99,246,.35);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;
+  }
+  .card:hover .cta{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(42,99,246,.25); }
+  .cta:active{ transform:translateY(0); background:var(--brand-dark); box-shadow:0 2px 0 rgba(42,99,246,.35); }
+  .cta:focus-visible{ outline:2px solid var(--ring); outline-offset:3px; }
+
+  footer{ padding:22px 16px 36px; text-align:center; color:var(--muted); font-size:13px; }
+  .visually-hidden{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .card img, .cta, .media::after{ transition:none !important; }
+    .card:hover{ transform:none !important; }
+  }
 </style>
 
 <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
@@ -296,33 +343,35 @@ export default async function categories(req, res) {
     <div class="visually-hidden">${escapeHtml(footerHidden)}</div>
     ${footerVisible}
   </footer>
+
+  <!-- Subtle, one-time CTA micro-anim on first visibility (reduced-motion aware) -->
   <script>
     (function(){
       try{
-        if(!("IntersectionObserver" in window))return;
+        if(!("IntersectionObserver" in window)) return;
         const seen=new Set();
         const io=new IntersectionObserver((entries)=>{
           for(const e of entries){
-            if(!e.isIntersecting)continue;
+            if(!e.isIntersecting) continue;
             const card=e.target;
             const slug=card.getAttribute("data-slug")||"";
-            if(seen.has(slug))continue;
+            if(seen.has(slug)) continue;
             seen.add(slug);
             const btn=card.querySelector("[data-cta]");
-            if(!btn){io.unobserve(card);continue;}
-            const rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            if(!rm&&btn.animate){
+            if(!btn){ io.unobserve(card); continue; }
+            const rm=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if(!rm && btn.animate){
               btn.animate(
                 [
-                  {transform:"translateY(-2px)",boxShadow:"0 8px 22px rgba(42,99,246,.30)"},
-                  {transform:"translateY(0)",boxShadow:"0 2px 0 rgba(42,99,246,.35)"}
+                  { transform:"translateY(-2px)", boxShadow:"0 8px 22px rgba(42,99,246,.30)" },
+                  { transform:"translateY(0)",   boxShadow:"0 2px 0 rgba(42,99,246,.35)" }
                 ],
-                {duration:520,easing:"cubic-bezier(.22,.61,.36,1)"}
+                { duration:520, easing:"cubic-bezier(.22,.61,.36,1)" }
               );
             }
             io.unobserve(card);
           }
-        },{threshold:0.55});
+        }, { threshold:0.55 });
         document.querySelectorAll(".card").forEach(c=>io.observe(c));
       }catch(_){}
     })();
