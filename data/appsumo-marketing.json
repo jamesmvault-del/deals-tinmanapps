@@ -1,102 +1,382 @@
 [
   {
-    "title": "Heffl",
+    "title": "Heffl - Run your whole business on one platform",
+    "slug": "heffl",
+    "category": "marketing",
     "url": "https://appsumo.com/products/heffl/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=heffl&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fheffl%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fheffl-as-Header-Heffl-16_9_uuid_8a8176eb-5f59-4540-90fa-f62cf4da42c8.png",
+    "seo": {
+      "clickbait": "Discover Heffl - Run your whole business on one platform — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "heffl",
+        "exclusive offer"
+      ],
+      "cta": "Automate the boring stuff →"
+    }
   },
   {
-    "title": "Cardclan",
+    "title": "CardClan - Send personalized cards at scale",
+    "slug": "cardclan",
+    "category": "marketing",
     "url": "https://appsumo.com/products/cardclan/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=cardclan&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcardclan%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-CardClan_-_Plus_exclusive-16_9_uuid_238adaa9-c108-4056-83c1-dbb7149a2528.png",
+    "seo": {
+      "clickbait": "Discover CardClan - Send personalized cards at scale — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "cardclan",
+        "exclusive offer"
+      ],
+      "cta": "Explore what it replaces →"
+    }
   },
   {
-    "title": "Wbiztool",
+    "title": "WbizTool",
+    "slug": "wbiztool",
+    "category": "marketing",
     "url": "https://appsumo.com/products/wbiztool/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=wbiztool&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwbiztool%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fbef970f5-eae3-4f23-81e3-888d7b169e63_uuid_d764016e-e7fd-46a1-9614-2af0e68c5e6f.png",
+    "seo": {
+      "clickbait": "Discover WbizTool — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "wbiztool",
+        "exclusive offer"
+      ],
+      "cta": "Upgrade your workflow now →"
+    }
   },
   {
-    "title": "Emailit",
+    "title": "Emailit - Send emails with SMTP and API",
+    "slug": "emailit",
+    "category": "marketing",
     "url": "https://appsumo.com/products/emailit/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
+    "seo": {
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "emailit",
+        "exclusive offer"
+      ],
+      "cta": "See real user results →"
+    }
   },
   {
-    "title": "Phygital",
+    "title": "Phygital+ - Access 20+ AI tools in one workspace",
+    "slug": "phygital",
+    "category": "marketing",
     "url": "https://appsumo.com/products/phygital/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=phygital&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fphygital%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fphygital-as-Header-Phygital-16_9_uuid_0ed1c733-ac4f-4b7d-9e52-0e076d761a94.png",
+    "seo": {
+      "clickbait": "Discover Phygital+ - Access 20+ AI tools in one workspace — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "phygital",
+        "exclusive offer"
+      ],
+      "cta": "Unlock deal →"
+    }
   },
   {
-    "title": "Nexuscale",
+    "title": "Nexuscale AI - Generate and close B2B leads 24/7",
+    "slug": "nexuscale",
+    "category": "marketing",
     "url": "https://appsumo.com/products/nexuscale/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
+    "seo": {
+      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "nexuscale",
+        "exclusive offer"
+      ],
+      "cta": "Level up in minutes →"
+    }
   },
   {
-    "title": "Feedspace",
+    "title": "Feedspace - Capture video testimonials with a link",
+    "slug": "feedspace",
+    "category": "marketing",
     "url": "https://appsumo.com/products/feedspace/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=feedspace&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ffeedspace%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Ffeedspace-licensing-sept-2025-ver-2-0-as-Header-Feedspace-16_9_uuid_d2d9b29d-00a1-4246-be97-9462c8f1ec47.png",
+    "seo": {
+      "clickbait": "Discover Feedspace - Capture video testimonials with a link — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "feedspace",
+        "exclusive offer"
+      ],
+      "cta": "Save hours every week →"
+    }
   },
   {
-    "title": "Sendfox",
+    "title": "SendFox - Automate email marketing on a budget",
+    "slug": "sendfox",
+    "category": "marketing",
     "url": "https://appsumo.com/products/sendfox/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=sendfox&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsendfox%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-sendfox_ISOytAA.png",
+    "seo": {
+      "clickbait": "Discover SendFox - Automate email marketing on a budget — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "sendfox",
+        "exclusive offer"
+      ],
+      "cta": "See real user results →"
+    }
   },
   {
-    "title": "Replientai",
+    "title": "replient.ai",
+    "slug": "replientai",
+    "category": "marketing",
     "url": "https://appsumo.com/products/replientai/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=replientai&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freplientai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F93a8ad10-046b-4afa-8e9a-edacc22a74b9.png",
+    "seo": {
+      "clickbait": "Discover replient.ai — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "replientai",
+        "exclusive offer"
+      ],
+      "cta": "Turn ideas into results →"
+    }
   },
   {
-    "title": "Agencypro",
-    "url": "https://appsumo.com/products/agencypro/",
-    "category": "marketing"
-  },
-  {
-    "title": "Swft Connect",
+    "title": "Swft Connect - Smart digital business cards",
+    "slug": "swft-connect",
+    "category": "marketing",
     "url": "https://appsumo.com/products/swft-connect/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=swft-connect&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fswft-connect%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fswft-connect-as-Header-Swft_Connect-16_9.png",
+    "seo": {
+      "clickbait": "Discover Swft Connect - Smart digital business cards — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "swft-connect",
+        "exclusive offer"
+      ],
+      "cta": "Automate the boring stuff →"
+    }
   },
   {
-    "title": "Siteguru",
+    "title": "AgencyPro - Manage clients with a branded portal",
+    "slug": "agencypro",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/agencypro/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
+    "seo": {
+      "clickbait": "Discover AgencyPro - Manage clients with a branded portal — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "agencypro",
+        "exclusive offer"
+      ],
+      "cta": "Save hours every week →"
+    }
+  },
+  {
+    "title": "SiteGuru - Optimize your SEO strategy like a pro",
+    "slug": "siteguru",
+    "category": "marketing",
     "url": "https://appsumo.com/products/siteguru/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=siteguru&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsiteguru%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-SiteGuru-16_9.png",
+    "seo": {
+      "clickbait": "Discover SiteGuru - Optimize your SEO strategy like a pro — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "siteguru",
+        "exclusive offer"
+      ],
+      "cta": "Save hours every week →"
+    }
   },
   {
-    "title": "Kingsumo",
+    "title": "KingSumo - Drive leads with viral giveaways",
+    "slug": "kingsumo",
+    "category": "marketing",
     "url": "https://appsumo.com/products/kingsumo/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=kingsumo&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fkingsumo%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FKingSumo_PDP_update.png",
+    "seo": {
+      "clickbait": "Discover KingSumo - Drive leads with viral giveaways — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "kingsumo",
+        "exclusive offer"
+      ],
+      "cta": "Discover smarter ways to grow →"
+    }
   },
   {
     "title": "Reoon Email Verifier",
+    "slug": "reoon-email-verifier",
+    "category": "marketing",
     "url": "https://appsumo.com/products/reoon-email-verifier/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=reoon-email-verifier&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Freoon-email-verifier%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
+    "seo": {
+      "clickbait": "Discover Reoon Email Verifier — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "reoon-email-verifier",
+        "exclusive offer"
+      ],
+      "cta": "Turn ideas into results →"
+    }
   },
   {
-    "title": "Sociamonials",
+    "title": "Sociamonials - Optimize social media campaigns",
+    "slug": "sociamonials",
+    "category": "marketing",
     "url": "https://appsumo.com/products/sociamonials/",
-    "category": "marketing"
-  },
-  {
-    "title": "Local Rank Tracker",
-    "url": "https://appsumo.com/products/local-rank-tracker/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=sociamonials&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsociamonials%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Sociamonials_lujrAH1.jpg",
+    "seo": {
+      "clickbait": "Discover Sociamonials - Optimize social media campaigns — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "sociamonials",
+        "exclusive offer"
+      ],
+      "cta": "Save hours every week →"
+    }
   },
   {
     "title": "Connexify",
+    "slug": "connexify",
+    "category": "marketing",
     "url": "https://appsumo.com/products/connexify/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=connexify&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fconnexify%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fbe8a7da2-14fc-4104-8b41-74fba3f42c6b.png",
+    "seo": {
+      "clickbait": "Discover Connexify — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "connexify",
+        "exclusive offer"
+      ],
+      "cta": "Compare to your stack →"
+    }
   },
   {
-    "title": "Onvocado",
-    "url": "https://appsumo.com/products/onvocado/",
-    "category": "marketing"
+    "title": "Local Rank Tracker",
+    "slug": "local-rank-tracker",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/local-rank-tracker/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=local-rank-tracker&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Flocal-rank-tracker%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Faf3fddd6-dfd6-4245-b4df-0d353039acd7.png",
+    "seo": {
+      "clickbait": "Discover Local Rank Tracker — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "local-rank-tracker",
+        "exclusive offer"
+      ],
+      "cta": "Compare to your stack →"
+    }
   },
   {
-    "title": "Leadrocks",
+    "title": "LeadRocks",
+    "slug": "leadrocks",
+    "category": "marketing",
     "url": "https://appsumo.com/products/leadrocks/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadrocks&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadrocks%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5774ac78-8e44-4274-ad06-e8d989c63435.png",
+    "seo": {
+      "clickbait": "Discover LeadRocks — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "leadrocks",
+        "exclusive offer"
+      ],
+      "cta": "Cut costs without compromise →"
+    }
   },
   {
-    "title": "Switchy",
+    "title": "Switchy - Boost conversions with retargeting links",
+    "slug": "switchy",
+    "category": "marketing",
     "url": "https://appsumo.com/products/switchy/",
-    "category": "marketing"
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=switchy&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fswitchy%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Switchy_1.jpg",
+    "seo": {
+      "clickbait": "Discover Switchy - Boost conversions with retargeting links — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "switchy",
+        "exclusive offer"
+      ],
+      "cta": "Compare to your stack →"
+    }
+  },
+  {
+    "title": "Onvocado - No-code pop-ups to boost engagement",
+    "slug": "onvocado",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/onvocado/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=onvocado&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fonvocado%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Onvocado_-_16_9_uuid_1438496e-2c6a-4438-bf49-23fad881ab6b.png",
+    "seo": {
+      "clickbait": "Discover Onvocado - No-code pop-ups to boost engagement — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "onvocado",
+        "exclusive offer"
+      ],
+      "cta": "Turn ideas into results →"
+    }
   }
 ]
