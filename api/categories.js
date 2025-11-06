@@ -224,7 +224,7 @@ export default async function categories(req, res) {
   main { padding:12px 16px 32px; max-width:1200px; margin:0 auto; }
   .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
   .card { background:var(--card); border-radius:14px; padding:14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px; }
-  .card img { width:100%; height:140px; object-fit:contain; background:#f0f2f6; border-radius:10px; }
+  .card img { width:100%; height:140px; object-fit:cover; background:#f0f2f6; border-radius:10px; aspect-ratio: 16 / 9; }
   .card h3 { margin:0; font-size:16px; line-height:1.35; letter-spacing:0; }
   .cta { display:inline-block; margin-top:4px; font-size:14px; text-decoration:none; color:#2a63f6; }
   footer { padding:22px 16px 32px; text-align:center; color:var(--muted); font-size:13px; }
