@@ -1,5 +1,5 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v3.6 — Puppeteer + Self-Optimising CTA + Subtitle Enrichment
+// TinmanApps Adaptive Feed Engine v3.7 — Puppeteer + Self-Optimising CTA + Subtitle Enrichment
 // Combines dynamic AppSumo scraping with the psychographic CTA Engine for full SEO coverage.
 
 import fs from "fs";
@@ -84,7 +84,7 @@ function normalizeRecord({ slug, title, url, cat, image }) {
   };
 }
 
-// OG extractor
+// Minimal OG extractor
 function extractOg(html) {
   const get = (prop) => {
     const rx = new RegExp(
@@ -204,7 +204,7 @@ async function buildCategory(browser, engine, cat, listUrl) {
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(NAV_TIMEOUT_MS);
 
-  console.log(`⏳ Fetching ${cat} → ${listUrl}`);
+  console.log(`\n⏳ Fetching ${cat} → ${listUrl}`);
   const links = await collectProductLinks(page, listUrl);
 
   const rawRecords = await withConcurrency(
@@ -213,8 +213,16 @@ async function buildCategory(browser, engine, cat, listUrl) {
     (url) => fetchProductDetail(url, cat)
   );
 
-  // 🧠 Psychographic CTA + Subtitle Enrichment (core logic)
+  // 🧠 Psychographic CTA + Subtitle Enrichment
   const enriched = engine.enrichDeals(rawRecords, cat);
+
+  // ✅ Sanity check log
+  const preview = enriched
+    .slice(0, 3)
+    .map((d) => `${d.title} → ${d.seo?.cta || "❌ missing CTA"}`)
+    .join("\n  ");
+
+  console.log(`  Preview (${cat}):\n  ${preview}`);
 
   // ✅ Persist enriched JSON
   writeJson(`appsumo-${cat}.json`, enriched);
