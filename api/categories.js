@@ -1,13 +1,13 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Category renderer (Authority GridLock+ v3.9)
-// SEO-first, referral-safe, visually uniform, bleed-proof category layout.
+// TinmanApps — Category renderer (SEO-first, referral-safe, dynamic CTA,
+// subtitle support, hover CTR boost, reduced-motion aware).
 //
-// - True CSS Grid (media / body / CTA separated in grid rows)
-// - Fixed image aspect ratio + height normalization
-// - Subtitle 3-line clamp + min-height for alignment
-// - Uniform card heights per row (perfect SEO layout stability)
-//
+// v4.1 (Dynamic + Sanitized)
+// - Keep dynamic CTAs from data, but sanitize to remove subtitles/hyphen tails
+// - Robust no-bleed layout: media (fixed ratio) → body (title+subtitle) → CTA
+// - No equal-height forcing to avoid giant whitespace; natural height flow
+// - JSON-LD/SEO + referral masking preserved
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -19,7 +19,6 @@ const DATA_DIR = path.join(__dirname, "../data");
 
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
-
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
 const CATS = {
@@ -38,15 +37,6 @@ const ARCH = {
   courses: "Authority & Learning",
 };
 
-const CTA_POOL = [
-  "Unlock deal →",
-  "Get instant lifetime access →",
-  "Explore what it replaces →",
-  "Save hours every week →",
-  "See real user results →",
-  "Compare to your stack →",
-];
-
 // ───────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ───────────────────────────────────────────────────────────────────────────────
@@ -59,6 +49,7 @@ function loadJsonSafe(file, fallback = []) {
     return fallback;
   }
 }
+
 function fmtDateISO(dt) {
   try {
     return new Date(dt).toISOString();
@@ -66,6 +57,7 @@ function fmtDateISO(dt) {
     return new Date().toISOString();
   }
 }
+
 function escapeHtml(s = "") {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -74,45 +66,68 @@ function escapeHtml(s = "") {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
+
 function hashStr(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h >>> 0;
 }
-function ctaFor(slug) {
-  const idx = hashStr(slug) % CTA_POOL.length;
-  return CTA_POOL[idx];
-}
+
 function trackedUrl({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
+
 function imageFor(slug, provided) {
   if (provided) return provided;
   const guess = `https://appsumo2-cdn.appsumo.com/media/products/${slug}/logo.png`;
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(guess)}`;
 }
+
 function splitTitle(fullTitle = "") {
   const raw = (fullTitle || "").trim();
   if (!raw) return { brand: "", subtitle: "" };
-  const DASH_SEPS = [" — ", " – ", " —", " –"];
+
+  const DASH_SEPS = [" — ", " – ", " - "];
   for (const sep of DASH_SEPS) {
     const idx = raw.indexOf(sep);
-    if (idx > 0 && idx < raw.length - sep.length) {
+    if (idx > 0) {
       const brand = raw.slice(0, idx).trim();
       const subtitle = raw.slice(idx + sep.length).trim();
-      if (brand && subtitle) return { brand, subtitle };
+      return { brand, subtitle };
     }
   }
-  const hyIdx = raw.indexOf(" - ");
-  if (hyIdx > 0 && hyIdx < raw.length - 3) {
-    const brand = raw.slice(0, hyIdx).trim();
-    const subtitle = raw.slice(hyIdx + 3).trim();
-    if (brand && subtitle) return { brand, subtitle };
-  }
   return { brand: raw, subtitle: "" };
+}
+
+// Sanitize dynamic CTA text so it never includes hyphenated subtitles,
+// keeps it tight (<64 chars), and replaces any full-title occurrences with brand.
+function sanitizeCta(rawCta = "", brand = "") {
+  let cta = (rawCta || "").trim();
+
+  // Replace full-title style patterns with brand-only where possible
+  if (brand) {
+    // Replace “Brand — …” / “Brand – …” / “Brand - …” occurrences
+    const hyphenTail = new RegExp(
+      `(${brand.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")})\\s*[—–-].*$`,
+      "i"
+    );
+    cta = cta.replace(hyphenTail, "$1");
+  }
+
+  // If CTA accidentally contains a hyphenated tail anywhere, trim at first dash
+  const dashIdx = cta.search(/\s[—–-]\s/);
+  if (dashIdx > -1) cta = cta.slice(0, dashIdx).trim();
+
+  // Normalize multiples spaces/arrows and cap length
+  cta = cta.replace(/\s+/g, " ").replace(/\s*(→|↗|»)?\s*$/, " →").trim();
+  if (cta.length > 64) cta = cta.slice(0, 61).trimEnd() + "…";
+
+  // Safety fallback
+  if (!cta) cta = `Learn more →`;
+  return cta;
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -186,18 +201,21 @@ export default async function categories(req, res) {
         d.url?.match(/products\/([^/]+)/)?.[1] ||
         d.title?.toLowerCase().replace(/\s+/g, "-") ||
         "deal";
+
       const { brand, subtitle } = splitTitle(d.title || slug);
-      const resolvedCta = d.seo?.cta || ctaFor(slug);
       const img = imageFor(slug, d.image);
       const link = trackedUrl({ slug, cat, url: d.url });
+
+      // Dynamic CTA: prefer enriched SEO CTA if present, but sanitize it.
+      const dynamicCta = d?.seo?.cta || "";
+      const resolvedCta = sanitizeCta(dynamicCta, brand);
 
       return `
       <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
-          <div class="img-wrap">
-            <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
-          </div>
+          <div class="img-wrap"><img src="${img}" alt="${escapeHtml(brand)}" loading="lazy" /></div>
         </a>
+
         <div class="card-body">
           <h3 class="title-wrap" itemprop="name">
             <a class="title" href="${link}">${escapeHtml(brand)}</a>
@@ -205,9 +223,10 @@ export default async function categories(req, res) {
           ${
             subtitle
               ? `<div class="subtitle" itemprop="description">${escapeHtml(subtitle)}</div>`
-              : ``
+              : `<div class="subtitle empty"></div>`
           }
         </div>
+
         <div class="card-cta">
           <a class="cta" href="${link}" data-cta>${escapeHtml(resolvedCta)}</a>
         </div>
@@ -240,67 +259,77 @@ export default async function categories(req, res) {
     --fg:#101326; --muted:#62697e; --card:#ffffff; --bg:#f7f8fb;
     --shadow:0 2px 10px rgba(10,14,29,.06);
     --shadow-hover:0 10px 24px rgba(10,14,29,.10);
-    --brand:#2a63f6; --brand-dark:#1d4fe6; --ring:rgba(42,99,246,.35);
+    --brand:#2a63f6; --brand-dark:#1d4fe6; --ring: rgba(42,99,246,.35);
   }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
-  header{padding:28px 24px 12px;}
-  h1{margin:0 0 6px;font-size:28px;letter-spacing:-0.01em;}
-  .sub{color:var(--muted);font-size:14px;}
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  header{ padding:28px 24px 12px; }
+  h1{ margin:0 0 6px; font-size:28px; letter-spacing:-0.01em; }
+  .sub{ color:var(--muted); font-size:14px; }
 
-  main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;grid-auto-rows:1fr;}
+  main{ padding:12px 16px 36px; max-width:1200px; margin:0 auto; }
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:16px; }
 
+  /* Card layout: robust flex column (no overlap) */
   .card{
-    background:var(--card);border-radius:16px;padding:14px;
-    box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);
-    display:grid;grid-template-rows:auto 1fr auto;
-    transition:transform .28s cubic-bezier(.22,.61,.36,1),box-shadow .28s ease,border-color .28s ease;
+    background:var(--card); border-radius:16px; padding:14px;
+    box-shadow:var(--shadow); border:1px solid rgba(16,19,38,.06);
+    display:flex; flex-direction:column;
+    transition:transform .28s cubic-bezier(.22,.61,.36,1), box-shadow .28s ease, border-color .28s ease;
   }
-  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
+  .card:hover{ transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: rgba(42,99,246,.18); }
 
-  .img-wrap{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#eef1f6;}
-  .card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
-  .card:hover img{transform:scale(1.015);}
+  /* Image normalization */
+  .media{ display:block; border-radius:12px; overflow:hidden; }
+  .img-wrap{ width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; background:#eef1f6; }
+  .img-wrap img{ width:100%; height:100%; object-fit:cover; transition:transform .35s ease; }
+  .card:hover .img-wrap img{ transform: scale(1.015); }
 
-  .card-body{padding-top:8px;}
-  .title-wrap{margin:2px 0 0;font-size:16px;line-height:1.35;}
-  .title{text-decoration:none;color:inherit;}
-  .title:focus-visible{outline:2px solid var(--ring);border-radius:6px;outline-offset:4px;}
+  /* Body */
+  .card-body{ display:flex; flex-direction:column; padding-top:8px; }
+  .title-wrap{ margin:2px 0 0; font-size:16px; line-height:1.35; }
+  .title{ color:inherit; text-decoration:none; }
+  .title:focus-visible{ outline:2px solid var(--ring); border-radius:6px; outline-offset:4px; }
 
   .subtitle{
     color:var(--muted);
     font-size:13px;
     line-height:1.45;
-    margin:6px 0 12px;
+    margin:6px 0 12px;     /* guaranteed breathing room above CTA */
     display:-webkit-box;
-    -webkit-line-clamp:3;
+    -webkit-line-clamp:3;  /* authoritative 3-line clamp */
     -webkit-box-orient:vertical;
     overflow:hidden;
     text-overflow:ellipsis;
     word-break:break-word;
-    min-height:3.9em; /* visual alignment guarantee */
   }
+  .subtitle.empty{ margin:4px 0 12px; min-height:0; }
 
-  .card-cta{margin-top:auto;}
+  /* CTA: anchored at bottom, never overlapped */
+  .card-cta{ margin-top:auto; }
   .cta{
-    display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    height:44px;font-size:14px;text-decoration:none;color:#fff;background:var(--brand);
-    border-radius:10px;padding:0 14px;width:100%;
-    transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
-    box-shadow:0 2px 0 rgba(42,99,246,.35);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    height:44px; font-size:14px; text-decoration:none; width:100%;
+    color:#fff; background:var(--brand);
+    border-radius:10px; padding:0 14px;
+    transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+    box-shadow: 0 2px 0 rgba(42,99,246,.35);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .card:hover .cta{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
-  .cta:active{transform:translateY(0);background:var(--brand-dark);}
-  .cta:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
+  .card:hover .cta{ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(42,99,246,.25); }
+  .cta:active{ transform: translateY(0); background: var(--brand-dark); }
+  .cta:focus-visible{ outline:2px solid var(--ring); outline-offset:3px; }
 
-  footer{padding:22px 16px 36px;text-align:center;color:var(--muted);font-size:13px;}
-  .visually-hidden{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+  footer{ padding:22px 16px 36px; text-align:center; color:var(--muted); font-size:13px; }
+  .visually-hidden{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
-  @media(prefers-reduced-motion:reduce){
-    .card,.card img,.cta{transition:none!important;}
-    .card:hover{transform:none!important;}
+  @media (prefers-reduced-motion: reduce){
+    .card, .img-wrap img, .cta{ transition:none !important; }
+    .card:hover{ transform:none !important; }
   }
 </style>
 
