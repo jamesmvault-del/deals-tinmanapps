@@ -1,11 +1,8 @@
 // /api/learning-dashboard.js
-// 📊 TinmanApps Adaptive Learning Dashboard v1.0
+// 📈 TinmanApps Adaptive Learning Dashboard v1.1 “CTR Trend Memory”
 // ───────────────────────────────────────────────────────────────────────────────
-// Purpose:
-// Visual interface for the learningGovernor system — shows clicks, tone,
-// and bias distribution across categories in real time.
-//
-// No dependencies, 100% inline-rendered, safe to host on free Render tiers.
+// Adds: 7-day CTR trend chart using `recent` array in ctr-insights.json
+// Shows total clicks, active learning categories, top biases, and tone bias evolution
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -24,8 +21,23 @@ function loadJsonSafe(p, fallback = {}) {
 
 export default async function handler(req, res) {
   const learning = loadJsonSafe(LEARN_FILE, {});
-  const ctr = loadJsonSafe(CTR_FILE, { totalClicks: 0, byCategory: {} });
+  const ctr = loadJsonSafe(CTR_FILE, {
+    totalClicks: 0,
+    byCategory: {},
+    recent: [],
+  });
 
+  // --- CTR trend for past 7 days ---
+  const today = new Date();
+  const dailyCounts = Array(7).fill(0);
+  ctr.recent.forEach((r) => {
+    const date = new Date(r.at);
+    const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+    if (diffDays >= 0 && diffDays < 7) dailyCounts[6 - diffDays]++;
+  });
+  const trendData = JSON.stringify(dailyCounts);
+
+  // --- Table rows ---
   const rows = Object.entries(learning).map(([category, data]) => {
     const clicks = ctr.byCategory?.[category] || 0;
     const tone = data.toneBias || "neutral";
@@ -52,6 +64,7 @@ export default async function handler(req, res) {
     `;
   });
 
+  // --- HTML render ---
   const html = `<!DOCTYPE html>
   <html lang="en">
   <head>
@@ -117,12 +130,20 @@ export default async function handler(req, res) {
         box-shadow: 0 2px 6px rgba(0,0,0,.06);
         padding: 16px 18px;
       }
+      canvas {
+        width: 100%;
+        height: 160px;
+        margin-top: 12px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 5px rgba(0,0,0,.08);
+      }
     </style>
   </head>
   <body>
     <header>
       <h1>🧠 TinmanApps Learning Dashboard</h1>
-      <div style="font-size:13px;opacity:.85;">Adaptive CTR & Tone Evolution Overview</div>
+      <div style="font-size:13px;opacity:.85;">CTR Evolution & Tone Reinforcement Overview</div>
     </header>
     <main>
       <div class="grid">
@@ -136,7 +157,10 @@ export default async function handler(req, res) {
         </div>
       </div>
 
-      <table>
+      <h3 style="margin:12px 0 4px;">📈 CTR Trend (past 7 days)</h3>
+      <canvas id="trend"></canvas>
+
+      <table style="margin-top:28px;">
         <thead>
           <tr>
             <th>Category</th>
@@ -152,6 +176,30 @@ export default async function handler(req, res) {
     <footer>
       Updated ${new Date().toLocaleString()} • Data auto-syncs with ctr-insights.json + learning-governor.json
     </footer>
+    <script>
+      const data = ${trendData};
+      const canvas = document.getElementById("trend");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      const step = w / (data.length - 1);
+      const max = Math.max(...data, 1);
+      ctx.clearRect(0, 0, w, h);
+      ctx.beginPath();
+      ctx.moveTo(0, h - (data[0] / max) * (h - 20) - 10);
+      for (let i = 1; i < data.length; i++) {
+        const x = i * step;
+        const y = h - (data[i] / max) * (h - 20) - 10;
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = "#2a63f6";
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(42,99,246,0.1)";
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+    </script>
   </body>
   </html>`;
 
