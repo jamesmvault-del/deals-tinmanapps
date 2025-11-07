@@ -1,19 +1,20 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Category Renderer v5.0 “Production-Grade SEO Output”
+// TinmanApps — Category Renderer v5.1 “SmartRank SEO Dominator”
 //
-// ✨ Key changes:
-// • Removes all internal/system/CTR references (no “referral”, “engine”, etc.)
-// • Refines metadata for SEO: user-facing only, crawler-friendly
-// • Simplifies footer + header (professional tone, no debug text)
-// • Keeps CTA Engine integration (v3.x ready) for adaptive CTAs & subtitles
-// • Adds hidden JSON-LD ItemList schema for Google understanding
+// ✨ Key Upgrades from v5.0:
+// • Integrates /lib/rankingEngine.js for CTR + semantic + long-tail ranking
+// • Category pages now auto-prioritize high-performing, low-competition deals
+// • Keeps full SEO metadata + hidden structured data
+// • Maintains professional, production-grade output (no system terms)
+// • Compatible with CTA Engine v3.x and Feed Engine v6.x
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import url from "url";
 import { createCtaEngine } from "../lib/ctaEngine.js";
+import { rankDeals } from "../lib/rankingEngine.js"; // ⬅️ new smart ranking integration
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
@@ -121,9 +122,15 @@ export default async function categories(req, res) {
   const title = CATS[cat];
   if (!title) return res.status(404).send("Category not found.");
 
+  // Load data
   let deals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const total = deals.length;
-  deals = deals.slice(0, 40); // safe limit for page load
+
+  // 🔹 SmartRank: CTR + semantic + long-tail + freshness ordering
+  deals = rankDeals(deals, cat);
+
+  // Optional cap for render speed
+  deals = deals.slice(0, 40);
 
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
