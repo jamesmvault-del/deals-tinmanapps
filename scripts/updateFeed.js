@@ -39,6 +39,10 @@ const PARENT_COLLECTIONS = {
   courses: "https://appsumo.com/courses-more/",
   contentCreation: "https://appsumo.com/software/content-creation/",
   projectManagement: "https://appsumo.com/software/project-management/",
+  workflow: "https://appsumo.com/software/workflow-automation/",
+  taskManagement: "https://appsumo.com/software/task-management/",
+  organization: "https://appsumo.com/software/organization/",
+  remoteWork: "https://appsumo.com/software/remote-work/",
 };
 
 // Output categories (software/marketing/courses are direct; ai/productivity are derived)
