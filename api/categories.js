@@ -1,13 +1,13 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA)
-// v4.2 “Bulletproof CTA Display”: guarantees JSON-enriched CTA priority + clean subtitle fallback
+// v4.3 “Adaptive Semantic Fusion”
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import url from "url";
-import { createCtaEngine } from "../lib/ctaEngine.js"; // 🧠 Adaptive CTA generator
+import { createCtaEngine } from "../lib/ctaEngine.js"; // v1.9 Adaptive Engine
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
@@ -17,6 +17,7 @@ const SITE_ORIGIN =
 
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
+// ---------- Category and archetype tables ----------
 const CATS = {
   software: "Software Deals",
   marketing: "Marketing & Sales Tools",
@@ -33,58 +34,7 @@ const ARCH = {
   courses: "Authority & Learning",
 };
 
-// Deterministic CTA pool (fallback)
-const CTA_POOL = [
-  "Learn how it replaces →",
-  "Preview software →",
-  "See what it replaces →",
-  "Unlock deal →",
-  "Compare to your stack →",
-  "Try it in action →",
-];
-
-// Local subtitle templates (fallback)
-const SUBTITLE_TEMPLATES = {
-  software: [
-    "Run your business smarter with AI-powered efficiency.",
-    "Simplify daily workflows — everything in one place.",
-    "Modern tools that save time and boost output.",
-    "Empower your team with seamless automation.",
-    "Software that pays for itself in time saved.",
-  ],
-  marketing: [
-    "Grow faster with data-driven insights.",
-    "Automate, capture, and convert with less effort.",
-    "Turn engagement into revenue — effortlessly.",
-    "Make every click count.",
-    "Stand out, sell more, scale faster.",
-  ],
-  productivity: [
-    "Stay focused and achieve more every day.",
-    "Automate the boring stuff and ship faster.",
-    "Save hours each week — reduce friction.",
-    "Maximize output with minimal effort.",
-    "Reclaim time and focus on what matters.",
-  ],
-  ai: [
-    "Harness AI to scale your impact.",
-    "Smart automation for creators and teams.",
-    "Turn AI into your competitive edge.",
-    "Do more with less — intelligently.",
-    "Future-proof your workflow with cutting-edge AI.",
-  ],
-  courses: [
-    "Learn practical skills you can apply today.",
-    "Level up with step-by-step guidance.",
-    "Master in-demand skills from proven creators.",
-    "Build your career with actionable learning.",
-    "Turn knowledge into results — faster.",
-  ],
-};
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ───────────────────────────────────────────────────────────────────────────────
+// ---------- Utilities ----------
 function loadJsonSafe(file, fallback = []) {
   try {
     const p = path.join(DATA_DIR, file);
@@ -92,14 +42,6 @@ function loadJsonSafe(file, fallback = []) {
     return JSON.parse(fs.readFileSync(p, "utf8"));
   } catch {
     return fallback;
-  }
-}
-
-function fmtDateISO(dt) {
-  try {
-    return new Date(dt).toISOString();
-  } catch {
-    return new Date().toISOString();
   }
 }
 
@@ -112,15 +54,39 @@ function escapeHtml(s = "") {
     .replaceAll("'", "&#39;");
 }
 
+function decodeHTML(str = "") {
+  return str
+    .replace(/&#x27;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+function fmtDateISO(dt) {
+  try {
+    return new Date(dt).toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
 function hashStr(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h >>> 0;
 }
 
-function ctaFor(slug) {
-  const idx = hashStr(slug) % CTA_POOL.length;
-  return CTA_POOL[idx];
+function ctaFallback(slug) {
+  const POOL = [
+    "Preview tool →",
+    "See how it works →",
+    "Unlock lifetime deal →",
+    "Compare alternatives →",
+    "Try it now →",
+  ];
+  const idx = hashStr(slug) % POOL.length;
+  return POOL[idx];
 }
 
 function trackedUrl({ slug, cat, url }) {
@@ -137,8 +103,7 @@ function imageFor(slug, provided) {
 }
 
 function splitTitle(fullTitle = "") {
-  const raw = (fullTitle || "").trim();
-  if (!raw) return { brand: "", subtitle: "" };
+  const raw = decodeHTML(fullTitle.trim());
   const parts = raw.split(/\s*[-–—]\s*/);
   if (parts.length > 1 && parts[0] && parts[1]) {
     return { brand: parts[0].trim(), subtitle: parts.slice(1).join(" – ").trim() };
@@ -146,15 +111,7 @@ function splitTitle(fullTitle = "") {
   return { brand: raw, subtitle: "" };
 }
 
-function fallbackSubtitle(cat) {
-  const pool =
-    SUBTITLE_TEMPLATES[cat] || SUBTITLE_TEMPLATES.software || ["Get more done, faster."];
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Main handler
-// ───────────────────────────────────────────────────────────────────────────────
+// ---------- Main handler ----------
 export default async function categories(req, res) {
   const cat = String(req.params.cat || "").toLowerCase();
   const title = CATS[cat];
@@ -178,7 +135,7 @@ export default async function categories(req, res) {
 
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
-  const pageDesc = `Browse ${total} live ${title.toLowerCase()} indexed automatically — referral-safe, fast, and SEO-optimized.`;
+  const pageDesc = `Browse ${total} live ${title.toLowerCase()} curated by an adaptive SEO + CTA engine — referral-safe, fast, and continuously learning.`;
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -189,6 +146,7 @@ export default async function categories(req, res) {
     ],
   };
 
+  // Schema: preview first 30 items
   const SLICE = Math.min(30, total);
   const itemListLd = {
     "@context": "https://schema.org",
@@ -207,19 +165,16 @@ export default async function categories(req, res) {
           "@type": "ListItem",
           position: i + 1,
           name: d.title,
-          url: `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
-            slug
-          )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(
-            REF_PREFIX + encodeURIComponent(d.url)
-          )}`,
+          url: trackedUrl({ slug, cat, url: d.url }),
         };
       }),
     },
   };
 
-  // 🧠 Adaptive CTA engine
+  // 🧠 Adaptive CTA engine (v1.9)
   const engine = createCtaEngine();
 
+  // Generate cards
   const cardsHtml = deals
     .map((d) => {
       const slug =
@@ -230,31 +185,22 @@ export default async function categories(req, res) {
 
       const { brand, subtitle: fromTitle } = splitTitle(d.title || slug);
 
-      let subtitle =
-        (d.seo?.subtitle || fromTitle || "").trim() || fallbackSubtitle(cat);
-      if (subtitle && brand.toLowerCase().includes(subtitle.toLowerCase())) {
-        subtitle = "";
-      }
-
-      // ✅ Robust CTA prioritization
-      let ctaText = "";
-      if (d.seo && typeof d.seo.cta === "string" && d.seo.cta.replace(/&[^;]+;/g, "").trim().length > 0) {
-        ctaText = d.seo.cta.trim();
-      } else {
+      let subtitle = (d.seo?.subtitle || fromTitle || "").trim();
+      if (!subtitle) {
         try {
-          ctaText = engine.generate({
-            title: brand,
-            category: cat,
-            slug,
-            subtitle,
-          });
+          subtitle = engine.generateSubtitle({ title: brand, category: cat });
         } catch {
-          ctaText = ctaFor(slug);
+          subtitle = "";
         }
       }
 
-      if (process.env.DEBUG_CTA === "1") {
-        console.log(`[CTA:${cat}] ${slug} → ${ctaText}`);
+      let ctaText = "";
+      try {
+        ctaText =
+          (d.seo?.cta && d.seo.cta.trim()) ||
+          engine.generate({ title: brand, slug, cat });
+      } catch {
+        ctaText = ctaFallback(slug);
       }
 
       const img = imageFor(slug, d.image);
@@ -289,6 +235,7 @@ export default async function categories(req, res) {
     lastRefreshed
   )}. Total clicks recorded: ${Number(ctr.totalClicks || 0)}.`;
 
+  // ---------- Final HTML ----------
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
