@@ -1,11 +1,9 @@
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps Adaptive Feed Engine v6.0 “Silo Master”
+// TinmanApps Adaptive Feed Engine v6.1 “Knowledge Expansion”
 //
-// • Full-spectrum AppSumo harvesting (DOM-based, resilient to GraphQL changes)
-// • Reclassifies into 7 SEO-driven silos:
-//     ai, marketing, creator, productivity, business, web, software
-// • Semantic intent scoring based on title + path + OG metadata
-// • Auto-dedupe + CTA/SEO enrichment + structural integrity
+// • Builds on Silo Master v6.0 with expanded “courses” silo
+// • Adds semantic learning/creator detection + enriched SEO metadata
+// • Improves intent scoring + deduplication for tighter categorization
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -65,8 +63,23 @@ function normalize({ slug, title, url, cat, image }) {
     referralUrl: tracked({ slug: safe, cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
     seo: {
-      clickbait: `Discover ${title} — #1 in ${cat}`,
-      keywords: [cat, "AppSumo", "lifetime deal", safe],
+      clickbait:
+        cat === "courses"
+          ? `Build & sell courses with ${title} — Top learning tool on AppSumo`
+          : `Discover ${title} — #1 in ${cat}`,
+      keywords:
+        cat === "courses"
+          ? [
+              "courses",
+              "creator",
+              "academy",
+              "teach online",
+              "learning platform",
+              "build courses",
+              "AppSumo",
+              safe,
+            ]
+          : [cat, "AppSumo", "lifetime deal", safe],
     },
   };
 }
@@ -106,9 +119,10 @@ const SILO_KEYWORDS = {
     "marketing", "seo", "social", "sales", "lead", "crm", "advertising",
     "email", "campaign", "traffic", "growth", "conversion", "content"
   ],
-  creator: [
+  courses: [
     "course", "academy", "training", "teach", "learn", "creator",
-    "coach", "skill", "education", "knowledge", "student", "tutorial"
+    "coach", "skill", "education", "knowledge", "student", "tutorial",
+    "class", "lesson", "instructor", "mentor", "teacher", "curriculum"
   ],
   productivity: [
     "productivity", "task", "workflow", "project", "kanban", "time",
@@ -191,6 +205,10 @@ function classify(title, url) {
     for (const k of keys) if (text.includes(k)) score++;
     if (score > maxScore) { maxScore = score; best = silo; }
   }
+
+  // extra boost for anything explicitly under “/courses/” or similar path
+  if (/\/courses?-/.test(url)) best = "courses";
+
   return best;
 }
 
@@ -255,7 +273,7 @@ async function main() {
   console.log(`🧩 ${unique.length} unique deals harvested.`);
 
   const silos = {
-    ai: [], marketing: [], creator: [], productivity: [],
+    ai: [], marketing: [], courses: [], productivity: [],
     business: [], web: [], software: [],
   };
   for (const item of unique) {
@@ -285,7 +303,7 @@ async function main() {
     writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.0 Silo Master).");
+  console.log("\n✨ All silos refreshed (v6.1 Knowledge Expansion).");
   console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
 }
 
