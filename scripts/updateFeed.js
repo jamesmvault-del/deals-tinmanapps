@@ -1,8 +1,8 @@
-// ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps Adaptive Feed Engine v6.1.2 “Stable Integration”
-// • Fixes CTAEngine instance call permanently (auto-recover fallback)
-// • Limits per-category items to 10 for faster testing
-// • Fully compatible with Hard-Clamp CTA Engine v2.0
+// /scripts/updateFeed.js
+// TinmanApps Adaptive Feed Engine v6.1.3 “Stable CTA Integration”
+// • Uses enrichDeals() from CTA Engine
+// • Limits per-category items to 10 for testing
+// • Clean fallback handling + improved console logging
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -12,7 +12,7 @@ import puppeteer from "puppeteer";
 import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
-import { createCtaEngine } from "../lib/ctaEngine.js";
+import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +21,6 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-// ⚙️ TEST MODE (adjust back to 120 after QA)
 const MAX_PER_CATEGORY = 10;
 const DETAIL_CONCURRENCY = 6;
 const NAV_TIMEOUT_MS = 45000;
@@ -102,7 +101,7 @@ function extractOg(html) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Silo Keywords (intent-based classification)
+// Silo Keywords
 // ───────────────────────────────────────────────────────────────────────────────
 const SILO_KEYWORDS = {
   ai: [
@@ -133,8 +132,6 @@ const SILO_KEYWORDS = {
 };
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Discover all collections from AppSumo
-// ───────────────────────────────────────────────────────────────────────────────
 async function discoverCollections() {
   const set = new Set();
   try {
@@ -147,8 +144,6 @@ async function discoverCollections() {
   return Array.from(set).slice(0, 100);
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Scrape a collection (DOM pass)
 // ───────────────────────────────────────────────────────────────────────────────
 async function scrapeCollection(url, label) {
   const browser = await puppeteer.launch({
@@ -188,8 +183,6 @@ async function scrapeCollection(url, label) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Classifier (intent scoring)
-// ───────────────────────────────────────────────────────────────────────────────
 function classify(title, url) {
   const text = `${title} ${url}`.toLowerCase();
   let best = "software";
@@ -203,8 +196,6 @@ function classify(title, url) {
   return best;
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Fetch details + enrichment
 // ───────────────────────────────────────────────────────────────────────────────
 async function fetchDetail(item, cat) {
   try {
@@ -245,21 +236,9 @@ async function withConcurrency(items, limit, worker) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Main Build
-// ───────────────────────────────────────────────────────────────────────────────
 async function main() {
-  let engine;
-  try {
-    engine = createCtaEngine();
-    if (typeof engine.enrichDeals !== "function") {
-      throw new Error("CTA Engine instance invalid");
-    }
-  } catch (err) {
-    console.error("⚠️ CTA Engine fallback:", err.message);
-    const { createCtaEngine: reload } = await import("../lib/ctaEngine.js");
-    engine = reload();
-  }
-
+  const engine = createCtaEngine();
+  console.log("✅ CTA Engine ready");
   console.log("⏳ Discovering live AppSumo collections…");
   const collections = await discoverCollections();
 
@@ -292,7 +271,7 @@ async function main() {
         (x) => fetchDetail(x, cat)
       );
       recs = dedupe(details);
-      recs = engine.enrichDeals(recs, cat);
+      recs = enrichDeals(recs, cat);
     } else {
       recs = readJsonSafe(`appsumo-${cat}.json`, []);
       console.log(`  ♻️ ${cat}: using cached data (${recs.length})`);
@@ -306,8 +285,7 @@ async function main() {
     writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.1.2 Stable Integration).");
-  console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
+  console.log("\n✨ All silos refreshed (v6.1.3 Stable CTA Integration).");
 }
 
 main().catch((err) => {
