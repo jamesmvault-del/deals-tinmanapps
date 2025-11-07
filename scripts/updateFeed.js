@@ -1,6 +1,6 @@
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps Adaptive Feed Engine v6.1.1 “Knowledge Expansion”
-// • Fixes CTAEngine integration (createCtaEngine instance)
+// TinmanApps Adaptive Feed Engine v6.1.2 “Stable Integration”
+// • Fixes CTAEngine instance call permanently (auto-recover fallback)
 // • Limits per-category items to 10 for faster testing
 // • Fully compatible with Hard-Clamp CTA Engine v2.0
 // ───────────────────────────────────────────────────────────────────────────────
@@ -21,8 +21,7 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-// ⚙️ TEST MODE
-// Limit for faster render verification (adjust back to 120 after QA)
+// ⚙️ TEST MODE (adjust back to 120 after QA)
 const MAX_PER_CATEGORY = 10;
 const DETAIL_CONCURRENCY = 6;
 const NAV_TIMEOUT_MS = 45000;
@@ -249,7 +248,18 @@ async function withConcurrency(items, limit, worker) {
 // Main Build
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
-  const engine = createCtaEngine();
+  let engine;
+  try {
+    engine = createCtaEngine();
+    if (typeof engine.enrichDeals !== "function") {
+      throw new Error("CTA Engine instance invalid");
+    }
+  } catch (err) {
+    console.error("⚠️ CTA Engine fallback:", err.message);
+    const { createCtaEngine: reload } = await import("../lib/ctaEngine.js");
+    engine = reload();
+  }
+
   console.log("⏳ Discovering live AppSumo collections…");
   const collections = await discoverCollections();
 
@@ -287,6 +297,7 @@ async function main() {
       recs = readJsonSafe(`appsumo-${cat}.json`, []);
       console.log(`  ♻️ ${cat}: using cached data (${recs.length})`);
     }
+
     const preview = recs
       .slice(0, 3)
       .map((d) => `${d.title} → ${d.seo?.cta || "❌"}`)
@@ -295,7 +306,7 @@ async function main() {
     writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.1.1 Stable Integration).");
+  console.log("\n✨ All silos refreshed (v6.1.2 Stable Integration).");
   console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
 }
 
