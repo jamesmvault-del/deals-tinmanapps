@@ -1,8 +1,13 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA)
-// v4.4.1 “Tightened Psychographic”
-// Fixes: CTA overflow, restores adaptive subtitle tone, limits category length
+// TinmanApps — Category Renderer v5.0 “Production-Grade SEO Output”
+//
+// ✨ Key changes:
+// • Removes all internal/system/CTR references (no “referral”, “engine”, etc.)
+// • Refines metadata for SEO: user-facing only, crawler-friendly
+// • Simplifies footer + header (professional tone, no debug text)
+// • Keeps CTA Engine integration (v3.x ready) for adaptive CTAs & subtitles
+// • Adds hidden JSON-LD ItemList schema for Google understanding
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -19,18 +24,23 @@ const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
 // ---------- Category tables ----------
 const CATS = {
-  software: "Software Deals",
+  software: "Software Tools",
   marketing: "Marketing & Sales Tools",
-  productivity: "Productivity Boosters",
+  productivity: "Productivity & Workflow",
   ai: "AI & Automation Tools",
   courses: "Courses & Learning",
+  business: "Business Management",
+  web: "Web & Design Tools",
 };
+
 const ARCH = {
   software: "Trust & Reliability",
   marketing: "Opportunity & Growth",
   productivity: "Efficiency & Focus",
   ai: "Novelty & Innovation",
   courses: "Authority & Learning",
+  business: "Confidence & Strategy",
+  web: "Design & Innovation",
 };
 
 // ---------- Helpers ----------
@@ -59,13 +69,6 @@ function decodeHTML(str = "") {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
 }
-function fmtDateISO(dt) {
-  try {
-    return new Date(dt).toISOString();
-  } catch {
-    return new Date().toISOString();
-  }
-}
 function hashStr(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -73,11 +76,11 @@ function hashStr(s) {
 }
 function ctaFallback(slug) {
   const POOL = [
-    "Preview deal →",
-    "See details →",
+    "Explore deal →",
+    "View details →",
+    "Discover more →",
     "Try it now →",
-    "Explore offer →",
-    "Compare plans →",
+    "Learn more →",
   ];
   const idx = hashStr(slug) % POOL.length;
   return POOL[idx];
@@ -120,19 +123,11 @@ export default async function categories(req, res) {
 
   let deals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const total = deals.length;
-  // ⚡ Temporary limit for faster testing
-  deals = deals.slice(0, 10);
-
-  const ctr = loadJsonSafe("ctr-insights.json", { totalClicks: 0 });
-  let lastRefreshed = new Date();
-  try {
-    const stat = fs.statSync(path.join(DATA_DIR, `appsumo-${cat}.json`));
-    lastRefreshed = stat.mtime;
-  } catch {}
+  deals = deals.slice(0, 40); // safe limit for page load
 
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
-  const pageDesc = `Browse ${total} live ${title.toLowerCase()} curated by an adaptive SEO + CTA engine — referral-safe, fast, and continuously learning.`;
+  const pageDesc = `Discover the best ${title.toLowerCase()} — carefully curated lifetime deals from AppSumo, updated automatically.`;
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -143,7 +138,20 @@ export default async function categories(req, res) {
     ],
   };
 
-  // 🧠 Adaptive CTA Engine
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": `${title} Deals`,
+    "url": canonical,
+    "numberOfItems": total,
+    "itemListElement": deals.map((d, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: d.url,
+      name: d.title,
+    })),
+  };
+
   const engine = createCtaEngine();
 
   // ---------- Render cards ----------
@@ -156,7 +164,6 @@ export default async function categories(req, res) {
         "deal";
       const { brand, subtitle: fromTitle } = splitTitle(d.title || slug);
 
-      // Generate adaptive subtitle
       let subtitle = (d.seo?.subtitle || fromTitle || "").trim();
       subtitle = dedupeText(brand, subtitle);
       if (!subtitle) {
@@ -168,7 +175,6 @@ export default async function categories(req, res) {
       }
       subtitle = clamp(subtitle, 80);
 
-      // Generate CTA
       let ctaText = "";
       try {
         ctaText =
@@ -178,7 +184,6 @@ export default async function categories(req, res) {
         ctaText = ctaFallback(slug);
       }
 
-      // hard safety: remove brand + clamp
       ctaText = ctaText.replace(new RegExp(brand, "i"), "").trim();
       if (ctaText.length > 34) ctaText = clamp(ctaText, 34);
 
@@ -192,11 +197,7 @@ export default async function categories(req, res) {
         </a>
         <div class="card-body">
           <h3 class="title"><a href="${link}" class="title-link">${escapeHtml(brand)}</a></h3>
-          ${
-            subtitle
-              ? `<div class="subtitle">${escapeHtml(subtitle)}</div>`
-              : ``
-          }
+          ${subtitle ? `<div class="subtitle">${escapeHtml(subtitle)}</div>` : ``}
         </div>
         <div class="card-cta">
           <a class="cta" href="${link}" data-cta>${escapeHtml(ctaText)}</a>
@@ -204,11 +205,6 @@ export default async function categories(req, res) {
       </article>`;
     })
     .join("\n");
-
-  const footerVisible = `${ARCH[cat]} • ${total} deals • Updated automatically`;
-  const footerHidden = `This page indexes verified AppSumo lifetime deals for ${title.toLowerCase()} with referral integrity, CTR optimization, and structured metadata. Refreshed ${fmtDateISO(
-    lastRefreshed
-  )}. Total clicks recorded: ${Number(ctr.totalClicks || 0)}.`;
 
   // ---------- Final HTML ----------
   const html = `<!DOCTYPE html>
@@ -252,14 +248,15 @@ main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36px;}
 </style>
 <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
+<script type="application/ld+json">${JSON.stringify(itemListLd)}</script>
 </head>
 <body>
 <header><h1>${escapeHtml(title)}</h1><div class="sub">${ARCH[cat]} • ${total} deals</div></header>
 <main><section class="grid">${cardsHtml || `<p>No deals available right now.</p>`}</section></main>
-<footer><div class="visually-hidden">${escapeHtml(footerHidden)}</div>${escapeHtml(footerVisible)}</footer>
+<footer>${escapeHtml(ARCH[cat])}</footer>
 </body></html>`;
 
   res.setHeader("Content-Type", "text/html");
-  res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=120");
   res.send(html);
 }
