@@ -15,10 +15,11 @@
         "heffl",
         "exclusive offer"
       ],
-      "cta": "How Heffl helps you heffl →",
-      "subtitle": "Scale campaigns.",
+      "cta": "Grow with Heffl →",
+      "subtitle": "Grow your marketing results with Heffl.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -37,10 +38,11 @@
         "cardclan",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with CardClan →",
-      "subtitle": "Send thoughtful cards at real scale.",
+      "cta": "How CardClan helps you →",
+      "subtitle": "Scale campaigns faster — CardClan marketing.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -60,9 +62,10 @@
         "exclusive offer"
       ],
       "cta": "Try WbizTool now →",
-      "subtitle": "Boost conversions.",
+      "subtitle": "Grow your marketing results with WbizTool.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -82,31 +85,10 @@
         "exclusive offer"
       ],
       "cta": "See Phygital+ in action →",
-      "subtitle": "Boost conversions.",
+      "subtitle": "Scale campaigns faster — Phygital+ marketing.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
-    "title": "Nexuscale AI",
-    "slug": "nexuscale",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/nexuscale/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
-    "seo": {
-      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "nexuscale",
-        "exclusive offer"
-      ],
-      "cta": "See Nexuscale in action →",
-      "subtitle": "Boost conversions.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -125,10 +107,34 @@
         "emailit",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Emailit →",
-      "subtitle": "Smarter outreach, less manual work.",
+      "cta": "Increase conversions via Emailit →",
+      "subtitle": "Build demand with Emailit email.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
+    }
+  },
+  {
+    "title": "Nexuscale AI",
+    "slug": "nexuscale",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/nexuscale/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
+    "seo": {
+      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "nexuscale",
+        "exclusive offer"
+      ],
+      "cta": "See Nexuscale AI in action →",
+      "subtitle": "Grow your AI results with Nexuscale AI.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -148,9 +154,10 @@
         "exclusive offer"
       ],
       "cta": "How Feedspace helps you marketing →",
-      "subtitle": "Smarter systems for busy teams.",
+      "subtitle": "Grow your marketing results with Feedspace.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -169,10 +176,11 @@
         "sendfox",
         "exclusive offer"
       ],
-      "cta": "Discover SendFox →",
-      "subtitle": "Drive engagement.",
+      "cta": "How SendFox helps you marketing →",
+      "subtitle": "Scale campaigns faster — SendFox marketing.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -191,10 +199,11 @@
         "replientai",
         "exclusive offer"
       ],
-      "cta": "How replient.ai helps you scale campa…",
-      "subtitle": "Scale campaigns.",
+      "cta": "Increase conversions via replient.ai →",
+      "subtitle": "Convert more with replient.ai AI.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -213,10 +222,11 @@
         "swft-connect",
         "exclusive offer"
       ],
-      "cta": "See Swft in action →",
-      "subtitle": "Grow faster.",
+      "cta": "See Swft Connect in action →",
+      "subtitle": "Grow your marketing results with Swft Connect.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -235,32 +245,11 @@
         "local-rank-tracker",
         "exclusive offer"
       ],
-      "cta": "See Local in action →",
-      "subtitle": "Capture more leads.",
+      "cta": "See Local Rank Tracker in action →",
+      "subtitle": "Engage and convert — Local Rank Tracker marketing.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
-    "title": "AgencyPro",
-    "slug": "agencypro",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/agencypro/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
-    "seo": {
-      "clickbait": "Discover AgencyPro - Manage clients with a branded portal — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "agencypro",
-        "exclusive offer"
-      ],
-      "cta": "See AgencyPro in action →",
-      "subtitle": "Grow faster.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -279,10 +268,57 @@
         "siteguru",
         "exclusive offer"
       ],
-      "cta": "Discover SiteGuru →",
-      "subtitle": "Capture more leads.",
+      "cta": "Boost productivity with SiteGuru →",
+      "subtitle": "Grow your marketing results with SiteGuru.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
+    }
+  },
+  {
+    "title": "AgencyPro",
+    "slug": "agencypro",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/agencypro/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
+    "seo": {
+      "clickbait": "Discover AgencyPro - Manage clients with a branded portal — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "agencypro",
+        "exclusive offer"
+      ],
+      "cta": "Try AgencyPro now →",
+      "subtitle": "Build demand with AgencyPro marketing.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "intent": "marketing"
+    }
+  },
+  {
+    "title": "Creaitor.ai",
+    "slug": "creaitorai",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/creaitorai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=creaitorai&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcreaitorai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-Creaitor.ai-16_9.png",
+    "seo": {
+      "clickbait": "Discover Creaitor.ai - Create SEO content with AI — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "creaitorai",
+        "exclusive offer"
+      ],
+      "cta": "Increase conversions via Creaitor.ai →",
+      "subtitle": "Scale campaigns faster — Creaitor.ai AI.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -301,10 +337,11 @@
         "sociamonials",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Sociamonials →",
-      "subtitle": "Drive engagement.",
+      "cta": "How Sociamonials helps you drive enga…",
+      "subtitle": "Scale campaigns faster — Sociamonials marketing.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -323,10 +360,11 @@
         "reoon-email-verifier",
         "exclusive offer"
       ],
-      "cta": "Try Reoon now →",
-      "subtitle": "Smarter outreach, less manual work.",
+      "cta": "Discover Reoon Email Verifier →",
+      "subtitle": "Scale campaigns faster — Reoon Email Verifier email.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -346,9 +384,10 @@
         "exclusive offer"
       ],
       "cta": "Try KingSumo now →",
-      "subtitle": "Grow faster.",
+      "subtitle": "Grow your marketing results with KingSumo.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -367,32 +406,11 @@
         "connexify",
         "exclusive offer"
       ],
-      "cta": "How Connexify helps you →",
-      "subtitle": "Scale campaigns.",
+      "cta": "Increase conversions via Connexify →",
+      "subtitle": "Grow your marketing results with Connexify.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
-    "title": "Creaitor.ai",
-    "slug": "creaitorai",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/creaitorai/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=creaitorai&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcreaitorai%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-Creaitor.ai-16_9.png",
-    "seo": {
-      "clickbait": "Discover Creaitor.ai - Create SEO content with AI — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "creaitorai",
-        "exclusive offer"
-      ],
-      "cta": "How Creaitor.ai helps you drive engag…",
-      "subtitle": "Capture more leads.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -412,9 +430,10 @@
         "exclusive offer"
       ],
       "cta": "See LeadCRM in action →",
-      "subtitle": "Boost conversions.",
+      "subtitle": "Scale campaigns faster — LeadCRM CRM.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   },
   {
@@ -433,10 +452,11 @@
         "unmixr-ai",
         "exclusive offer"
       ],
-      "cta": "Discover Unmixr →",
-      "subtitle": "Less friction. More results.",
+      "cta": "How Unmixr AI helps you scale campaig…",
+      "subtitle": "Build demand with Unmixr AI AI.",
       "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "marketing"
     }
   }
 ]

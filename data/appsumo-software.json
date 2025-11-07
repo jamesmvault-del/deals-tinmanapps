@@ -15,10 +15,11 @@
         "youbooks",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with youbooks →",
-      "subtitle": "Less friction. More results.",
+      "cta": "Scale operations with youbooks →",
+      "subtitle": "Streamline software with youbooks.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -37,10 +38,11 @@
         "dart",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Dart →",
-      "subtitle": "Less friction. More results.",
+      "cta": "How Dart helps you cut tool sprawl →",
+      "subtitle": "Ship faster with Dart software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -59,10 +61,11 @@
         "tidycal",
         "exclusive offer"
       ],
-      "cta": "Try TidyCal now →",
-      "subtitle": "Smarter systems for busy teams.",
+      "cta": "Discover TidyCal →",
+      "subtitle": "Ship faster with TidyCal software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -81,10 +84,11 @@
         "heffl",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Heffl →",
-      "subtitle": "Less friction. More results.",
+      "cta": "How Heffl helps you heffl →",
+      "subtitle": "Ship faster with Heffl software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -104,9 +108,10 @@
         "exclusive offer"
       ],
       "cta": "See CardClan in action →",
-      "subtitle": "Build relationships that stand out.",
+      "subtitle": "Reduce busywork: CardClan software that works.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -126,9 +131,10 @@
         "exclusive offer"
       ],
       "cta": "Try Dialora now →",
-      "subtitle": "Simplify workflows.",
+      "subtitle": "Reduce busywork: Dialora software that works.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -147,10 +153,11 @@
         "yapper",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Yapper →",
-      "subtitle": "Keep your feed active effortlessly.",
+      "cta": "Scale operations with Yapper →",
+      "subtitle": "Reduce busywork: Yapper software that works.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -169,10 +176,11 @@
         "wbiztool",
         "exclusive offer"
       ],
-      "cta": "Discover WbizTool →",
-      "subtitle": "Streamline ops.",
+      "cta": "Boost productivity with WbizTool →",
+      "subtitle": "Streamline software with WbizTool.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -191,32 +199,11 @@
         "tagmango",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with TagMango →",
-      "subtitle": "Cut tool sprawl.",
+      "cta": "How TagMango helps you →",
+      "subtitle": "Streamline software with TagMango.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
-    "title": "Pretty Prompt",
-    "slug": "prettyprompt",
-    "category": "software",
-    "url": "https://appsumo.com/products/prettyprompt/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=prettyprompt&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fprettyprompt%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fprettyprompt-as-Header-PrettyPrompt-16_9.png",
-    "seo": {
-      "clickbait": "Discover Pretty Prompt - Improve AI prompts in seconds — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "prettyprompt",
-        "exclusive offer"
-      ],
-      "cta": "Try Pretty now →",
-      "subtitle": "Reduce busywork.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -235,32 +222,34 @@
         "phygital",
         "exclusive offer"
       ],
-      "cta": "Try Phygital+ now →",
-      "subtitle": "Save admin time.",
+      "cta": "Discover Phygital+ →",
+      "subtitle": "Ship faster with Phygital+ software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
-    "title": "Nexuscale AI",
-    "slug": "nexuscale",
+    "title": "Pretty Prompt",
+    "slug": "prettyprompt",
     "category": "software",
-    "url": "https://appsumo.com/products/nexuscale/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
+    "url": "https://appsumo.com/products/prettyprompt/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=prettyprompt&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fprettyprompt%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fprettyprompt-as-Header-PrettyPrompt-16_9.png",
     "seo": {
-      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in software",
+      "clickbait": "Discover Pretty Prompt - Improve AI prompts in seconds — #1 in software",
       "keywords": [
         "software",
         "AppSumo",
         "lifetime deal",
-        "nexuscale",
+        "prettyprompt",
         "exclusive offer"
       ],
-      "cta": "Try Nexuscale now →",
-      "subtitle": "Cut tool sprawl.",
+      "cta": "Try Pretty Prompt now →",
+      "subtitle": "Reduce busywork: Pretty Prompt software that works.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -280,9 +269,33 @@
         "exclusive offer"
       ],
       "cta": "Try Emailit now →",
-      "subtitle": "Smarter outreach, less manual work.",
+      "subtitle": "Modern email to save admin time — Emailit.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
+    }
+  },
+  {
+    "title": "Nexuscale AI",
+    "slug": "nexuscale",
+    "category": "software",
+    "url": "https://appsumo.com/products/nexuscale/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
+    "seo": {
+      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "nexuscale",
+        "exclusive offer"
+      ],
+      "cta": "Discover Nexuscale AI →",
+      "subtitle": "Ship faster with Nexuscale AI AI.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -301,10 +314,11 @@
         "fusebase",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with FuseBase →",
-      "subtitle": "Save admin time.",
+      "cta": "Scale operations with FuseBase →",
+      "subtitle": "Smarter software for teams — FuseBase.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -323,10 +337,11 @@
         "browseract",
         "exclusive offer"
       ],
-      "cta": "See BrowserAct in action →",
-      "subtitle": "Modern tools that save you time.",
+      "cta": "Try BrowserAct now →",
+      "subtitle": "Smarter software for teams — BrowserAct.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -345,10 +360,11 @@
         "feedspace",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with Feedspace →",
-      "subtitle": "Reduce busywork.",
+      "cta": "How Feedspace helps you software →",
+      "subtitle": "Ship faster with Feedspace software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -367,10 +383,34 @@
         "skillplate",
         "exclusive offer"
       ],
-      "cta": "Discover Skillplate →",
-      "subtitle": "Cut tool sprawl.",
+      "cta": "Boost productivity with Skillplate →",
+      "subtitle": "Ship faster with Skillplate software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
+    }
+  },
+  {
+    "title": "Puzzle",
+    "slug": "puzzle",
+    "category": "software",
+    "url": "https://appsumo.com/products/puzzle/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=puzzle&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpuzzle%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fpuzzle-as-Header-Puzzle-16_9.png",
+    "seo": {
+      "clickbait": "Discover Puzzle - Turn complex processes into visual maps — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "puzzle",
+        "exclusive offer"
+      ],
+      "cta": "Simplify workflows with Puzzle →",
+      "subtitle": "Streamline software with Puzzle.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -390,31 +430,10 @@
         "exclusive offer"
       ],
       "cta": "See Mootion in action →",
-      "subtitle": "Simplify workflows.",
+      "subtitle": "Smarter software for teams — Mootion.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
-    }
-  },
-  {
-    "title": "Puzzle",
-    "slug": "puzzle",
-    "category": "software",
-    "url": "https://appsumo.com/products/puzzle/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=puzzle&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpuzzle%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fpuzzle-as-Header-Puzzle-16_9.png",
-    "seo": {
-      "clickbait": "Discover Puzzle - Turn complex processes into visual maps — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "puzzle",
-        "exclusive offer"
-      ],
-      "cta": "How Puzzle helps you streamline ops →",
-      "subtitle": "Reduce busywork.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   },
   {
@@ -433,10 +452,11 @@
         "sendfox",
         "exclusive offer"
       ],
-      "cta": "Boost productivity with SendFox →",
-      "subtitle": "Less friction. More results.",
+      "cta": "How SendFox helps you software →",
+      "subtitle": "Ship faster with SendFox software.",
       "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45"
+      "refreshed": "2025-W45",
+      "intent": "software"
     }
   }
 ]
