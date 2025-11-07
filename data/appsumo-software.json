@@ -14,27 +14,8 @@
         "lifetime deal",
         "dialora"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "helps you simplify everyday tasks with ease."
-    }
-  },
-  {
-    "title": "Dart",
-    "slug": "dart",
-    "category": "software",
-    "url": "https://appsumo.com/products/dart/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dart&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdart%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdart-as-Header-Dart-16_9.png",
-    "seo": {
-      "clickbait": "Discover Dart — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "dart"
-      ],
-      "cta": "Inspire your audience seamlessly →",
-      "subtitle": "inspires bold, beautiful creation."
+      "cta": "Streamline operations…",
+      "subtitle": "helps you simplify everyday tasks seamlessly."
     }
   },
   {
@@ -53,7 +34,26 @@
         "tidycal"
       ],
       "cta": "Simplify your workflow →",
-      "subtitle": "automates your processes for growth."
+      "subtitle": "helps you simplify everyday tasks."
+    }
+  },
+  {
+    "title": "Dart",
+    "slug": "dart",
+    "category": "software",
+    "url": "https://appsumo.com/products/dart/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dart&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdart%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdart-as-Header-Dart-16_9.png",
+    "seo": {
+      "clickbait": "Discover Dart — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "dart"
+      ],
+      "cta": "Inspire your audience →",
+      "subtitle": "simplifies your creative process instantly."
     }
   },
   {
@@ -71,8 +71,8 @@
         "lifetime deal",
         "prettyprompt"
       ],
-      "cta": "Simplify your workflow faster →",
-      "subtitle": "turns complexity into clarity instantly."
+      "cta": "Automate smarter →",
+      "subtitle": "automates your processes for growth with ease."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "fusebase"
       ],
-      "cta": "Automate smarter →",
-      "subtitle": "automates your processes for growth without hassle."
+      "cta": "Streamline operations →",
+      "subtitle": "helps you simplify everyday tasks."
     }
   },
   {
@@ -109,8 +109,8 @@
         "lifetime deal",
         "puzzle"
       ],
-      "cta": "Automate smarter →",
-      "subtitle": "turns complexity into clarity."
+      "cta": "Automate smarter seamlessly →",
+      "subtitle": "turns complexity into clarity instantly."
     }
   },
   {
@@ -128,7 +128,7 @@
         "lifetime deal",
         "snoooz"
       ],
-      "cta": "Streamline operations →",
+      "cta": "Simplify your workflow smarter →",
       "subtitle": "automates your processes for growth."
     }
   },
@@ -147,7 +147,7 @@
         "lifetime deal",
         "breezedoc"
       ],
-      "cta": "Automate smarter →",
+      "cta": "Automate smarter seamlessly →",
       "subtitle": "automates your processes for growth."
     }
   },
@@ -166,8 +166,8 @@
         "lifetime deal",
         "mac-ios-essentials"
       ],
-      "cta": "Simplify your workflow…",
-      "subtitle": "automates your processes for growth."
+      "cta": "Streamline operations →",
+      "subtitle": "turns complexity into clarity."
     }
   },
   {
@@ -186,7 +186,7 @@
         "t0ggles"
       ],
       "cta": "Automate smarter →",
-      "subtitle": "turns complexity into clarity."
+      "subtitle": "helps you simplify everyday tasks instantly."
     }
   }
 ]

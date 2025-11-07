@@ -15,7 +15,7 @@
         "emailit"
       ],
       "cta": "Amplify with →",
-      "subtitle": "turns automation into advantage."
+      "subtitle": "turns automation into advantage instantly."
     }
   },
   {
@@ -33,27 +33,8 @@
         "lifetime deal",
         "reoon-email-verifier"
       ],
-      "cta": "Build with →",
+      "cta": "Leverage automation →",
       "subtitle": "automates creativity with precision."
-    }
-  },
-  {
-    "title": "LeadCRM",
-    "slug": "leadcrm",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/leadcrm/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
-    "seo": {
-      "clickbait": "Discover LeadCRM — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "leadcrm"
-      ],
-      "cta": "Boost engagement →",
-      "subtitle": "helps you grow your audience and visibility with ease."
     }
   },
   {
@@ -71,8 +52,27 @@
         "lifetime deal",
         "leadrocks"
       ],
-      "cta": "Unlock your next win →",
-      "subtitle": "turns leads into loyal fans with ease."
+      "cta": "Boost engagement →",
+      "subtitle": "helps you grow your audience and visibility."
+    }
+  },
+  {
+    "title": "LeadCRM",
+    "slug": "leadcrm",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/leadcrm/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
+    "seo": {
+      "clickbait": "Discover LeadCRM — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "leadcrm"
+      ],
+      "cta": "Grow conversions fast →",
+      "subtitle": "turns leads into loyal fans."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "easy-text-marketing-platform"
       ],
-      "cta": "Grow conversions fast seamlessly →",
-      "subtitle": "helps you grow your audience and visibility."
+      "cta": "Unlock your next win →",
+      "subtitle": "boosts engagement automatically seamlessly."
     }
   },
   {
@@ -109,46 +109,8 @@
         "lifetime deal",
         "reoon-yellowpages-scraper"
       ],
-      "cta": "Unlock your next win →",
-      "subtitle": "helps you grow your audience and visibility."
-    }
-  },
-  {
-    "title": "SmatLeads",
-    "slug": "smatleads",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/smatleads/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=smatleads&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsmatleads%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F01f7345e-261a-4ec8-a3cf-c00f84b1d434.png",
-    "seo": {
-      "clickbait": "Discover SmatLeads — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "smatleads"
-      ],
-      "cta": "Grow conversions fast →",
-      "subtitle": "turns into loyal fans."
-    }
-  },
-  {
-    "title": "SheerSEO",
-    "slug": "sheerseo",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/sheerseo/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=sheerseo&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsheerseo%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2F1200x800_1_uuid_71ac1b28-77fb-4955-ae4f-e5bf21d482bc.png",
-    "seo": {
-      "clickbait": "Discover SheerSEO — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "sheerseo"
-      ],
-      "cta": "Unlock your next win →",
-      "subtitle": "helps you grow your audience and visibility instantly."
+      "cta": "Boost engagement confidently →",
+      "subtitle": "turns leads into loyal fans."
     }
   },
   {
@@ -166,8 +128,46 @@
         "lifetime deal",
         "seo-generator"
       ],
-      "cta": "Unlock your next win →",
-      "subtitle": "turns leads into loyal fans."
+      "cta": "Boost engagement →",
+      "subtitle": "helps you grow your audience and visibility."
+    }
+  },
+  {
+    "title": "SheerSEO",
+    "slug": "sheerseo",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/sheerseo/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=sheerseo&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsheerseo%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2F1200x800_1_uuid_71ac1b28-77fb-4955-ae4f-e5bf21d482bc.png",
+    "seo": {
+      "clickbait": "Discover SheerSEO — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "sheerseo"
+      ],
+      "cta": "Grow conversions fast →",
+      "subtitle": "turns leads into loyal fans seamlessly."
+    }
+  },
+  {
+    "title": "SmatLeads",
+    "slug": "smatleads",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/smatleads/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=smatleads&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsmatleads%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F01f7345e-261a-4ec8-a3cf-c00f84b1d434.png",
+    "seo": {
+      "clickbait": "Discover SmatLeads — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "smatleads"
+      ],
+      "cta": "Unlock your next win confidently →",
+      "subtitle": "boosts engagement automatically."
     }
   },
   {
@@ -185,8 +185,8 @@
         "lifetime deal",
         "local-scraper-lead-generation-software"
       ],
-      "cta": "Boost engagement →",
-      "subtitle": "helps you grow your audience and visibility with ease."
+      "cta": "Grow conversions fast →",
+      "subtitle": "boosts engagement automatically."
     }
   }
 ]
