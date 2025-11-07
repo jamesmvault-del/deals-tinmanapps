@@ -1,7 +1,6 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v4.1 — Full Activation + Isolated Sessions
-// Fixes Target.createTarget by launching a new browser per category.
-// Works seamlessly with /api/master-cron, /api/insight.js, and /lib/ctaEvolver.js.
+// TinmanApps Adaptive Feed Engine v4.2 — Deep Scroll + Network Idle
+// Fixes missing “AI” and “Productivity” results by extending scroll depth and network-idle waits.
 
 import fs from "fs";
 import path from "path";
@@ -9,9 +8,6 @@ import { fileURLToPath } from "url";
 import puppeteer from "puppeteer";
 import { createCtaEngine } from "../lib/ctaEngine.js";
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Config
-// ───────────────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
@@ -29,42 +25,29 @@ const CATEGORY_URLS = {
   courses: "https://appsumo.com/courses-more/",
 };
 
-const MAX_PER_CATEGORY = Number(process.env.MAX_PER_CATEGORY || 120);
-const DETAIL_CONCURRENCY = Number(process.env.DETAIL_CONCURRENCY || 8);
-const NAV_TIMEOUT_MS = 45_000;
+const MAX_PER_CATEGORY = 120;
+const DETAIL_CONCURRENCY = 8;
+const NAV_TIMEOUT_MS = 45000;
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ───────────────────────────────────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function ensureDir(p) {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
-}
-
+function ensureDir(p) { if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
 function writeJson(file, data) {
   ensureDir(DATA_DIR);
-  const outPath = path.join(DATA_DIR, file);
-  fs.writeFileSync(outPath, JSON.stringify(data, null, 2));
+  fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2));
 }
-
 function toSlugFromUrl(url) {
   const m = url.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
 }
-
 function proxiedImage(src) {
-  const u = encodeURIComponent(src);
-  return `${SITE_ORIGIN}/api/image-proxy?src=${u}`;
+  return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(src)}`;
 }
-
 function trackedUrl({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
-
 function normalizeRecord({ slug, title, url, cat, image }) {
   const safeSlug =
     slug ||
@@ -83,10 +66,6 @@ function normalizeRecord({ slug, title, url, cat, image }) {
     },
   };
 }
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Minimal OG extractor
-// ───────────────────────────────────────────────────────────────────────────────
 function extractOg(html) {
   const get = (prop) => {
     const rx = new RegExp(
@@ -105,8 +84,7 @@ function extractOg(html) {
       null,
   };
 }
-
-async function fetchText(url, timeoutMs = 25_000) {
+async function fetchText(url, timeoutMs = 25000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -118,11 +96,8 @@ async function fetchText(url, timeoutMs = 25_000) {
   }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Puppeteer Crawlers
-// ───────────────────────────────────────────────────────────────────────────────
 async function launchBrowser() {
-  return await puppeteer.launch({
+  return puppeteer.launch({
     headless: "new",
     args: [
       "--no-sandbox",
@@ -134,31 +109,37 @@ async function launchBrowser() {
   });
 }
 
+// Deep-scroll collector with network-idle waits
 async function collectProductLinks(page, listUrl) {
   await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
-  let links = await page.$$eval("a[href*='/products/']", (as) => as.map((a) => a.href));
+  let links = new Set(await page.$$eval("a[href*='/products/']", as => as.map(a => a.href)));
 
-  if (links.length < 20) {
-    for (let i = 0; i < 6; i++) {
-      await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.25));
-      await sleep(400);
-      const more = await page.$$eval("a[href*='/products/']", (as) =>
-        as.map((a) => a.href)
-      );
-      links = [...new Set([...links, ...more])];
-      if (links.length >= MAX_PER_CATEGORY) break;
+  for (let i = 0; i < 12; i++) {
+    await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.5));
+    try { await page.waitForNetworkIdle({ idleTime: 800, timeout: 4000 }); } catch {}
+    const newLinks = await page.$$eval("a[href*='/products/']", as => as.map(a => a.href));
+    newLinks.forEach(l => links.add(l));
+    if (links.size >= MAX_PER_CATEGORY) break;
+  }
+
+  // Fallback: use AppSumo’s API if too few links
+  if (links.size < 10) {
+    try {
+      const catSlug = listUrl.split("/software/")[1]?.replace("/", "") || "software";
+      const apiUrl = `https://appsumo.com/api/v2/listing-page/${catSlug || "software"}/`;
+      const json = await fetch(apiUrl).then(r => r.json());
+      json.results?.forEach((p) => {
+        if (p.url) links.add(`https://appsumo.com${p.url}`);
+      });
+    } catch (err) {
+      console.warn("⚠️ API fallback failed:", err.message);
     }
   }
 
-  const products = [...new Set(
-    links
-      .map((u) => {
-        const m = u.match(/https?:\/\/[^/]+\/products\/[^/#?]+\/?/i);
-        return m ? m[0].replace(/\/$/, "/") : null;
-      })
-      .filter(Boolean)
-  )];
-  return products.slice(0, MAX_PER_CATEGORY);
+  return Array.from(links)
+    .map(u => u.match(/https?:\/\/[^/]+\/products\/[^/#?]+\/?/i)?.[0])
+    .filter(Boolean)
+    .slice(0, MAX_PER_CATEGORY);
 }
 
 async function fetchProductDetail(url, cat) {
@@ -188,20 +169,14 @@ async function withConcurrency(items, limit, worker) {
       while (true) {
         const idx = i++;
         if (idx >= items.length) return;
-        try {
-          out[idx] = await worker(items[idx], idx);
-        } catch (err) {
-          console.error(`❌ Worker failed on item ${idx}:`, err.message);
-        }
+        try { out[idx] = await worker(items[idx], idx); }
+        catch (err) { console.error(`❌ Worker failed on item ${idx}:`, err.message); }
       }
     });
   await Promise.all(runners);
   return out.filter(Boolean);
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Core Build Logic
-// ───────────────────────────────────────────────────────────────────────────────
 async function buildCategory(engine, cat, listUrl) {
   const browser = await launchBrowser();
   const page = await browser.newPage();
@@ -216,24 +191,20 @@ async function buildCategory(engine, cat, listUrl) {
     (url) => fetchProductDetail(url, cat)
   );
 
-  // 🧠 Title cleanup
   const cleanRecords = rawRecords.map((r) => {
     const parts = (r.title || "").split(/\s*[-–—]\s*/);
     const brand = parts[0]?.trim() || r.slug;
     return { ...r, title: brand };
   });
 
-  // 🧠 CTA + Subtitle Enrichment
   const enriched = engine.enrichDeals(cleanRecords, cat);
 
-  // ✅ Log preview sample
   const preview = enriched
     .slice(0, 3)
     .map((d) => `${d.title} → ${d.seo?.cta || "❌ missing CTA"}`)
     .join("\n  ");
   console.log(`  Preview (${cat}):\n  ${preview}`);
 
-  // ✅ Write category JSON
   writeJson(`appsumo-${cat}.json`, enriched);
   console.log(`✅ Saved ${enriched.length} → data/appsumo-${cat}.json`);
 
@@ -241,18 +212,12 @@ async function buildCategory(engine, cat, listUrl) {
   await browser.close();
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Entry Point
-// ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   const engine = createCtaEngine();
 
   for (const [cat, listUrl] of Object.entries(CATEGORY_URLS)) {
-    try {
-      await buildCategory(engine, cat, listUrl);
-    } catch (err) {
-      console.error(`⚠️ Skipped category ${cat}:`, err.message);
-    }
+    try { await buildCategory(engine, cat, listUrl); }
+    catch (err) { console.error(`⚠️ Skipped category ${cat}:`, err.message); }
   }
 
   console.log("\n✨ All categories refreshed and enriched with adaptive CTAs + subtitles.");
