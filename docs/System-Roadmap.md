@@ -100,7 +100,7 @@ Create a fully autonomous marketing intelligence network that:
 - Self-optimizes tone, language, and metadata  
 - Detects SEO decay and semantic drift  
 - Generates meaningful, trust-oriented presentation layers  
-- Operates 100% dependency-free on Render Free Tier
+- Operates 100% dependency-free on Render Starter Tier
 
 ---
 
