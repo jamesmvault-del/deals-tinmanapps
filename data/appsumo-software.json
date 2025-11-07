@@ -352,28 +352,6 @@
     }
   },
   {
-    "title": "Stackby",
-    "slug": "stackby",
-    "category": "software",
-    "url": "https://appsumo.com/products/stackby/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=stackby&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fstackby%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Stackby_-_16_9.png",
-    "seo": {
-      "clickbait": "Discover Stackby — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "stackby"
-      ],
-      "cta": "Join creators using Stackby →",
-      "subtitle": "Built for creators who take action.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45",
-      "semanticHash": "bc2lb9"
-    }
-  },
-  {
     "title": "AmyMind",
     "slug": "amymind",
     "category": "software",
@@ -393,6 +371,28 @@
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
       "semanticHash": "xlq9ae"
+    }
+  },
+  {
+    "title": "Stackby",
+    "slug": "stackby",
+    "category": "software",
+    "url": "https://appsumo.com/products/stackby/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=stackby&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fstackby%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Stackby_-_16_9.png",
+    "seo": {
+      "clickbait": "Discover Stackby — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "stackby"
+      ],
+      "cta": "Join creators using Stackby →",
+      "subtitle": "Built for creators who take action.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "semanticHash": "bc2lb9"
     }
   },
   {
@@ -1540,25 +1540,25 @@
     }
   },
   {
-    "title": "Mystrika",
-    "slug": "mystrika",
+    "title": "Onvocado",
+    "slug": "onvocado",
     "category": "software",
-    "url": "https://appsumo.com/products/mystrika/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=mystrika&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmystrika%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fd3022773-4cea-4ee8-a864-13bfa898a946.png",
+    "url": "https://appsumo.com/products/onvocado/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=onvocado&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fonvocado%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Onvocado_-_16_9_uuid_1438496e-2c6a-4438-bf49-23fad881ab6b.png",
     "seo": {
-      "clickbait": "Discover Mystrika — #1 in software",
+      "clickbait": "Discover Onvocado — #1 in software",
       "keywords": [
         "software",
         "AppSumo",
         "lifetime deal",
-        "mystrika"
+        "onvocado"
       ],
-      "cta": "Launch with Mystrika →",
-      "subtitle": "Mystrika helps you streamline ops.",
+      "cta": "Start now with Onvocado →",
+      "subtitle": "Onvocado helps you simplify workflows.",
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
-      "semanticHash": "lkxktv"
+      "semanticHash": "1dm8dt"
     }
   },
   {
@@ -1584,25 +1584,25 @@
     }
   },
   {
-    "title": "Onvocado",
-    "slug": "onvocado",
+    "title": "Mystrika",
+    "slug": "mystrika",
     "category": "software",
-    "url": "https://appsumo.com/products/onvocado/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=onvocado&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fonvocado%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Onvocado_-_16_9_uuid_1438496e-2c6a-4438-bf49-23fad881ab6b.png",
+    "url": "https://appsumo.com/products/mystrika/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=mystrika&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmystrika%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fd3022773-4cea-4ee8-a864-13bfa898a946.png",
     "seo": {
-      "clickbait": "Discover Onvocado — #1 in software",
+      "clickbait": "Discover Mystrika — #1 in software",
       "keywords": [
         "software",
         "AppSumo",
         "lifetime deal",
-        "onvocado"
+        "mystrika"
       ],
-      "cta": "Start now with Onvocado →",
-      "subtitle": "Onvocado helps you simplify workflows.",
+      "cta": "Launch with Mystrika →",
+      "subtitle": "Mystrika helps you streamline ops.",
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
-      "semanticHash": "1dm8dt"
+      "semanticHash": "lkxktv"
     }
   },
   {
@@ -1716,28 +1716,6 @@
     }
   },
   {
-    "title": "JoyQR",
-    "slug": "joyqr",
-    "category": "software",
-    "url": "https://appsumo.com/products/joyqr/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=joyqr&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fjoyqr%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fbefb7e49-8e9f-4893-af27-7e69a7f4fd36.png",
-    "seo": {
-      "clickbait": "Discover JoyQR — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "joyqr"
-      ],
-      "cta": "Unlock reduce busywork with JoyQR →",
-      "subtitle": "JoyQR helps you reduce busywork.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45",
-      "semanticHash": "8ymzt5"
-    }
-  },
-  {
     "title": "FlipLink.me",
     "slug": "fliplinkme",
     "category": "software",
@@ -1757,6 +1735,28 @@
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
       "semanticHash": "16uoqt"
+    }
+  },
+  {
+    "title": "JoyQR",
+    "slug": "joyqr",
+    "category": "software",
+    "url": "https://appsumo.com/products/joyqr/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=joyqr&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fjoyqr%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fbefb7e49-8e9f-4893-af27-7e69a7f4fd36.png",
+    "seo": {
+      "clickbait": "Discover JoyQR — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "joyqr"
+      ],
+      "cta": "Unlock reduce busywork with JoyQR →",
+      "subtitle": "JoyQR helps you reduce busywork.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "semanticHash": "8ymzt5"
     }
   },
   {

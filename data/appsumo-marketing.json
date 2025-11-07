@@ -110,6 +110,28 @@
     }
   },
   {
+    "title": "SmatLeads",
+    "slug": "smatleads",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/smatleads/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=smatleads&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsmatleads%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F01f7345e-261a-4ec8-a3cf-c00f84b1d434.png",
+    "seo": {
+      "clickbait": "Discover SmatLeads — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "smatleads"
+      ],
+      "cta": "Stop struggling — use SmatLeads →",
+      "subtitle": "Grow your brand — SmatLeads helps you drive engagement.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "semanticHash": "y8vec3"
+    }
+  },
+  {
     "title": "SheerSEO",
     "slug": "sheerseo",
     "category": "marketing",
@@ -173,28 +195,6 @@
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
       "semanticHash": "16i298"
-    }
-  },
-  {
-    "title": "SmatLeads",
-    "slug": "smatleads",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/smatleads/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=smatleads&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsmatleads%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F01f7345e-261a-4ec8-a3cf-c00f84b1d434.png",
-    "seo": {
-      "clickbait": "Discover SmatLeads — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "smatleads"
-      ],
-      "cta": "Stop struggling — use SmatLeads →",
-      "subtitle": "Grow your brand — SmatLeads helps you drive engagement.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45",
-      "semanticHash": "y8vec3"
     }
   },
   {
