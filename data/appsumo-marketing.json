@@ -253,29 +253,6 @@
     }
   },
   {
-    "title": "Local Rank Tracker",
-    "slug": "local-rank-tracker",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/local-rank-tracker/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=local-rank-tracker&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Flocal-rank-tracker%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Faf3fddd6-dfd6-4245-b4df-0d353039acd7.png",
-    "seo": {
-      "clickbait": "Discover Local Rank Tracker — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "local-rank-tracker",
-        "exclusive offer"
-      ],
-      "cta": "Start now with Local Rank Tracker →",
-      "subtitle": "Local Rank Tracker lets marketers grow faster.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45",
-      "semanticHash": "14p9mi"
-    }
-  },
-  {
     "title": "SiteGuru",
     "slug": "siteguru",
     "category": "marketing",
@@ -296,6 +273,29 @@
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
       "semanticHash": "sg96ce"
+    }
+  },
+  {
+    "title": "Local Rank Tracker",
+    "slug": "local-rank-tracker",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/local-rank-tracker/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=local-rank-tracker&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Flocal-rank-tracker%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Faf3fddd6-dfd6-4245-b4df-0d353039acd7.png",
+    "seo": {
+      "clickbait": "Discover Local Rank Tracker — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "local-rank-tracker",
+        "exclusive offer"
+      ],
+      "cta": "Start now with Local Rank Tracker →",
+      "subtitle": "Local Rank Tracker lets marketers grow faster.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "semanticHash": "14p9mi"
     }
   },
   {
@@ -437,26 +437,26 @@
     }
   },
   {
-    "title": "Unmixr AI",
-    "slug": "unmixr-ai",
+    "title": "Switchy",
+    "slug": "switchy",
     "category": "marketing",
-    "url": "https://appsumo.com/products/unmixr-ai/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=unmixr-ai&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Funmixr-ai%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F41f1db92-70ca-4794-bdac-0145068068e0.png",
+    "url": "https://appsumo.com/products/switchy/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=switchy&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fswitchy%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Switchy_1.jpg",
     "seo": {
-      "clickbait": "Discover Unmixr AI - Text to Speech, Speech to Text, Audio/Video Dubbing — #1 in marketing",
+      "clickbait": "Discover Switchy - Boost conversions with retargeting links — #1 in marketing",
       "keywords": [
         "marketing",
         "AppSumo",
         "lifetime deal",
-        "unmixr-ai",
+        "switchy",
         "exclusive offer"
       ],
-      "cta": "Unlock grow faster with Unmixr AI →",
-      "subtitle": "Grow your brand — Unmixr AI helps you boost conversions.",
+      "cta": "Stop struggling — use Switchy →",
+      "subtitle": "Grow your brand — Switchy helps you drive engagement.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
-      "semanticHash": "14ivvd"
+      "semanticHash": "12e58l"
     }
   }
 ]
