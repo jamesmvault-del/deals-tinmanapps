@@ -1,48 +1,200 @@
 [
   {
-    "title": "Nexuscale AI",
+    "title": "XInterview AI",
+    "slug": "xinterview",
+    "category": "ai",
+    "url": "https://appsumo.com/products/xinterview/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=xinterview&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fxinterview%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F51c2128a-50a1-46f2-ba9b-d55bd29518fe.png",
+    "seo": {
+      "clickbait": "Discover XInterview AI — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "xinterview"
+      ],
+      "cta": "Try XInterview AI today →",
+      "subtitle": "XInterview AI empowers you to amplify output.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "11ct7m"
+    }
+  },
+  {
+    "title": "Trainwel",
+    "slug": "trainwel",
+    "category": "ai",
+    "url": "https://appsumo.com/products/trainwel/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=trainwel&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftrainwel%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fe4037255-420f-46af-9f6e-7eb731b8aae0.png",
+    "seo": {
+      "clickbait": "Discover Trainwel — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "trainwel"
+      ],
+      "cta": "Discover what Trainwel can do →",
+      "subtitle": "Trainwel empowers you to automate creatively.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "8tp91r"
+    }
+  },
+  {
+    "title": "personeo.ai",
+    "slug": "personeoai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/personeoai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=personeoai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpersoneoai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fbb93d6eb-250c-465e-b143-84c8c9013d60.png",
+    "seo": {
+      "clickbait": "Discover personeo.ai — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "personeoai"
+      ],
+      "cta": "Gain results faster via personeo.ai →",
+      "subtitle": "Amplify creativity and automate creatively using personeo.ai.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1j515"
+    }
+  },
+  {
+    "title": "Logic Sheet - Create AI agents &amp; automation in Google Sheets",
+    "slug": "logic-sheet",
+    "category": "ai",
+    "url": "https://appsumo.com/products/logic-sheet/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=logic-sheet&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Flogic-sheet%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F44b34fb4-e7b5-479a-aa68-5611cf0aa61b.png",
+    "seo": {
+      "clickbait": "Discover Logic Sheet - Create AI agents &amp; automation in Google Sheets — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "logic-sheet"
+      ],
+      "cta": "Unlock leverage AI smarter with L…",
+      "subtitle": "Logic Sheet - Create AI agents & automation in Google Sheets empowers y…",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "rku6vq"
+    }
+  },
+  {
+    "title": "ProxiedMail",
+    "slug": "proxiedmail",
+    "category": "ai",
+    "url": "https://appsumo.com/products/proxiedmail/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=proxiedmail&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fproxiedmail%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F718ca5ed-113a-4fb1-92e8-45f06311312d.png",
+    "seo": {
+      "clickbait": "Discover ProxiedMail — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "proxiedmail"
+      ],
+      "cta": "Join creators using ProxiedMail →",
+      "subtitle": "Amplify creativity and automate creatively using ProxiedMail.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "5ohp1n"
+    }
+  },
+  {
+    "title": "Stella AI",
+    "slug": "stella-ai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/stella-ai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=stella-ai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fstella-ai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3572b9fb-b2f2-4ca1-a67c-caf1a1ec20ef.png",
+    "seo": {
+      "clickbait": "Discover Stella AI — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "stella-ai"
+      ],
+      "cta": "See Stella AI in action →",
+      "subtitle": "Amplify creativity and automate creatively using Stella AI.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1o79lh"
+    }
+  },
+  {
+    "title": "Dorin AI",
+    "slug": "dorin-ai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/dorin-ai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dorin-ai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdorin-ai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5b9e7bb6-86ce-4986-9521-9cb7453fa2a2.png",
+    "seo": {
+      "clickbait": "Discover Dorin AI — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "dorin-ai"
+      ],
+      "cta": "Overcome blocks with Dorin AI →",
+      "subtitle": "Amplify creativity and leverage AI smarter using Dorin AI.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "ug1odx"
+    }
+  },
+  {
+    "title": "Nexuscale AI - Generate and close B2B leads 24/7",
     "slug": "nexuscale",
     "category": "ai",
     "url": "https://appsumo.com/products/nexuscale/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=nexuscale&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnexuscale%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FAS-HeaderImage-Template_4_uuid_e725c70b-3856-4c54-8609-85d4653ec85d.png",
     "seo": {
-      "clickbait": "Discover Nexuscale AI — #1 in ai",
+      "clickbait": "Discover Nexuscale AI - Generate and close B2B leads 24/7 — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "nexuscale",
-        "exclusive offer"
+        "nexuscale"
       ],
-      "cta": "Try Nexuscale AI →",
-      "subtitle": "Amplify creativity and amplify output using Nexuscale AI.",
+      "cta": "Join creators using Nexuscale AI…",
+      "subtitle": "Amplify creativity and amplify output using Nexuscale AI - Generate and…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "j1xrym"
+      "semanticHash": "192pjf"
     }
   },
   {
-    "title": "Emailit",
+    "title": "Emailit - Send emails with SMTP and API",
     "slug": "emailit",
     "category": "ai",
     "url": "https://appsumo.com/products/emailit/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
     "seo": {
-      "clickbait": "Discover Emailit — #1 in ai",
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "emailit",
-        "exclusive offer"
+        "emailit"
       ],
-      "cta": "Try Emailit →",
-      "subtitle": "Amplify creativity and amplify output using Emailit.",
+      "cta": "Join creators using Emailit - Sen…",
+      "subtitle": "Amplify creativity and amplify output using Emailit - Send emails with…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "fk7jtb"
+      "semanticHash": "168t7o"
     }
   },
   {
@@ -58,14 +210,13 @@
         "ai",
         "AppSumo",
         "lifetime deal",
-        "replientai",
-        "exclusive offer"
+        "replientai"
       ],
-      "cta": "Try replient.ai →",
+      "cta": "Stop struggling — use replient.ai →",
       "subtitle": "replient.ai empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "syirz0"
+      "semanticHash": "1vqgy2"
     }
   },
   {
@@ -81,336 +232,497 @@
         "ai",
         "AppSumo",
         "lifetime deal",
-        "reoon-email-verifier",
-        "exclusive offer"
+        "reoon-email-verifier"
       ],
-      "cta": "Try Reoon Email Verifier →",
+      "cta": "Join creators using Reoon Email V…",
       "subtitle": "Reoon Email Verifier empowers you to amplify output.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "1ihac0"
+      "semanticHash": "15794p"
     }
   },
   {
-    "title": "Creaitor.ai",
+    "title": "Creaitor.ai - Create SEO content with AI",
     "slug": "creaitorai",
     "category": "ai",
     "url": "https://appsumo.com/products/creaitorai/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=creaitorai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcreaitorai%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-Creaitor.ai-16_9.png",
     "seo": {
-      "clickbait": "Discover Creaitor.ai — #1 in ai",
+      "clickbait": "Discover Creaitor.ai - Create SEO content with AI — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "creaitorai",
-        "exclusive offer"
+        "creaitorai"
       ],
-      "cta": "Try Creaitor.ai →",
-      "subtitle": "Creaitor.ai empowers you to leverage AI smarter.",
+      "cta": "Overcome blocks with Creaitor.ai…",
+      "subtitle": "Amplify creativity and leverage AI smarter using Creaitor.ai - Create S…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "s0h1eq"
+      "semanticHash": "qxmp41"
     }
   },
   {
-    "title": "XInterview AI",
-    "slug": "xinterview",
-    "category": "ai",
-    "url": "https://appsumo.com/products/xinterview/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=xinterview&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fxinterview%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F51c2128a-50a1-46f2-ba9b-d55bd29518fe.png",
-    "seo": {
-      "clickbait": "Discover XInterview AI — #1 in ai",
-      "keywords": [
-        "ai",
-        "AppSumo",
-        "lifetime deal",
-        "xinterview",
-        "exclusive offer"
-      ],
-      "cta": "Start now with XInterview AI →",
-      "subtitle": "XInterview AI empowers you to amplify output.",
-      "archetype": "Novelty & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "qmqs1n"
-    }
-  },
-  {
-    "title": "Unmixr AI",
+    "title": "Unmixr AI - Text to Speech, Speech to Text, Audio/Video Dubbing",
     "slug": "unmixr-ai",
     "category": "ai",
     "url": "https://appsumo.com/products/unmixr-ai/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=unmixr-ai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Funmixr-ai%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F41f1db92-70ca-4794-bdac-0145068068e0.png",
     "seo": {
-      "clickbait": "Discover Unmixr AI — #1 in ai",
+      "clickbait": "Discover Unmixr AI - Text to Speech, Speech to Text, Audio/Video Dubbing — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "unmixr-ai",
-        "exclusive offer"
+        "unmixr-ai"
       ],
       "cta": "Unlock leverage AI smarter with U…",
-      "subtitle": "Amplify creativity and amplify output using Unmixr AI.",
+      "subtitle": "Amplify creativity and automate creatively using Unmixr AI - Text to Sp…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "dfbcod"
+      "semanticHash": "cqkb1u"
     }
   },
   {
-    "title": "BerqWP",
+    "title": "BerqWP - Speed Optimization on Autopilot",
     "slug": "berqwp",
     "category": "ai",
     "url": "https://appsumo.com/products/berqwp/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=berqwp&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fberqwp%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fdbdc2ee4-97ea-49b8-95cc-a14dc6c20cf6.jpg",
     "seo": {
-      "clickbait": "Discover BerqWP — #1 in ai",
+      "clickbait": "Discover BerqWP - Speed Optimization on Autopilot — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "berqwp",
-        "exclusive offer"
+        "berqwp"
       ],
-      "cta": "Overcome blocks with BerqWP →",
-      "subtitle": "Amplify creativity and amplify output using BerqWP.",
+      "cta": "Stop struggling — use BerqWP - Sp…",
+      "subtitle": "BerqWP - Speed Optimization on Autopilot empowers you to amplify output.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "1da9v7"
+      "semanticHash": "ibwgi"
     }
   },
   {
-    "title": "Affpilot AI",
+    "title": "Affpilot AI - Monetize your blog with AI",
     "slug": "affpilot",
     "category": "ai",
     "url": "https://appsumo.com/products/affpilot/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=affpilot&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Faffpilot%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Faffpilot-as-Header-Affpilot_AI-16_9.png",
     "seo": {
-      "clickbait": "Discover Affpilot AI — #1 in ai",
+      "clickbait": "Discover Affpilot AI - Monetize your blog with AI — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "affpilot",
-        "exclusive offer"
+        "affpilot"
       ],
-      "cta": "Discover what Affpilot AI can do →",
-      "subtitle": "Amplify creativity and leverage AI smarter using Affpilot AI.",
+      "cta": "See Affpilot AI - Monetize your b…",
+      "subtitle": "Amplify creativity and automate creatively using Affpilot AI - Monetize…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "19x8aw"
+      "semanticHash": "vd88j2"
     }
   },
   {
-    "title": "Writecream",
+    "title": "Writecream - Your SEO Agent",
     "slug": "marketplace-writecream",
     "category": "ai",
     "url": "https://appsumo.com/products/marketplace-writecream/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-writecream&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-writecream%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fe8819900-77c9-4d75-8798-f6703bd28ec4.png",
     "seo": {
-      "clickbait": "Discover Writecream — #1 in ai",
+      "clickbait": "Discover Writecream - Your SEO Agent — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "marketplace-writecream",
-        "exclusive offer"
+        "marketplace-writecream"
       ],
-      "cta": "See why teams trust Writecream →",
-      "subtitle": "Amplify creativity and automate creatively using Writecream.",
+      "cta": "Join creators using Writecream…",
+      "subtitle": "Writecream - Your SEO Agent empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "lg0of4"
+      "semanticHash": "lllhw2"
     }
   },
   {
-    "title": "RTILA",
+    "title": "RTILA - RPA &amp;  Web Automation",
     "slug": "marketplace-rtila-growth-hacking-marketing-automation-software",
     "category": "ai",
     "url": "https://appsumo.com/products/marketplace-rtila-growth-hacking-marketing-automation-software/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-rtila-growth-hacking-marketing-automation-software&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-rtila-growth-hacking-marketing-automation-software%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F46b99708-0550-45e8-b23a-575f9c91ef68.jpg",
     "seo": {
-      "clickbait": "Discover RTILA — #1 in ai",
+      "clickbait": "Discover RTILA - RPA &amp;  Web Automation — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "marketplace-rtila-growth-hacking-marketing-automation-software",
-        "exclusive offer"
+        "marketplace-rtila-growth-hacking-marketing-automation-software"
       ],
-      "cta": "Overcome blocks with RTILA →",
-      "subtitle": "RTILA empowers you to amplify output.",
+      "cta": "Stop struggling — use RTILA - RPA…",
+      "subtitle": "RTILA - RPA & Web Automation empowers you to amplify output.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "aumd9w"
+      "semanticHash": "1cpwsb"
     }
   },
   {
-    "title": "Writeseed",
+    "title": "Writeseed - AI Content Writer",
     "slug": "writeseed-ai-content-writer",
     "category": "ai",
     "url": "https://appsumo.com/products/writeseed-ai-content-writer/",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=writeseed-ai-content-writer&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwriteseed-ai-content-writer%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F51e8c824-6577-4aea-9805-160c21de05fd.png",
     "seo": {
-      "clickbait": "Discover Writeseed — #1 in ai",
+      "clickbait": "Discover Writeseed - AI Content Writer — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "writeseed-ai-content-writer",
-        "exclusive offer"
+        "writeseed-ai-content-writer"
       ],
-      "cta": "Try Writeseed today →",
-      "subtitle": "Amplify creativity and automate creatively using Writeseed.",
+      "cta": "Launch with Writeseed - AI Conten…",
+      "subtitle": "Writeseed - AI Content Writer empowers you to automate creatively.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "mxonhu"
+      "semanticHash": "e65sn2"
     }
   },
   {
-    "title": "Lean Six Sigma Training &amp; Certification",
-    "slug": "glss-training",
+    "title": "Waitlister",
+    "slug": "waitlister",
     "category": "ai",
-    "url": "https://appsumo.com/products/glss-training/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=glss-training&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fglss-training%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F644bc2ed-448e-475b-af27-0f59ff1ad1ad.jpg",
+    "url": "https://appsumo.com/products/waitlister/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=waitlister&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwaitlister%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fec82e40d-9e54-432d-800c-40c95080d122.png",
     "seo": {
-      "clickbait": "Discover Lean Six Sigma Training &amp; Certification — #1 in ai",
+      "clickbait": "Discover Waitlister — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "glss-training",
-        "exclusive offer"
+        "waitlister"
       ],
-      "cta": "Unlock leverage AI smarter with L…",
-      "subtitle": "Lean Six Sigma Training & Certification empowers you to automate creati…",
+      "cta": "Stop struggling — use Waitlister →",
+      "subtitle": "Waitlister empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "18mpbi"
+      "semanticHash": "x8oe7f"
     }
   },
   {
-    "title": "AppSumo&#x27;s Million Dollar Email Templates",
-    "slug": "million-dollar-email-templates",
+    "title": "Illustrations AI - Create custom AI Illustrations",
+    "slug": "illustrationsai",
     "category": "ai",
-    "url": "https://appsumo.com/products/million-dollar-email-templates/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=million-dollar-email-templates&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmillion-dollar-email-templates%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Million-Dollar-Email-Templates.jpg",
+    "url": "https://appsumo.com/products/illustrationsai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=illustrationsai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fillustrationsai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fillustrationsai-as-Header-Illustrations_AI-16_9_uuid_d40909f4-6aeb-46fb-abc3-9fe3ade6f62c.png",
     "seo": {
-      "clickbait": "Discover AppSumo&#x27;s Million Dollar Email Templates — #1 in ai",
+      "clickbait": "Discover Illustrations AI - Create custom AI Illustrations — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "million-dollar-email-templates",
-        "exclusive offer"
+        "illustrationsai"
       ],
-      "cta": "Join creators using AppSumo's Mil…",
-      "subtitle": "Amplify creativity and leverage AI smarter using AppSumo's Million Doll…",
+      "cta": "Gain results faster via Illustrat…",
+      "subtitle": "Amplify creativity and leverage AI smarter using Illustrations AI - Cre…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "q8nj7j"
+      "semanticHash": "yuq8i3"
     }
   },
   {
-    "title": "Say What?! Email Templates for Freelancers in Sticky Situations",
-    "slug": "say-what-email-templates-for-service-based-businesses",
+    "title": "Imgkits | AI Image &amp; Video Processing Tools Online",
+    "slug": "imgkits",
     "category": "ai",
-    "url": "https://appsumo.com/products/say-what-email-templates-for-service-based-businesses/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=say-what-email-templates-for-service-based-businesses&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsay-what-email-templates-for-service-based-businesses%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Ff1c82df9-79b4-4576-939f-b470816e8cfb.png",
+    "url": "https://appsumo.com/products/imgkits/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=imgkits&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fimgkits%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F4b088afe-948c-4d54-bcc7-97d27b1cf387.png",
     "seo": {
-      "clickbait": "Discover Say What?! Email Templates for Freelancers in Sticky Situations — #1 in ai",
+      "clickbait": "Discover Imgkits | AI Image &amp; Video Processing Tools Online — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "say-what-email-templates-for-service-based-businesses",
-        "exclusive offer"
+        "imgkits"
       ],
-      "cta": "Unlock amplify output with Say Wh…",
-      "subtitle": "Say What?! Email Templates for Freelancers in Sticky Situations empower…",
+      "cta": "Stop struggling — use Imgkits →",
+      "subtitle": "Imgkits empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "1f3iw9"
+      "semanticHash": "1uivxr"
     }
   },
   {
-    "title": "Per My Last Email: Email Tips and Templates for Freelancers and Clients",
-    "slug": "per-my-last-email",
+    "title": "Equitest - AI-Powered Business Valuation Platform",
+    "slug": "marketplace-equitest-online-valuation-platform",
     "category": "ai",
-    "url": "https://appsumo.com/products/per-my-last-email/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=per-my-last-email&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fper-my-last-email%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FHeader_tCdOlpn.png",
+    "url": "https://appsumo.com/products/marketplace-equitest-online-valuation-platform/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-equitest-online-valuation-platform&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-equitest-online-valuation-platform%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fa2212659-cc6b-4fcb-b8e2-aca33026e92f.webp",
     "seo": {
-      "clickbait": "Discover Per My Last Email: Email Tips and Templates for Freelancers and Clients — #1 in ai",
+      "clickbait": "Discover Equitest - AI-Powered Business Valuation Platform — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "per-my-last-email",
-        "exclusive offer"
+        "marketplace-equitest-online-valuation-platform"
       ],
-      "cta": "Start now with Per My Last Email →",
-      "subtitle": "Amplify creativity and amplify output using Per My Last Email.",
+      "cta": "Join creators using Equitest - AI…",
+      "subtitle": "Amplify creativity and automate creatively using Equitest - AI-Powered…",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "1hs6y"
+      "semanticHash": "zlpx3m"
     }
   },
   {
-    "title": "1 Million Email Subscriber Playbook",
-    "slug": "1-million-email-subscriber-playbook",
+    "title": "CapitalConnector.ai",
+    "slug": "capitalconnectorai",
     "category": "ai",
-    "url": "https://appsumo.com/products/1-million-email-subscriber-playbook/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=1-million-email-subscriber-playbook&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252F1-million-email-subscriber-playbook%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-1_Million_Email_Subscriber_Playbook.png",
+    "url": "https://appsumo.com/products/capitalconnectorai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=capitalconnectorai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fcapitalconnectorai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fd6bbda27-3cb2-4de1-aea5-8d082c79c832.png",
     "seo": {
-      "clickbait": "Discover 1 Million Email Subscriber Playbook — #1 in ai",
+      "clickbait": "Discover CapitalConnector.ai — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "1-million-email-subscriber-playbook",
-        "exclusive offer"
+        "capitalconnectorai"
       ],
-      "cta": "Unlock leverage AI smarter with 1…",
-      "subtitle": "1 Million Email Subscriber Playbook empowers you to automate creatively.",
+      "cta": "Stop struggling — use CapitalConn…",
+      "subtitle": "CapitalConnector.ai empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "9pkijz"
+      "semanticHash": "7a8ggl"
     }
   },
   {
-    "title": "Million Dollar Email Templates 2.0",
-    "slug": "million-dollar-email-templates-20",
+    "title": "TransferChain Pass",
+    "slug": "transferchain-pass",
     "category": "ai",
-    "url": "https://appsumo.com/products/million-dollar-email-templates-20/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=million-dollar-email-templates-20&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmillion-dollar-email-templates-20%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Million-Dollar-Email-Templates.png",
+    "url": "https://appsumo.com/products/transferchain-pass/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=transferchain-pass&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftransferchain-pass%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3317b3a7-b548-4626-b49a-25473c2c28a3.png",
     "seo": {
-      "clickbait": "Discover Million Dollar Email Templates 2.0 — #1 in ai",
+      "clickbait": "Discover TransferChain Pass — #1 in ai",
       "keywords": [
         "ai",
         "AppSumo",
         "lifetime deal",
-        "million-dollar-email-templates-20",
-        "exclusive offer"
+        "transferchain-pass"
       ],
-      "cta": "Unlock automate creatively with M…",
-      "subtitle": "Million Dollar Email Templates 2.0 empowers you to amplify output.",
+      "cta": "Unlock leverage AI smarter with T…",
+      "subtitle": "TransferChain Pass empowers you to leverage AI smarter.",
       "archetype": "Novelty & Innovation",
       "refreshed": "2025-W45",
-      "semanticHash": "zgtswz"
+      "semanticHash": "vy66wt"
+    }
+  },
+  {
+    "title": "Domain Monitor",
+    "slug": "domain-monitor",
+    "category": "ai",
+    "url": "https://appsumo.com/products/domain-monitor/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=domain-monitor&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdomain-monitor%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F413c17a8-8c4d-48e4-b1d9-4e12da24ffc9.png",
+    "seo": {
+      "clickbait": "Discover Domain Monitor — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "domain-monitor"
+      ],
+      "cta": "Discover what Domain Monitor can do →",
+      "subtitle": "Amplify creativity and leverage AI smarter using Domain Monitor.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "83n30r"
+    }
+  },
+  {
+    "title": "AppDNA AI",
+    "slug": "appdna-ai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/appdna-ai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=appdna-ai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fappdna-ai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fee3fe4e8-b19d-4d50-9f18-a0c0adb49432.png",
+    "seo": {
+      "clickbait": "Discover AppDNA AI — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "appdna-ai"
+      ],
+      "cta": "See why teams trust AppDNA AI →",
+      "subtitle": "Amplify creativity and automate creatively using AppDNA AI.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "ydz5nn"
+    }
+  },
+  {
+    "title": "GoEmailTracker",
+    "slug": "goemailtracker",
+    "category": "ai",
+    "url": "https://appsumo.com/products/goemailtracker/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=goemailtracker&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fgoemailtracker%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fa0103730-deae-4978-b7a4-bd70ef2902ef.png",
+    "seo": {
+      "clickbait": "Discover GoEmailTracker — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "goemailtracker"
+      ],
+      "cta": "Gain results faster via GoEmailTr…",
+      "subtitle": "Amplify creativity and automate creatively using GoEmailTracker.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1ors2s"
+    }
+  },
+  {
+    "title": "Airbrush - AI Image Generator",
+    "slug": "airbrush-ai-image-generator",
+    "category": "ai",
+    "url": "https://appsumo.com/products/airbrush-ai-image-generator/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=airbrush-ai-image-generator&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fairbrush-ai-image-generator%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F595f9f12-53d6-416e-ae32-22f1b9ec2dbc.png",
+    "seo": {
+      "clickbait": "Discover Airbrush - AI Image Generator — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "airbrush-ai-image-generator"
+      ],
+      "cta": "Unlock amplify output with Airbru…",
+      "subtitle": "Amplify creativity and amplify output using Airbrush - AI Image Generat…",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "il1ih0"
+    }
+  },
+  {
+    "title": "WordHero - AI Content Writer",
+    "slug": "marketplace-wordhero",
+    "category": "ai",
+    "url": "https://appsumo.com/products/marketplace-wordhero/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-wordhero&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-wordhero%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fc00d1c1b-5223-408d-800f-f226ca485abc.webp",
+    "seo": {
+      "clickbait": "Discover WordHero - AI Content Writer — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "marketplace-wordhero"
+      ],
+      "cta": "Unlock automate creatively with W…",
+      "subtitle": "WordHero - AI Content Writer empowers you to amplify output.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1xa9u7"
+    }
+  },
+  {
+    "title": "PenPilot AI - Draft, proof, and optimize content",
+    "slug": "penpilot-ai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/penpilot-ai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=penpilot-ai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpenpilot-ai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fpenpilot-ai-as-Header-PenPilot_AI-16_9.png",
+    "seo": {
+      "clickbait": "Discover PenPilot AI - Draft, proof, and optimize content — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "penpilot-ai"
+      ],
+      "cta": "Start now with PenPilot AI - Draf…",
+      "subtitle": "PenPilot AI - Draft, proof, and optimize content empowers you to automa…",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "r0zxop"
+    }
+  },
+  {
+    "title": "PageTest.AI - Instantly A/B test website content",
+    "slug": "pagetestai",
+    "category": "ai",
+    "url": "https://appsumo.com/products/pagetestai/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=pagetestai&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpagetestai%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fpagetestai-as-Header-PageTest.AI-16_9.png",
+    "seo": {
+      "clickbait": "Discover PageTest.AI - Instantly A/B test website content — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "pagetestai"
+      ],
+      "cta": "Discover what PageTest.AI - Insta…",
+      "subtitle": "Amplify creativity and leverage AI smarter using PageTest.AI - Instantl…",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "lygev8"
+    }
+  },
+  {
+    "title": "Wordplay - Long-Form AI Writer",
+    "slug": "wordplay-long-form-ai-writer",
+    "category": "ai",
+    "url": "https://appsumo.com/products/wordplay-long-form-ai-writer/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=wordplay-long-form-ai-writer&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwordplay-long-form-ai-writer%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F423a1235-c335-4222-8f45-645d7d16e3e3.jpg",
+    "seo": {
+      "clickbait": "Discover Wordplay - Long-Form AI Writer — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "wordplay-long-form-ai-writer"
+      ],
+      "cta": "See Wordplay - Long-Form AI Write…",
+      "subtitle": "Wordplay - Long-Form AI Writer empowers you to amplify output.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1yyts2"
+    }
+  },
+  {
+    "title": "FlyMSG: AI Writer, Text Expander, AI Post Generator &amp; LinkedIn Commenting",
+    "slug": "flymsg",
+    "category": "ai",
+    "url": "https://appsumo.com/products/flymsg/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=flymsg&cat=ai&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fflymsg%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fe0c15ab7-53ff-4f13-8880-3d25607e14e1.jpg",
+    "seo": {
+      "clickbait": "Discover FlyMSG: AI Writer, Text Expander, AI Post Generator &amp; LinkedIn Commenting — #1 in ai",
+      "keywords": [
+        "ai",
+        "AppSumo",
+        "lifetime deal",
+        "flymsg"
+      ],
+      "cta": "Join creators using FlyMSG →",
+      "subtitle": "FlyMSG empowers you to automate creatively.",
+      "archetype": "Novelty & Innovation",
+      "refreshed": "2025-W45",
+      "semanticHash": "1mt3xz"
     }
   }
 ]
