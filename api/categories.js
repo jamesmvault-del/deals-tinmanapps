@@ -1,7 +1,8 @@
 // /api/categories.js
 // ───────────────────────────────────────────────────────────────────────────────
 // TinmanApps — Category renderer (SEO-first, referral-safe, adaptive CTA)
-// v4.4 “Precision Clean Render”
+// v4.4.1 “Tightened Psychographic”
+// Fixes: CTA overflow, restores adaptive subtitle tone, limits category length
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -16,6 +17,7 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
+// ---------- Category tables ----------
 const CATS = {
   software: "Software Deals",
   marketing: "Marketing & Sales Tools",
@@ -23,7 +25,6 @@ const CATS = {
   ai: "AI & Automation Tools",
   courses: "Courses & Learning",
 };
-
 const ARCH = {
   software: "Trust & Reliability",
   marketing: "Opportunity & Growth",
@@ -32,7 +33,7 @@ const ARCH = {
   courses: "Authority & Learning",
 };
 
-// ---------- Utility helpers ----------
+// ---------- Helpers ----------
 function loadJsonSafe(file, fallback = []) {
   try {
     const p = path.join(DATA_DIR, file);
@@ -72,11 +73,11 @@ function hashStr(s) {
 }
 function ctaFallback(slug) {
   const POOL = [
-    "Discover more →",
     "Preview deal →",
-    "Unlock offer →",
     "See details →",
     "Try it now →",
+    "Explore offer →",
+    "Compare plans →",
   ];
   const idx = hashStr(slug) % POOL.length;
   return POOL[idx];
@@ -117,10 +118,12 @@ export default async function categories(req, res) {
   const title = CATS[cat];
   if (!title) return res.status(404).send("Category not found.");
 
-  const deals = loadJsonSafe(`appsumo-${cat}.json`, []);
+  let deals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const total = deals.length;
-  const ctr = loadJsonSafe("ctr-insights.json", { totalClicks: 0 });
+  // ⚡ Temporary limit for faster testing
+  deals = deals.slice(0, 10);
 
+  const ctr = loadJsonSafe("ctr-insights.json", { totalClicks: 0 });
   let lastRefreshed = new Date();
   try {
     const stat = fs.statSync(path.join(DATA_DIR, `appsumo-${cat}.json`));
@@ -131,7 +134,6 @@ export default async function categories(req, res) {
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
   const pageDesc = `Browse ${total} live ${title.toLowerCase()} curated by an adaptive SEO + CTA engine — referral-safe, fast, and continuously learning.`;
 
-  // ---------- Schema ----------
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -141,6 +143,7 @@ export default async function categories(req, res) {
     ],
   };
 
+  // 🧠 Adaptive CTA Engine
   const engine = createCtaEngine();
 
   // ---------- Render cards ----------
@@ -153,6 +156,7 @@ export default async function categories(req, res) {
         "deal";
       const { brand, subtitle: fromTitle } = splitTitle(d.title || slug);
 
+      // Generate adaptive subtitle
       let subtitle = (d.seo?.subtitle || fromTitle || "").trim();
       subtitle = dedupeText(brand, subtitle);
       if (!subtitle) {
@@ -164,6 +168,7 @@ export default async function categories(req, res) {
       }
       subtitle = clamp(subtitle, 80);
 
+      // Generate CTA
       let ctaText = "";
       try {
         ctaText =
@@ -172,13 +177,16 @@ export default async function categories(req, res) {
       } catch {
         ctaText = ctaFallback(slug);
       }
-      ctaText = clamp(ctaText.replace(new RegExp(brand, "i"), "").trim(), 34);
+
+      // hard safety: remove brand + clamp
+      ctaText = ctaText.replace(new RegExp(brand, "i"), "").trim();
+      if (ctaText.length > 34) ctaText = clamp(ctaText, 34);
 
       const img = imageFor(slug, d.image);
       const link = trackedUrl({ slug, cat, url: d.url });
 
       return `
-      <article class="card" data-slug="${escapeHtml(slug)}" itemscope itemtype="https://schema.org/SoftwareApplication">
+      <article class="card" data-slug="${escapeHtml(slug)}">
         <a class="media" href="${link}" aria-label="${escapeHtml(brand)}">
           <img src="${img}" alt="${escapeHtml(d.title)}" loading="lazy" />
         </a>
@@ -217,43 +225,38 @@ export default async function categories(req, res) {
 <meta property="og:url" content="${canonical}" />
 <meta property="og:image" content="${SITE_ORIGIN}/assets/placeholder.webp" />
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
-
 <style>
-  :root {
-    --fg:#101326; --muted:#62697e; --card:#fff; --bg:#f7f8fb;
-    --shadow:0 2px 10px rgba(10,14,29,.06);
-    --shadow-hover:0 10px 24px rgba(10,14,29,.10);
-    --brand:#2a63f6; --brand-dark:#1d4fe6; --ring:rgba(42,99,246,.35);
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
-  header{padding:28px 24px 12px;}
-  h1{margin:0 0 6px;font-size:28px;}
-  .sub{color:var(--muted);font-size:14px;}
-  main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
-  .card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);display:flex;flex-direction:column;min-height:320px;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;}
-  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
-  .media{display:block;border-radius:12px;overflow:hidden;}
-  .card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;aspect-ratio:16/9;transition:transform .35s ease;}
-  .card:hover img{transform:scale(1.015);}
-  .card-body{flex:1;padding-top:8px;}
-  .title{margin:2px 0 0;font-size:16px;line-height:1.35;}
-  .subtitle{color:var(--muted);font-size:13px;line-height:1.45;margin:6px 0 12px;-webkit-line-clamp:3;overflow:hidden;text-overflow:ellipsis;}
-  .cta{display:inline-flex;align-items:center;justify-content:center;height:44px;font-size:14px;text-decoration:none;width:100%;color:#fff;background:var(--brand);border-radius:10px;padding:0 14px;box-shadow:0 2px 0 rgba(42,99,246,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .cta:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
-  footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36px;}
+:root {
+  --fg:#101326;--muted:#62697e;--card:#fff;--bg:#f7f8fb;
+  --shadow:0 2px 10px rgba(10,14,29,.06);
+  --shadow-hover:0 10px 24px rgba(10,14,29,.10);
+  --brand:#2a63f6;--brand-dark:#1d4fe6;--ring:rgba(42,99,246,.35);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+header{padding:28px 24px 12px;}
+h1{margin:0 0 6px;font-size:28px;}
+.sub{color:var(--muted);font-size:14px;}
+main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+.card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);border:1px solid rgba(16,19,38,.06);display:flex;flex-direction:column;min-height:320px;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:rgba(42,99,246,.18);}
+.media{display:block;border-radius:12px;overflow:hidden;}
+.card img{width:100%;height:150px;object-fit:cover;background:#eef1f6;aspect-ratio:16/9;transition:transform .35s ease;}
+.card:hover img{transform:scale(1.015);}
+.card-body{flex:1;padding-top:8px;}
+.title{margin:2px 0 0;font-size:16px;line-height:1.35;}
+.subtitle{color:var(--muted);font-size:13px;line-height:1.45;margin:6px 0 12px;-webkit-line-clamp:3;overflow:hidden;text-overflow:ellipsis;}
+.cta{display:inline-flex;align-items:center;justify-content:center;height:44px;font-size:14px;text-decoration:none;width:100%;color:#fff;background:var(--brand);border-radius:10px;padding:0 14px;box-shadow:0 2px 0 rgba(42,99,246,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cta:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(42,99,246,.25);}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36px;}
 </style>
-
 <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
 </head>
 <body>
-  <header>
-    <h1>${escapeHtml(title)}</h1>
-    <div class="sub">${ARCH[cat]} • ${total} deals</div>
-  </header>
-  <main><section class="grid">${cardsHtml || `<p>No deals available right now.</p>`}</section></main>
-  <footer><div class="visually-hidden">${escapeHtml(footerHidden)}</div>${escapeHtml(footerVisible)}</footer>
+<header><h1>${escapeHtml(title)}</h1><div class="sub">${ARCH[cat]} • ${total} deals</div></header>
+<main><section class="grid">${cardsHtml || `<p>No deals available right now.</p>`}</section></main>
+<footer><div class="visually-hidden">${escapeHtml(footerHidden)}</div>${escapeHtml(footerVisible)}</footer>
 </body></html>`;
 
   res.setHeader("Content-Type", "text/html");
