@@ -1,5 +1,24 @@
 [
   {
+    "title": "Dialora",
+    "slug": "dialora",
+    "category": "software",
+    "url": "https://appsumo.com/products/dialora/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dialora&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdialora%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdialora-as-Header-Dialora-16_9_uuid_6b2652e0-40cd-4c69-8346-ea01b858ae5c.png",
+    "seo": {
+      "clickbait": "Discover Dialora — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "dialora"
+      ],
+      "cta": "Streamline operations →",
+      "subtitle": "helps you simplify everyday tasks with ease."
+    }
+  },
+  {
     "title": "Dart",
     "slug": "dart",
     "category": "software",
@@ -14,8 +33,8 @@
         "lifetime deal",
         "dart"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "turns complexity into clarity with ease."
+      "cta": "Inspire your audience seamlessly →",
+      "subtitle": "inspires bold, beautiful creation."
     }
   },
   {
@@ -33,27 +52,8 @@
         "lifetime deal",
         "tidycal"
       ],
-      "cta": "Streamline operations →",
+      "cta": "Simplify your workflow →",
       "subtitle": "automates your processes for growth."
-    }
-  },
-  {
-    "title": "Dialora",
-    "slug": "dialora",
-    "category": "software",
-    "url": "https://appsumo.com/products/dialora/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dialora&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdialora%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdialora-as-Header-Dialora-16_9_uuid_6b2652e0-40cd-4c69-8346-ea01b858ae5c.png",
-    "seo": {
-      "clickbait": "Discover Dialora — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "dialora"
-      ],
-      "cta": "Streamline operations →",
-      "subtitle": "helps teams move faster."
     }
   },
   {
@@ -71,8 +71,8 @@
         "lifetime deal",
         "prettyprompt"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "turns complexity into clarity."
+      "cta": "Simplify your workflow faster →",
+      "subtitle": "turns complexity into clarity instantly."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "fusebase"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "turns complexity into clarity instantly."
+      "cta": "Automate smarter →",
+      "subtitle": "automates your processes for growth without hassle."
     }
   },
   {
@@ -109,8 +109,8 @@
         "lifetime deal",
         "puzzle"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "helps you simplify everyday tasks."
+      "cta": "Automate smarter →",
+      "subtitle": "turns complexity into clarity."
     }
   },
   {
@@ -129,7 +129,7 @@
         "snoooz"
       ],
       "cta": "Streamline operations →",
-      "subtitle": "helps teams move faster."
+      "subtitle": "automates your processes for growth."
     }
   },
   {
@@ -147,8 +147,8 @@
         "lifetime deal",
         "breezedoc"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "turns complexity into clarity."
+      "cta": "Automate smarter →",
+      "subtitle": "automates your processes for growth."
     }
   },
   {
@@ -166,7 +166,7 @@
         "lifetime deal",
         "mac-ios-essentials"
       ],
-      "cta": "Streamline operations →",
+      "cta": "Simplify your workflow…",
       "subtitle": "automates your processes for growth."
     }
   },
@@ -185,8 +185,8 @@
         "lifetime deal",
         "t0ggles"
       ],
-      "cta": "Streamline operations →",
-      "subtitle": "helps teams move faster."
+      "cta": "Automate smarter →",
+      "subtitle": "turns complexity into clarity."
     }
   }
 ]
