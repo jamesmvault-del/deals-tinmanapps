@@ -1,6 +1,8 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v3.8 — Puppeteer + Self-Optimising CTA + Subtitle Enrichment
-// Fixes CTA duplication by cleaning long titles before enrichment.
+// TinmanApps Adaptive Feed Engine v4.0 — Full Activation + Insight-Ready Enrichment
+// Expands all categories (software, marketing, productivity, ai, courses)
+// Adds CTR-safe logging, cross-category seed uniformity, and error isolation.
+// Works seamlessly with /api/master-cron + /api/insight.js + /lib/ctaEvolver.js
 
 import fs from "fs";
 import path from "path";
@@ -20,6 +22,7 @@ const SITE_ORIGIN =
 
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
+// ✅ All active AppSumo categories
 const CATEGORY_URLS = {
   software: "https://appsumo.com/software/",
   marketing: "https://appsumo.com/software/marketing-sales/",
@@ -36,40 +39,31 @@ const NAV_TIMEOUT_MS = 45_000;
 // Helpers
 // ───────────────────────────────────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function ensureDir(p) {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
-}
-
+function ensureDir(p) { if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
 function writeJson(file, data) {
   ensureDir(DATA_DIR);
   const outPath = path.join(DATA_DIR, file);
   fs.writeFileSync(outPath, JSON.stringify(data, null, 2));
 }
-
 function toSlugFromUrl(url) {
   const m = url.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
 }
-
 function proxiedImage(src) {
   const u = encodeURIComponent(src);
   return `${SITE_ORIGIN}/api/image-proxy?src=${u}`;
 }
-
 function trackedUrl({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
-
 function normalizeRecord({ slug, title, url, cat, image }) {
   const safeSlug =
     slug ||
     toSlugFromUrl(url) ||
     (title ? title.toLowerCase().replace(/\s+/g, "-") : "deal");
-
   return {
     title: title || safeSlug,
     slug: safeSlug,
@@ -83,8 +77,6 @@ function normalizeRecord({ slug, title, url, cat, image }) {
     },
   };
 }
-
-// Minimal OG extractor
 function extractOg(html) {
   const get = (prop) => {
     const rx = new RegExp(
@@ -95,10 +87,7 @@ function extractOg(html) {
     return m ? m[1] : null;
   };
   return {
-    title:
-      get("og:title") ||
-      html.match(/<title>([^<]+)<\/title>/i)?.[1] ||
-      null,
+    title: get("og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1] || null,
     image:
       get("og:image") ||
       get("twitter:image") ||
@@ -106,7 +95,6 @@ function extractOg(html) {
       null,
   };
 }
-
 async function fetchText(url, timeoutMs = 25_000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -159,7 +147,6 @@ async function collectProductLinks(page, listUrl) {
       })
       .filter(Boolean)
   )];
-
   return products.slice(0, MAX_PER_CATEGORY);
 }
 
@@ -190,11 +177,15 @@ async function withConcurrency(items, limit, worker) {
       while (true) {
         const idx = i++;
         if (idx >= items.length) return;
-        out[idx] = await worker(items[idx], idx);
+        try {
+          out[idx] = await worker(items[idx], idx);
+        } catch (err) {
+          console.error(`❌ Worker failed on item ${idx}:`, err.message);
+        }
       }
     });
   await Promise.all(runners);
-  return out;
+  return out.filter(Boolean);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -213,25 +204,24 @@ async function buildCategory(browser, engine, cat, listUrl) {
     (url) => fetchProductDetail(url, cat)
   );
 
-  // 🧠 Title cleanup to remove long subtitles before enrichment
+  // 🧠 Title cleanup
   const cleanRecords = rawRecords.map((r) => {
     const parts = (r.title || "").split(/\s*[-–—]\s*/);
     const brand = parts[0]?.trim() || r.slug;
     return { ...r, title: brand };
   });
 
-  // 🧠 Psychographic CTA + Subtitle Enrichment
+  // 🧠 CTA + Subtitle Enrichment
   const enriched = engine.enrichDeals(cleanRecords, cat);
 
-  // ✅ Sanity check log
+  // ✅ Log preview sample
   const preview = enriched
     .slice(0, 3)
     .map((d) => `${d.title} → ${d.seo?.cta || "❌ missing CTA"}`)
     .join("\n  ");
-
   console.log(`  Preview (${cat}):\n  ${preview}`);
 
-  // ✅ Persist enriched JSON
+  // ✅ Write category JSON
   writeJson(`appsumo-${cat}.json`, enriched);
   console.log(`✅ Saved ${enriched.length} → data/appsumo-${cat}.json`);
 
@@ -247,13 +237,18 @@ async function main() {
 
   try {
     for (const [cat, listUrl] of Object.entries(CATEGORY_URLS)) {
-      await buildCategory(browser, engine, cat, listUrl);
+      try {
+        await buildCategory(browser, engine, cat, listUrl);
+      } catch (err) {
+        console.error(`⚠️ Skipped category ${cat}:`, err.message);
+      }
     }
   } finally {
     await browser.close();
   }
 
   console.log("\n✨ All categories refreshed and enriched with adaptive CTAs + subtitles.");
+  console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
 }
 
 main().catch((err) => {
