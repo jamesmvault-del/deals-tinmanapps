@@ -1,9 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps Adaptive Feed Engine v6.1 “Knowledge Expansion”
-//
-// • Builds on Silo Master v6.0 with expanded “courses” silo
-// • Adds semantic learning/creator detection + enriched SEO metadata
-// • Improves intent scoring + deduplication for tighter categorization
+// TinmanApps Adaptive Feed Engine v6.1.1 “Knowledge Expansion”
+// • Fixes CTAEngine integration (createCtaEngine instance)
+// • Limits per-category items to 10 for faster testing
+// • Fully compatible with Hard-Clamp CTA Engine v2.0
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -22,8 +21,10 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-const MAX_PER_CATEGORY = 120;
-const DETAIL_CONCURRENCY = 8;
+// ⚙️ TEST MODE
+// Limit for faster render verification (adjust back to 120 after QA)
+const MAX_PER_CATEGORY = 10;
+const DETAIL_CONCURRENCY = 6;
 const NAV_TIMEOUT_MS = 45000;
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -70,14 +71,8 @@ function normalize({ slug, title, url, cat, image }) {
       keywords:
         cat === "courses"
           ? [
-              "courses",
-              "creator",
-              "academy",
-              "teach online",
-              "learning platform",
-              "build courses",
-              "AppSumo",
-              safe,
+              "courses", "creator", "academy", "teach online",
+              "learning platform", "build courses", "AppSumo", safe,
             ]
           : [cat, "AppSumo", "lifetime deal", safe],
     },
@@ -165,7 +160,7 @@ async function scrapeCollection(url, label) {
   let items = [];
   try {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
-    for (let i = 0; i < 10; i++) { await page.mouse.wheel({ deltaY: 1600 }); await sleep(400); }
+    for (let i = 0; i < 8; i++) { await page.mouse.wheel({ deltaY: 1600 }); await sleep(400); }
     items = await page.evaluate(() => {
       const anchors = Array.from(document.querySelectorAll('a[href*="/products/"]'));
       const seen = new Set(); const out = [];
@@ -205,10 +200,7 @@ function classify(title, url) {
     for (const k of keys) if (text.includes(k)) score++;
     if (score > maxScore) { maxScore = score; best = silo; }
   }
-
-  // extra boost for anything explicitly under “/courses/” or similar path
   if (/\/courses?-/.test(url)) best = "courses";
-
   return best;
 }
 
@@ -303,7 +295,7 @@ async function main() {
     writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.1 Knowledge Expansion).");
+  console.log("\n✨ All silos refreshed (v6.1.1 Stable Integration).");
   console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
 }
 
