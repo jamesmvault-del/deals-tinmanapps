@@ -1173,29 +1173,6 @@
     }
   },
   {
-    "title": "LeadCRM",
-    "slug": "leadcrm",
-    "category": "software",
-    "url": "https://appsumo.com/products/leadcrm/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
-    "seo": {
-      "clickbait": "Discover LeadCRM — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "leadcrm",
-        "exclusive offer"
-      ],
-      "cta": "Try LeadCRM today →",
-      "subtitle": "LeadCRM helps you reduce busywork.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45",
-      "semanticHash": "1q2s83"
-    }
-  },
-  {
     "title": "Switchy",
     "slug": "switchy",
     "category": "software",
@@ -1216,6 +1193,29 @@
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
       "semanticHash": "1h9ecb"
+    }
+  },
+  {
+    "title": "LeadCRM",
+    "slug": "leadcrm",
+    "category": "software",
+    "url": "https://appsumo.com/products/leadcrm/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
+    "seo": {
+      "clickbait": "Discover LeadCRM — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "leadcrm",
+        "exclusive offer"
+      ],
+      "cta": "Try LeadCRM today →",
+      "subtitle": "LeadCRM helps you reduce busywork.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "semanticHash": "1q2s83"
     }
   },
   {
@@ -1357,26 +1357,26 @@
     }
   },
   {
-    "title": "WriterZen",
-    "slug": "writerzen",
+    "title": "Deftform",
+    "slug": "deftform",
     "category": "software",
-    "url": "https://appsumo.com/products/writerzen/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=writerzen&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwriterzen%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-WriterZen-_16_9_uuid_67e5daf6-56cb-4988-aa1b-6c5baea11c6e.png",
+    "url": "https://appsumo.com/products/deftform/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=deftform&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdeftform%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F897cc4f6-e5c7-4059-b420-42bbd4816440.png",
     "seo": {
-      "clickbait": "Discover WriterZen — #1 in software",
+      "clickbait": "Discover Deftform — #1 in software",
       "keywords": [
         "software",
         "AppSumo",
         "lifetime deal",
-        "writerzen",
+        "deftform",
         "exclusive offer"
       ],
-      "cta": "Gain results faster via WriterZen →",
-      "subtitle": "WriterZen helps you simplify workflows.",
+      "cta": "Stop struggling — use Deftform →",
+      "subtitle": "Deftform helps you simplify workflows.",
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
-      "semanticHash": "eci4y5"
+      "semanticHash": "1ndwcy"
     }
   }
 ]

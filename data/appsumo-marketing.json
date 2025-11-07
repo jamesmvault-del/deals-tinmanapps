@@ -437,29 +437,6 @@
     }
   },
   {
-    "title": "LeadCRM",
-    "slug": "leadcrm",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/leadcrm/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
-    "seo": {
-      "clickbait": "Discover LeadCRM — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "leadcrm",
-        "exclusive offer"
-      ],
-      "cta": "Start now with LeadCRM →",
-      "subtitle": "LeadCRM lets marketers boost conversions.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45",
-      "semanticHash": "v0fudj"
-    }
-  },
-  {
     "title": "Switchy",
     "slug": "switchy",
     "category": "marketing",
@@ -480,6 +457,29 @@
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
       "semanticHash": "1mbgu5"
+    }
+  },
+  {
+    "title": "LeadCRM",
+    "slug": "leadcrm",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/leadcrm/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadcrm&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadcrm%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
+    "seo": {
+      "clickbait": "Discover LeadCRM — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "leadcrm",
+        "exclusive offer"
+      ],
+      "cta": "Start now with LeadCRM →",
+      "subtitle": "LeadCRM lets marketers boost conversions.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "semanticHash": "v0fudj"
     }
   },
   {
@@ -544,11 +544,11 @@
         "writerzen",
         "exclusive offer"
       ],
-      "cta": "Unlock grow faster with WriterZen →",
+      "cta": "Gain results faster via WriterZen →",
       "subtitle": "WriterZen lets marketers grow faster.",
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
-      "semanticHash": "od0ah"
+      "semanticHash": "a8dsrv"
     }
   },
   {
@@ -966,6 +966,29 @@
     }
   },
   {
+    "title": "LeadRocks",
+    "slug": "leadrocks-plus-exclusive",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/leadrocks-plus-exclusive/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadrocks-plus-exclusive&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadrocks-plus-exclusive%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F98de99fe-27be-4820-bd58-a847ab80cc24.png",
+    "seo": {
+      "clickbait": "Discover LeadRocks — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "leadrocks-plus-exclusive",
+        "exclusive offer"
+      ],
+      "cta": "Gain results faster via LeadRocks →",
+      "subtitle": "Built for creators who take action.",
+      "archetype": "Opportunity & Growth",
+      "refreshed": "2025-W45",
+      "semanticHash": "125vst"
+    }
+  },
+  {
     "title": "Local Scraper",
     "slug": "local-scraper-lead-generation-software",
     "category": "marketing",
@@ -1308,29 +1331,6 @@
       "archetype": "Opportunity & Growth",
       "refreshed": "2025-W45",
       "semanticHash": "d7epye"
-    }
-  },
-  {
-    "title": "LeadRocks",
-    "slug": "leadrocks-plus-exclusive",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/leadrocks-plus-exclusive/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadrocks-plus-exclusive&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadrocks-plus-exclusive%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F98de99fe-27be-4820-bd58-a847ab80cc24.png",
-    "seo": {
-      "clickbait": "Discover LeadRocks — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "leadrocks-plus-exclusive",
-        "exclusive offer"
-      ],
-      "cta": "Gain results faster via LeadRocks →",
-      "subtitle": "Built for creators who take action.",
-      "archetype": "Opportunity & Growth",
-      "refreshed": "2025-W45",
-      "semanticHash": "125vst"
     }
   },
   {
