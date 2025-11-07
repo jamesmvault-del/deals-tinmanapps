@@ -1,27 +1,5 @@
 [
   {
-    "title": "FormDesigner",
-    "slug": "formdesigner",
-    "category": "web",
-    "url": "https://appsumo.com/products/formdesigner/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formdesigner&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformdesigner%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
-    "seo": {
-      "clickbait": "Discover FormDesigner — #1 in web",
-      "keywords": [
-        "web",
-        "AppSumo",
-        "lifetime deal",
-        "formdesigner"
-      ],
-      "cta": null,
-      "subtitle": "FormDesigner helps you launch confidently.",
-      "archetype": "Design & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "njmqsl"
-    }
-  },
-  {
     "title": "Share My Image (Image Hosting)",
     "slug": "marketplace-image-storage-plan",
     "category": "web",
@@ -36,11 +14,27 @@
         "lifetime deal",
         "marketplace-image-storage-plan"
       ],
-      "cta": null,
-      "subtitle": "Share My Image (Image Hosting) helps you build faster.",
-      "archetype": "Design & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "a5ldf6"
+      "cta": "Streamline operations →",
+      "subtitle": "helps you simplify everyday tasks."
+    }
+  },
+  {
+    "title": "FormDesigner",
+    "slug": "formdesigner",
+    "category": "web",
+    "url": "https://appsumo.com/products/formdesigner/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formdesigner&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformdesigner%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
+    "seo": {
+      "clickbait": "Discover FormDesigner — #1 in web",
+      "keywords": [
+        "web",
+        "AppSumo",
+        "lifetime deal",
+        "formdesigner"
+      ],
+      "cta": "Streamline operations →",
+      "subtitle": "helps you simplify everyday tasks."
     }
   },
   {
@@ -58,11 +52,8 @@
         "lifetime deal",
         "bit-form"
       ],
-      "cta": null,
-      "subtitle": "Bit Form helps you build faster.",
-      "archetype": "Design & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "r1w7bq"
+      "cta": "Streamline operations →",
+      "subtitle": "helps you simplify everyday tasks seamlessly."
     }
   },
   {
@@ -80,11 +71,8 @@
         "lifetime deal",
         "visitor-tracking"
       ],
-      "cta": null,
-      "subtitle": "Visitor Tracking helps you build faster.",
-      "archetype": "Design & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "1kx0tz"
+      "cta": "Streamline operations →",
+      "subtitle": "automates your processes for growth."
     }
   },
   {
@@ -102,11 +90,8 @@
         "lifetime deal",
         "darkmysite"
       ],
-      "cta": null,
-      "subtitle": "DarkMySite helps you launch confidently.",
-      "archetype": "Design & Innovation",
-      "refreshed": "2025-W45",
-      "semanticHash": "1gk4fa"
+      "cta": "Streamline operations →",
+      "subtitle": "turns complexity into clarity."
     }
   }
 ]
