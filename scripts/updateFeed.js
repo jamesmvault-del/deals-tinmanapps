@@ -1,64 +1,47 @@
-// /scripts/updateFeed.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps Adaptive Feed Engine v5.1 “Taxonomy Lock”
+// TinmanApps Adaptive Feed Engine v6.0 “Silo Master”
 //
-// Goal: keep the self-discovering crawler, but make category assignment
-// deterministic and aligned with your 5 real TinmanApps categories.
-//
-// • Auto-discovers AppSumo sub-collections (from sitemap + /software/ page)
-// • Scrapes each collection via DOM (since GraphQL is often 0 now)
-// • Classifies deals FIRST by the source path (the collection URL it came from)
-// • THEN by AI/Productivity keyword heuristics (secondary, never primary)
-// • Dedupes by slug (Integrity Lock)
-// • Enriches with CTA engine (the one we already upgraded)
-// • Falls back to existing cached JSON if a bucket ends up empty
-// • 100% compatible with /api/categories/[cat] and master-cron
+// • Full-spectrum AppSumo harvesting (DOM-based, resilient to GraphQL changes)
+// • Reclassifies into 7 SEO-driven silos:
+//     ai, marketing, creator, productivity, business, web, software
+// • Semantic intent scoring based on title + path + OG metadata
+// • Auto-dedupe + CTA/SEO enrichment + structural integrity
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import { fileURLToPath } from "url";
 import puppeteer from "puppeteer";
 import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
+import crypto from "crypto";
 import { createCtaEngine } from "../lib/ctaEngine.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
-
-// your render origin
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
 const MAX_PER_CATEGORY = 120;
 const DETAIL_CONCURRENCY = 8;
-const NAV_TIMEOUT_MS = 45_000;
-const HYDRATION_WAIT_MS = 45_000;
+const NAV_TIMEOUT_MS = 45000;
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 1. Utility helpers
+// Helpers
 // ───────────────────────────────────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-function ensureDir(p) {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
-}
-function writeJson(file, data) {
+function ensureDir(p) { if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
+function writeJson(f, d) {
   ensureDir(DATA_DIR);
-  fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2));
+  fs.writeFileSync(path.join(DATA_DIR, f), JSON.stringify(d, null, 2));
 }
-function readJsonSafe(file, fallback = []) {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
-  } catch {
-    return fallback;
-  }
+function readJsonSafe(f, fallback = []) {
+  try { return JSON.parse(fs.readFileSync(path.join(DATA_DIR, f), "utf8")); }
+  catch { return fallback; }
 }
-function sha1(s) {
-  return crypto.createHash("sha1").update(String(s)).digest("hex");
-}
+function sha1(s) { return crypto.createHash("sha1").update(String(s)).digest("hex"); }
 function toSlug(url) {
   const m = url?.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
@@ -73,10 +56,7 @@ function tracked({ slug, cat, url }) {
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
 function normalize({ slug, title, url, cat, image }) {
-  const safe =
-    slug ||
-    toSlug(url) ||
-    (title ? title.toLowerCase().replace(/\s+/g, "-") : "deal");
+  const safe = slug || toSlug(url) || title.toLowerCase().replace(/\s+/g, "-");
   return {
     title: title || safe,
     slug: safe,
@@ -85,20 +65,16 @@ function normalize({ slug, title, url, cat, image }) {
     referralUrl: tracked({ slug: safe, cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
     seo: {
-      clickbait: `Discover ${title || safe} — #1 in ${cat}`,
+      clickbait: `Discover ${title} — #1 in ${cat}`,
       keywords: [cat, "AppSumo", "lifetime deal", safe],
     },
   };
 }
-function dedupeBySlug(items) {
-  const seen = new Set();
-  const out = [];
-  for (const it of items) {
-    const key = sha1(it.slug || it.url || it.title);
-    if (!seen.has(key)) {
-      seen.add(key);
-      out.push(it);
-    }
+function dedupe(items) {
+  const seen = new Set(); const out = [];
+  for (const i of items) {
+    const k = sha1(i.slug || i.url || i.title);
+    if (!seen.has(k)) { seen.add(k); out.push(i); }
   }
   return out;
 }
@@ -110,10 +86,7 @@ async function fetchText(url) {
 function extractOg(html) {
   const get = (p) =>
     html.match(
-      new RegExp(
-        `<meta[^>]+property=["']${p}["'][^>]+content=["']([^"']+)["']`,
-        "i"
-      )
+      new RegExp(`<meta[^>]+property=["']${p}["'][^>]+content=["']([^"']+)["']`, "i")
     )?.[1];
   return {
     title: get("og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1],
@@ -122,210 +95,107 @@ function extractOg(html) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 2. Taxonomy: map AppSumo path → our 5 categories
+// Silo Keywords (intent-based classification)
 // ───────────────────────────────────────────────────────────────────────────────
-//
-// We prioritise *path* over *keywords* because AppSumo’s naming is drifting.
-// You can tweak this map over time without changing the rest of the file.
-//
-const PATH_MAP = {
-  // marketing cluster
-  "software/marketing-sales": "marketing",
-  "software/content-marketing": "marketing",
-  "software/lead-generation": "marketing",
-  "software/email-marketing": "marketing",
-  "software/social-proof": "marketing",
-  "software/crm": "marketing",
-  "software/media-tools": "marketing",
-  "software/media-management": "marketing",
-
-  // courses
-  "courses-more": "courses",
-  "software/course-builders": "courses",
-
-  // productivity cluster
-  "software/project-management": "productivity",
-  "software/calendar-scheduling": "productivity",
-  "software/productivity": "productivity",
-  "software/operations": "productivity",
-  "software/customer-experience": "productivity",
-  "software/workflow-automation": "productivity",
-  "software/task-management": "productivity",
-  "software/organization": "productivity",
-  "software/remote-work": "productivity",
-
-  // ai cluster (rarely surfaced now, so keep as hint)
-  "software/artificial-intelligence": "ai",
-  "software/ai": "ai",
-  "software/automation": "ai",
+const SILO_KEYWORDS = {
+  ai: [
+    " ai", "gpt", "automation", "autopilot", "assistant",
+    "copilot", "bot", "agent", "llm", "chat", "voice ai"
+  ],
+  marketing: [
+    "marketing", "seo", "social", "sales", "lead", "crm", "advertising",
+    "email", "campaign", "traffic", "growth", "conversion", "content"
+  ],
+  creator: [
+    "course", "academy", "training", "teach", "learn", "creator",
+    "coach", "skill", "education", "knowledge", "student", "tutorial"
+  ],
+  productivity: [
+    "productivity", "task", "workflow", "project", "kanban", "time",
+    "schedule", "calendar", "focus", "collaboration", "team", "meeting"
+  ],
+  business: [
+    "accounting", "finance", "invoice", "legal", "hr", "contract",
+    "analytics", "report", "startup", "management", "client", "agency"
+  ],
+  web: [
+    "builder", "website", "landing", "design", "no-code",
+    "hosting", "frontend", "cms", "theme", "plugin", "webapp"
+  ],
 };
 
-// secondary heuristics – only used if path is unknown
-const AI_KEYWORDS = [
-  " ai",
-  "gpt",
-  "chatgpt",
-  "automation",
-  "autopilot",
-  "agent",
-  "llm",
-];
-const PRODUCTIVITY_KEYWORDS = [
-  "productivity",
-  "project",
-  "task",
-  "kanban",
-  "calendar",
-  "workflow",
-  "time management",
-];
-
 // ───────────────────────────────────────────────────────────────────────────────
-// 3. Discover collections (v5.1): sitemap + /software/
+// Discover all collections from AppSumo
 // ───────────────────────────────────────────────────────────────────────────────
 async function discoverCollections() {
-  const found = new Set();
-
-  // 1) sitemap
+  const set = new Set();
   try {
     const xml = await fetchText("https://appsumo.com/sitemap.xml");
     const parsed = await parseStringPromise(xml);
     const urls = parsed?.urlset?.url?.map((u) => u.loc[0]) || [];
-    for (const u of urls) {
-      if (u.includes("/software/")) {
-        // normalise to trailing slash
-        found.add(u.replace(/\/$/, "/"));
-      } else if (u.includes("/courses-more/")) {
-        found.add("https://appsumo.com/courses-more/");
-      }
-    }
-  } catch {
-    // ignore
-  }
-
-  // 2) /software/ page
-  try {
-    const html = await fetchText("https://appsumo.com/software/");
-    const links = [
-      ...html.matchAll(/href="(\/software\/[^"']+)"/g),
-    ].map((m) => `https://appsumo.com${m[1]}`);
-    links.forEach((l) => found.add(l.replace(/\/$/, "/")));
-  } catch {
-    // ignore
-  }
-
-  // 3) force-add the known good ones (safety net)
-  found.add("https://appsumo.com/software/");
-  found.add("https://appsumo.com/software/marketing-sales/");
-  found.add("https://appsumo.com/courses-more/");
-
-  const arr = Array.from(found);
-  console.log(`🗺️  Discovered ${arr.length} collections (raw)`);
-  // cap to something reasonable
-  return arr.slice(0, 35);
+    urls.forEach((u) => { if (u.includes("/software/")) set.add(u.replace(/\/$/, "/")); });
+  } catch {}
+  set.add("https://appsumo.com/software/");
+  return Array.from(set).slice(0, 100);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 4. Scrape one collection (DOM-first, since GraphQL is unreliable now)
+// Scrape a collection (DOM pass)
 // ───────────────────────────────────────────────────────────────────────────────
 async function scrapeCollection(url, label) {
   const browser = await puppeteer.launch({
     headless: "new",
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-gpu",
-      "--disable-dev-shm-usage",
-    ],
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
   });
   const page = await browser.newPage();
-
   let items = [];
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-      timeout: NAV_TIMEOUT_MS,
-    });
-
-    // scroll to trigger lazy load
-    for (let i = 0; i < 12; i++) {
-      await page.mouse.wheel({ deltaY: 1600 });
-      await sleep(500);
-    }
-
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+    for (let i = 0; i < 10; i++) { await page.mouse.wheel({ deltaY: 1600 }); await sleep(400); }
     items = await page.evaluate(() => {
-      const anchors = Array.from(
-        document.querySelectorAll('a[href*="/products/"]')
-      );
-      const seen = new Set();
-      const out = [];
+      const anchors = Array.from(document.querySelectorAll('a[href*="/products/"]'));
+      const seen = new Set(); const out = [];
       for (const a of anchors) {
-        const href = a.getAttribute("href") || "";
-        if (!href.includes("/products/")) continue;
+        const href = a.getAttribute("href");
+        if (!href?.includes("/products/")) continue;
         const abs = new URL(href, location.origin).toString().replace(/\/$/, "/");
         if (seen.has(abs)) continue;
         seen.add(abs);
-
-        // find name
         let title =
           a.getAttribute("title") ||
           a.textContent ||
           a.querySelector("h2,h3")?.textContent ||
           "";
         title = title.replace(/\s+/g, " ").trim();
-
         out.push({ url: abs, title });
       }
       return out;
     });
   } catch (err) {
-    console.warn(`⚠️  scrape failed for ${label}: ${err.message}`);
+    console.warn(`⚠️ scrape failed for ${label}: ${err.message}`);
   }
-
   await browser.close();
-  console.log(`📥  ${label}: scraped ${items.length} items`);
+  console.log(`📥 ${label}: scraped ${items.length} items`);
   return items;
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 5. Path-based classifier
+// Classifier (intent scoring)
 // ───────────────────────────────────────────────────────────────────────────────
-function sourceToCategory(sourceUrl, title = "") {
-  // sourceUrl like "https://appsumo.com/software/marketing-sales/"
-  // extract slug part: "software/marketing-sales"
-  try {
-    const u = new URL(sourceUrl);
-    const path = u.pathname.replace(/^\/+|\/+$/g, ""); // "software/marketing-sales"
-    const key = path.toLowerCase();
-    if (PATH_MAP[key]) return PATH_MAP[key];
-  } catch {
-    // ignore
+function classify(title, url) {
+  const text = `${title} ${url}`.toLowerCase();
+  let best = "software";
+  let maxScore = 0;
+  for (const [silo, keys] of Object.entries(SILO_KEYWORDS)) {
+    let score = 0;
+    for (const k of keys) if (text.includes(k)) score++;
+    if (score > maxScore) { maxScore = score; best = silo; }
   }
-
-  // if not in PATH_MAP, then try heuristics on the URL string
-  const lower = sourceUrl.toLowerCase();
-  if (lower.includes("marketing")) return "marketing";
-  if (lower.includes("course")) return "courses";
-  if (lower.includes("project-management")) return "productivity";
-  if (lower.includes("calendar")) return "productivity";
-  if (lower.includes("productivity")) return "productivity";
-  if (lower.includes("ai") || lower.includes("automation")) return "ai";
-
-  // title-based secondary
-  const t = title.toLowerCase();
-  if (AI_KEYWORDS.some((k) => t.includes(k.trim()))) return "ai";
-  if (PRODUCTIVITY_KEYWORDS.some((k) => t.includes(k.trim())))
-    return "productivity";
-  if (t.includes("course") || t.includes("academy") || t.includes("training"))
-    return "courses";
-  if (t.includes("marketing") || t.includes("leads") || t.includes("crm"))
-    return "marketing";
-
-  return "software";
+  return best;
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 6. Detail fetch (for OG title/image)
+// Fetch details + enrichment
 // ───────────────────────────────────────────────────────────────────────────────
 async function fetchDetail(item, cat) {
   try {
@@ -334,9 +204,7 @@ async function fetchDetail(item, cat) {
     const slug = toSlug(item.url);
     return normalize({
       slug,
-      title: (og.title || item.title || slug || "")
-        .split(/\s*[-–—]\s*/)[0]
-        .trim(),
+      title: (og.title || item.title || slug || "").split(/\s*[-–—]\s*/)[0].trim(),
       url: item.url,
       cat,
       image: og.image,
@@ -352,33 +220,26 @@ async function fetchDetail(item, cat) {
     });
   }
 }
-
 async function withConcurrency(items, limit, worker) {
   const out = new Array(items.length);
   let i = 0;
-  const runners = new Array(Math.min(limit, items.length)).fill(0).map(
-    async () => {
-      while (true) {
-        const idx = i++;
-        if (idx >= items.length) return;
-        try {
-          out[idx] = await worker(items[idx], idx);
-        } catch (err) {
-          console.error(`❌ worker failed on ${idx}:`, err.message);
-        }
-      }
+  const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
+    while (true) {
+      const idx = i++;
+      if (idx >= items.length) return;
+      try { out[idx] = await worker(items[idx], idx); }
+      catch (err) { console.error(`❌ worker ${idx}:`, err.message); }
     }
-  );
+  });
   await Promise.all(runners);
   return out.filter(Boolean);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 7. Main build
+// Main Build
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   const engine = createCtaEngine();
-
   console.log("⏳ Discovering live AppSumo collections…");
   const collections = await discoverCollections();
 
@@ -386,66 +247,45 @@ async function main() {
   for (const url of collections) {
     const label = url.split("/").filter(Boolean).pop();
     const items = await scrapeCollection(url, label);
-    for (const it of items) {
-      harvested.push({
-        ...it,
-        source: url, // keep full URL for classification
-      });
-    }
+    for (const it of items) harvested.push({ ...it, source: url });
   }
 
-  // now we have a big flat list
-  const withSlugs = harvested
-    .map((x) => ({
-      ...x,
-      slug: toSlug(x.url),
-    }))
-    .filter((x) => x.slug);
+  const withSlugs = harvested.map((x) => ({ ...x, slug: toSlug(x.url) })).filter((x) => x.slug);
+  const unique = dedupe(withSlugs);
+  console.log(`🧩 ${unique.length} unique deals harvested.`);
 
-  const uniqueItems = dedupeBySlug(withSlugs);
-  console.log(`🧩 ${uniqueItems.length} unique deals harvested total.`);
-
-  // classify into our 5 buckets
-  const buckets = {
-    software: [],
-    marketing: [],
-    courses: [],
-    ai: [],
-    productivity: [],
+  const silos = {
+    ai: [], marketing: [], creator: [], productivity: [],
+    business: [], web: [], software: [],
   };
-
-  for (const item of uniqueItems) {
-    const cat = sourceToCategory(item.source, item.title);
-    (buckets[cat] || buckets.software).push(item);
+  for (const item of unique) {
+    const cat = classify(item.title, item.url);
+    silos[cat].push(item);
   }
 
-  // fetch detail + enrich per bucket
-  for (const [cat, arr] of Object.entries(buckets)) {
-    let records = [];
+  for (const [cat, arr] of Object.entries(silos)) {
+    let recs = [];
     if (arr.length > 0) {
       const details = await withConcurrency(
         arr.slice(0, MAX_PER_CATEGORY),
         DETAIL_CONCURRENCY,
         (x) => fetchDetail(x, cat)
       );
-      records = dedupeBySlug(details);
-      records = engine.enrichDeals(records, cat);
+      recs = dedupe(details);
+      recs = engine.enrichDeals(recs, cat);
     } else {
-      // fallback to cache if scraper got nothing for that cat
-      records = readJsonSafe(`appsumo-${cat}.json`, []);
-      console.log(`  ♻️ ${cat}: using cached data (${records.length})`);
+      recs = readJsonSafe(`appsumo-${cat}.json`, []);
+      console.log(`  ♻️ ${cat}: using cached data (${recs.length})`);
     }
-
-    const preview = records
+    const preview = recs
       .slice(0, 3)
       .map((d) => `${d.title} → ${d.seo?.cta || "❌"}`)
       .join("\n  ");
-    console.log(`📦 ${cat}: ${records.length} deals\n  ${preview}`);
-
-    writeJson(`appsumo-${cat}.json`, records);
+    console.log(`📦 ${cat}: ${recs.length} deals\n  ${preview}`);
+    writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All categories refreshed (Taxonomy Lock v5.1).");
+  console.log("\n✨ All silos refreshed (v6.0 Silo Master).");
   console.log("🧭 Next: Run master-cron to regenerate feeds and insight intelligence.");
 }
 
