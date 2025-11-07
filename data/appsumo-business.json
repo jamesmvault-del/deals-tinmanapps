@@ -14,11 +14,11 @@
         "lifetime deal",
         "chrome-tab-reminder"
       ],
-      "cta": "Unlock simplify workflows with Ch…",
-      "subtitle": "Chrome Tab Reminder helps you streamline ops.",
-      "archetype": "Trust & Reliability",
+      "cta": null,
+      "subtitle": "Chrome Tab Reminder helps you simplify management.",
+      "archetype": "Confidence & Strategy",
       "refreshed": "2025-W45",
-      "semanticHash": "6egwow"
+      "semanticHash": "1voqae"
     }
   },
   {
@@ -36,11 +36,11 @@
         "lifetime deal",
         "agencypro"
       ],
-      "cta": "Try AgencyPro today →",
-      "subtitle": "AgencyPro helps you streamline ops.",
-      "archetype": "Trust & Reliability",
+      "cta": null,
+      "subtitle": "AgencyPro helps you simplify management.",
+      "archetype": "Confidence & Strategy",
       "refreshed": "2025-W45",
-      "semanticHash": "1na7f7"
+      "semanticHash": "1chf84"
     }
   },
   {
@@ -58,11 +58,11 @@
         "lifetime deal",
         "scoop-analytics"
       ],
-      "cta": "Gain results faster via Scoop Ana…",
-      "subtitle": "Smarter tools to reduce busywork.",
-      "archetype": "Trust & Reliability",
+      "cta": null,
+      "subtitle": "Scoop Analytics helps you scale profitably.",
+      "archetype": "Confidence & Strategy",
       "refreshed": "2025-W45",
-      "semanticHash": "icou15"
+      "semanticHash": "78qnkt"
     }
   }
 ]
