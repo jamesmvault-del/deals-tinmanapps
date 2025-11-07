@@ -138,29 +138,6 @@
     }
   },
   {
-    "title": "Notion Agency Kit",
-    "slug": "notion-agency-kit",
-    "category": "courses",
-    "url": "https://appsumo.com/products/notion-agency-kit/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=notion-agency-kit&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnotion-agency-kit%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F78f8dcdf-09bd-4b98-a8a6-034c6e27a501.png",
-    "seo": {
-      "clickbait": "Discover Notion Agency Kit — #1 in courses",
-      "keywords": [
-        "courses",
-        "AppSumo",
-        "lifetime deal",
-        "notion-agency-kit",
-        "exclusive offer"
-      ],
-      "cta": "Join creators using Notion Agency…",
-      "subtitle": "Learn to apply knowledge with Notion Agency Kit.",
-      "archetype": "Authority & Learning",
-      "refreshed": "2025-W45",
-      "semanticHash": "psymlf"
-    }
-  },
-  {
     "title": "Social Media Canva Template Bundle",
     "slug": "social-media-canva-template-bundle",
     "category": "courses",
@@ -181,6 +158,29 @@
       "archetype": "Authority & Learning",
       "refreshed": "2025-W45",
       "semanticHash": "1ac6ib"
+    }
+  },
+  {
+    "title": "Notion Agency Kit",
+    "slug": "notion-agency-kit",
+    "category": "courses",
+    "url": "https://appsumo.com/products/notion-agency-kit/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=notion-agency-kit&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fnotion-agency-kit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F78f8dcdf-09bd-4b98-a8a6-034c6e27a501.png",
+    "seo": {
+      "clickbait": "Discover Notion Agency Kit — #1 in courses",
+      "keywords": [
+        "courses",
+        "AppSumo",
+        "lifetime deal",
+        "notion-agency-kit",
+        "exclusive offer"
+      ],
+      "cta": "Join creators using Notion Agency…",
+      "subtitle": "Learn to apply knowledge with Notion Agency Kit.",
+      "archetype": "Authority & Learning",
+      "refreshed": "2025-W45",
+      "semanticHash": "psymlf"
     }
   },
   {

@@ -253,29 +253,6 @@
     }
   },
   {
-    "title": "Emailit",
-    "slug": "emailit",
-    "category": "software",
-    "url": "https://appsumo.com/products/emailit/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
-    "seo": {
-      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "emailit",
-        "exclusive offer"
-      ],
-      "cta": "Join creators using Emailit →",
-      "subtitle": "Smarter tools to reduce busywork.",
-      "archetype": "Trust & Reliability",
-      "refreshed": "2025-W45",
-      "semanticHash": "19bsc5"
-    }
-  },
-  {
     "title": "Nexuscale AI",
     "slug": "nexuscale",
     "category": "software",
@@ -292,10 +269,33 @@
         "exclusive offer"
       ],
       "cta": "Join creators using Nexuscale AI →",
-      "subtitle": "Built for creators who take action.",
+      "subtitle": "Smarter tools to reduce busywork.",
       "archetype": "Trust & Reliability",
       "refreshed": "2025-W45",
-      "semanticHash": "1wg0qt"
+      "semanticHash": "1fxxhr"
+    }
+  },
+  {
+    "title": "Emailit",
+    "slug": "emailit",
+    "category": "software",
+    "url": "https://appsumo.com/products/emailit/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=emailit&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Femailit%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
+    "seo": {
+      "clickbait": "Discover Emailit - Send emails with SMTP and API — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "emailit",
+        "exclusive offer"
+      ],
+      "cta": "Join creators using Emailit →",
+      "subtitle": "Less friction. More results.",
+      "archetype": "Trust & Reliability",
+      "refreshed": "2025-W45",
+      "semanticHash": "1h2bus"
     }
   },
   {
