@@ -1,9 +1,15 @@
 // /api/track.js
-// 📊 TinmanApps CTR Feedback Tracker v2.0
-// Logs engagement and redirects instantly to referral URL
+// 📊 TinmanApps CTR Feedback Tracker v2.1 “Reinforcement Adaptive”
+// ───────────────────────────────────────────────────────────────────────────────
+// Enhancements over v2.0:
+// • Integrates learningGovernor.js for real-time adaptive biasing
+// • Each click now reinforces pattern performance by category
+// • Fully backward-compatible with ctr-insights.json structure
+// ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
+import { reinforceLearning } from "../lib/learningGovernor.js"; // 🧠 NEW adaptive import
 
 const TRACK_PATH = path.resolve("./data/ctr-insights.json");
 
@@ -35,11 +41,23 @@ export default async function handler(req, res) {
   data.recent.unshift({
     deal,
     cat: cat || "unknown",
-    at: new Date().toISOString()
+    at: new Date().toISOString(),
   });
   if (data.recent.length > 100) data.recent.pop();
 
   saveCTRData(data);
+
+  // 🧠 Reinforcement learning hook
+  try {
+    if (cat) {
+      reinforceLearning({
+        category: cat,
+        patternKey: deal,
+      });
+    }
+  } catch (e) {
+    console.error("Reinforcement error:", e.message);
+  }
 
   // ✅ If redirect param exists, send user there immediately
   if (redirect) {
@@ -55,6 +73,6 @@ export default async function handler(req, res) {
     total: data.totalClicks,
     topDeal: Object.entries(data.byDeal)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
+      .slice(0, 3),
   });
 }
