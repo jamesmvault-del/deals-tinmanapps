@@ -3,190 +3,140 @@
     "title": "Dialora",
     "slug": "dialora",
     "category": "software",
-    "url": "https://appsumo.com/products/dialora/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dialora&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdialora%252F",
+    "link": "https://appsumo.com/products/dialora/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdialora-as-Header-Dialora-16_9_uuid_6b2652e0-40cd-4c69-8346-ea01b858ae5c.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Dialora — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "dialora"
-      ],
-      "cta": "Simplify scalable workflows →",
-      "subtitle": "simplifies operations and repetitive tasks."
-    }
+      "cta": "Simplify modular systems →",
+      "subtitle": "helps teams move faster and smarter."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "Dart",
     "slug": "dart",
     "category": "software",
-    "url": "https://appsumo.com/products/dart/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=dart&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fdart%252F",
+    "link": "https://appsumo.com/products/dart/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fdart-as-Header-Dart-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Dart — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "dart"
-      ],
       "cta": "Inspire your audience →",
-      "subtitle": "streamlines your creative process beautifully through your visual work."
-    }
+      "subtitle": "turns inspiration into execution with confidence through your visual work."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "TidyCal",
     "slug": "tidycal",
     "category": "software",
-    "url": "https://appsumo.com/products/tidycal/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=tidycal&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftidycal%252F",
+    "link": "https://appsumo.com/products/tidycal/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-TidyCal_-_16_9_uuid_f96cf889-43d2-4d7f-a4a8-e03d9c08b7b5.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover TidyCal — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "tidycal"
-      ],
-      "cta": "Simplify systems →",
-      "subtitle": "delivers clarity, speed, and performance across your operations."
-    }
+      "cta": "Optimize your operations →",
+      "subtitle": "helps teams move faster and smarter so you focus on growth, not guesswork."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "Pretty Prompt",
     "slug": "prettyprompt",
     "category": "software",
-    "url": "https://appsumo.com/products/prettyprompt/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=prettyprompt&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fprettyprompt%252F",
+    "link": "https://appsumo.com/products/prettyprompt/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fprettyprompt-as-Header-PrettyPrompt-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Pretty Prompt — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "prettyprompt"
-      ],
-      "cta": "Manage operations →",
+      "cta": "Simplify operations →",
       "subtitle": "simplifies operations and repetitive tasks."
-    }
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "FuseBase",
     "slug": "fusebase",
     "category": "software",
-    "url": "https://appsumo.com/products/fusebase/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=fusebase&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ffusebase%252F",
+    "link": "https://appsumo.com/products/fusebase/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Ffusebase-sept-2025-ver-2-0-as-Header-FUSEBASE-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover FuseBase — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "fusebase"
-      ],
-      "cta": "Simplify modular operations →",
-      "subtitle": "helps teams move faster and smarter."
-    }
+      "cta": "Optimize your operations →",
+      "subtitle": "delivers clarity, speed, and performance across your operations."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "Puzzle",
     "slug": "puzzle",
     "category": "software",
-    "url": "https://appsumo.com/products/puzzle/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=puzzle&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fpuzzle%252F",
+    "link": "https://appsumo.com/products/puzzle/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fpuzzle-as-Header-Puzzle-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Puzzle — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "puzzle"
-      ],
-      "cta": "Simplify workflows →",
-      "subtitle": "helps teams move faster and smarter."
-    }
+      "cta": "Simplify performance-optimized…",
+      "subtitle": "simplifies operations and repetitive tasks without hassle."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "Snoooz",
     "slug": "snoooz",
     "category": "software",
-    "url": "https://appsumo.com/products/snoooz/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=snoooz&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fsnoooz%252F",
+    "link": "https://appsumo.com/products/snoooz/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fsnoooz-licensing-v2-oct-2025-ver-2-0-as-Header-Snoooz-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Snoooz — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "snoooz"
-      ],
-      "cta": "Simplify performance-optimized…",
+      "cta": "Simplify scalable operations →",
       "subtitle": "delivers clarity, speed, and performance across your operations."
-    }
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
     "title": "BreezeDoc",
     "slug": "breezedoc",
     "category": "software",
-    "url": "https://appsumo.com/products/breezedoc/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=breezedoc&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fbreezedoc%252F",
+    "link": "https://appsumo.com/products/breezedoc/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BreezeDoc_-_16_9_uuid_3728bc19-1ad4-4811-a25b-0b6dc78edf4b.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover BreezeDoc — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "breezedoc"
-      ],
-      "cta": "Simplify operations →",
-      "subtitle": "simplifies operations and repetitive tasks."
-    }
+      "cta": "Improve your operations →",
+      "subtitle": "delivers clarity, speed, and performance across your operations."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
-    "title": "t0ggles",
+    "title": "T0ggles",
     "slug": "t0ggles",
     "category": "software",
-    "url": "https://appsumo.com/products/t0ggles/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=t0ggles&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ft0ggles%252F",
+    "link": "https://appsumo.com/products/t0ggles/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Ft0ggles-as-Header-t0ggles-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover t0ggles — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "t0ggles"
-      ],
-      "cta": "Simplify automation-ready…",
-      "subtitle": "helps teams move faster and smarter trusted by creators worldwide."
-    }
+      "cta": "Simplify performance-optimized…",
+      "subtitle": "simplifies operations and repetitive tasks."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   },
   {
-    "title": "AppSumo Bundle Volume 3: Mac + iOS Essentials",
+    "title": "AppSumo Bundle Volume 3: Mac + IOS Essentials",
     "slug": "mac-ios-essentials",
     "category": "software",
-    "url": "https://appsumo.com/products/mac-ios-essentials/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=mac-ios-essentials&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmac-ios-essentials%252F",
+    "link": "https://appsumo.com/products/mac-ios-essentials/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Bundle_-_16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover AppSumo Bundle Volume 3: Mac + iOS Essentials — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "mac-ios-essentials"
-      ],
-      "cta": "Simplify automation-ready…",
-      "subtitle": "helps teams move faster and smarter."
-    }
+      "cta": "Simplify performance-optimized…",
+      "subtitle": "delivers clarity, speed, and performance across your operations."
+    },
+    "normalizedAt": "2025-11-08T17:36:45.186Z",
+    "archived": false
   }
 ]

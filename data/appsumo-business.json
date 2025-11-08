@@ -3,57 +3,42 @@
     "title": "Chrome Tab Reminder",
     "slug": "chrome-tab-reminder",
     "category": "business",
-    "url": "https://appsumo.com/products/chrome-tab-reminder/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=chrome-tab-reminder&cat=business&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fchrome-tab-reminder%252F",
+    "link": "https://appsumo.com/products/chrome-tab-reminder/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F588f6245-e696-4a82-82f7-67a2437c7d65.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Chrome Tab Reminder — #1 in business",
-      "keywords": [
-        "business",
-        "AppSumo",
-        "lifetime deal",
-        "chrome-tab-reminder"
-      ],
-      "cta": "Simplify performance-optimized…",
+      "cta": "Simplify modular operations →",
       "subtitle": "simplifies operations and repetitive tasks."
-    }
+    },
+    "normalizedAt": "2025-11-08T17:36:44.702Z",
+    "archived": false
   },
   {
     "title": "AgencyPro",
     "slug": "agencypro",
     "category": "business",
-    "url": "https://appsumo.com/products/agencypro/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=agencypro&cat=business&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fagencypro%252F",
+    "link": "https://appsumo.com/products/agencypro/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fagencypro-as-Header-AgencyPro-16_9_Cu2AHDk.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover AgencyPro — #1 in business",
-      "keywords": [
-        "business",
-        "AppSumo",
-        "lifetime deal",
-        "agencypro"
-      ],
-      "cta": "Run smarter operations →",
-      "subtitle": "simplifies collaboration and scale for your teams and pipelines."
-    }
+      "cta": "Scale smarter operations →",
+      "subtitle": "helps you manage and grow seamlessly instantly for your teams and pipelines."
+    },
+    "normalizedAt": "2025-11-08T17:36:44.702Z",
+    "archived": false
   },
   {
     "title": "Scoop Analytics",
     "slug": "scoop-analytics",
     "category": "business",
-    "url": "https://appsumo.com/products/scoop-analytics/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=scoop-analytics&cat=business&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fscoop-analytics%252F",
+    "link": "https://appsumo.com/products/scoop-analytics/",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fscoop-analytics-as-Header-Scoop_Analytics-16_9.png",
+    "description": null,
     "seo": {
-      "clickbait": "Discover Scoop Analytics — #1 in business",
-      "keywords": [
-        "business",
-        "AppSumo",
-        "lifetime deal",
-        "scoop-analytics"
-      ],
       "cta": "Optimize systems →",
-      "subtitle": "helps you manage and grow seamlessly for your teams and pipelines."
-    }
+      "subtitle": "drives consistent results for every team seamlessly."
+    },
+    "normalizedAt": "2025-11-08T17:36:44.702Z",
+    "archived": false
   }
 ]
