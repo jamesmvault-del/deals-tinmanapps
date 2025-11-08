@@ -1,9 +1,7 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.4 “Omni Feed Guardian”
-// Ensures persistent normalization, enrichment, CTA evolution, and feed merging.
-// Integrates normalizeFeed() + mergeWithHistory() from updateFeed.
-// Designed for continuous AppSumo ingestion, non-destructive SEO retention,
-// and immediate CTA evolution self-optimization.
+// 🔁 TinmanApps Master Cron v3.5 “Omni Feed Guardian + Sanctifier Prime”
+// Ensures persistent normalization, enrichment, SEO verification, CTA evolution,
+// and historical merge. Integrates seoIntegrity() for metadata enrichment.
 
 import fs from "fs";
 import path from "path";
@@ -11,6 +9,7 @@ import { backgroundRefresh } from "../lib/proxyCache.js";
 import { evolveCTAs } from "../lib/ctaEvolver.js";
 import { enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
+import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import insightHandler from "./insight.js";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
@@ -59,6 +58,8 @@ function mergeWithHistory(newFeed) {
       seo: {
         cta: item.seo?.cta || preservedSeo.cta || null,
         subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
+        clickbait: item.seo?.clickbait || preservedSeo.clickbait || null,
+        keywords: item.seo?.keywords || preservedSeo.keywords || [],
       },
       archived: false,
     };
@@ -112,19 +113,27 @@ export default async function handler(req, res) {
     enriched = ensureIntegrity(enriched);
     console.log(`✅ [Cron] Feed enriched (${enriched.length})`);
 
-    // 6️⃣ Merge with historical data
-    const merged = mergeWithHistory(enriched);
-    fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
-    console.log(`🧬 [Cron] Feed merged (${merged.length} entries, ${merged.filter(f => f.archived).length} archived)`);
+    // 6️⃣ Apply SEO Integrity verification + metadata enrichment
+    const verified = ensureSeoIntegrity(enriched);
+    console.log(`🔎 [Cron] SEO Integrity check complete (${verified.length})`);
 
-    // 7️⃣ Run silent insight refresh
+    // 7️⃣ Merge with historical data
+    const merged = mergeWithHistory(verified);
+    fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
+    console.log(
+      `🧬 [Cron] Feed merged (${merged.length} entries, ${
+        merged.filter((f) => f.archived).length
+      } archived)`
+    );
+
+    // 8️⃣ Run silent insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("✅ [Cron] Insight refresh complete");
 
-    // 8️⃣ Run CTA evolution
+    // 9️⃣ Run CTA evolution
     evolveCTAs();
     console.log("✅ [Cron] CTA evolution complete");
 
@@ -135,7 +144,15 @@ export default async function handler(req, res) {
       message: "Cycle triggered in background.",
       duration,
       previousRun: new Date().toISOString(),
-      steps: ["builder", "feed-normalize", "feed-enrich", "merge-history", "insight", "cta-evolver"],
+      steps: [
+        "builder",
+        "feed-normalize",
+        "feed-enrich",
+        "seo-integrity",
+        "merge-history",
+        "insight",
+        "cta-evolver",
+      ],
     });
   } catch (err) {
     console.error("❌ [Cron] Error:", err);
