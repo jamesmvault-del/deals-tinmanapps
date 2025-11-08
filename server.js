@@ -1,12 +1,15 @@
 // /server.js
 // TinmanApps — Deal Engine Master Server
-// Handles API routes, category rendering, CTR logging, and adaptive SEO endpoints.
+// Handles API routes, category rendering, CTR logging, adaptive SEO endpoints,
+// and live learning dashboards for performance tracking.
 
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Core API endpoints
+// ───────────────────────────────────────────────────────────────────────────────
+// CORE API ENDPOINTS
+// ───────────────────────────────────────────────────────────────────────────────
 import appsumoProxy from "./api/appsumo-proxy.js";
 import masterCron from "./api/master-cron.js";
 import insight from "./api/insight.js";
@@ -14,13 +17,15 @@ import imageProxy from "./api/image-proxy.js";
 import track from "./api/track.js";
 import ctrReport from "./api/ctr-report.js";
 import ctaPhrases from "./api/cta-phrases.js";
+import version from "./api/version.js"; // ✅ Version endpoint
+import learningDashboard from "./api/learning-dashboard.js"; // ✅ Adaptive learning dashboard
 
-// Category endpoints
-import categoriesIndex from "./api/categories-index.js"; // JSON index list
-import categories from "./api/categories.js"; // HTML renderer
-
-// (Optional) Home route
-import home from "./api/home.js";
+// ───────────────────────────────────────────────────────────────────────────────
+// CATEGORY & FRONTEND ENDPOINTS
+// ───────────────────────────────────────────────────────────────────────────────
+import categoriesIndex from "./api/categories-index.js"; // JSON list of categories
+import categories from "./api/categories.js"; // HTML renderer per category
+import home from "./api/home.js"; // Homepage
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -29,9 +34,12 @@ const __dirname = path.dirname(__filename);
 // ───────────────────────────────────────────────────────────────────────────────
 // STATIC ASSETS
 // ───────────────────────────────────────────────────────────────────────────────
-app.use("/assets", express.static(path.join(__dirname, "public/assets"), {
-  maxAge: "7d",
-}));
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "public/assets"), {
+    maxAge: "7d",
+  })
+);
 
 // ───────────────────────────────────────────────────────────────────────────────
 // API ROUTES
@@ -43,19 +51,21 @@ app.get("/api/image-proxy", imageProxy);
 app.get("/api/track", track);
 app.get("/api/ctr-report", ctrReport);
 app.get("/api/cta-phrases", ctaPhrases);
+app.get("/api/version", version);
+app.get("/api/learning-dashboard", learningDashboard);
 
-// Category index (JSON list for homepage)
-app.get("/api/categories", categoriesIndex);
-
-// Category renderer (HTML)
-app.get("/categories/:cat", categories);
+// ───────────────────────────────────────────────────────────────────────────────
+// CATEGORY ROUTES
+// ───────────────────────────────────────────────────────────────────────────────
+app.get("/api/categories", categoriesIndex); // JSON category index
+app.get("/categories/:cat", categories); // HTML renderer
 
 // ───────────────────────────────────────────────────────────────────────────────
 // FRONTEND ROUTES (HTML)
 // ───────────────────────────────────────────────────────────────────────────────
 app.get("/", home);
 app.get("/categories", (req, res) => {
-  res.redirect("/"); // or render category index page later if desired
+  res.redirect("/"); // simple redirect for now
 });
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -84,6 +94,9 @@ app.listen(PORT, () => {
   console.log(" - /api/track");
   console.log(" - /api/ctr-report");
   console.log(" - /api/cta-phrases");
+  console.log(" - /api/version");
+  console.log(" - /api/learning-dashboard");
   console.log(" - /api/categories");
   console.log(" - /categories/:cat");
+  console.log(" - / (home)");
 });
