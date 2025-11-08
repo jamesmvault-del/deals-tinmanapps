@@ -7,10 +7,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Femailit-licensing-v2-sl-select-oct-2025-as-Header-Emailit-16_9.png",
     "description": null,
     "seo": {
-      "cta": "Automate your workflows →",
-      "subtitle": "helps you build smarter, faster systems."
+      "cta": "Leverage confidently →",
+      "subtitle": "streamlines complex workflows seamlessly trusted by creators worldwide."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -21,10 +21,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3d87ab8f-535f-4b9a-a635-721ebe869ffe.png",
     "description": null,
     "seo": {
-      "cta": "Leverage confidently →",
+      "cta": "Build your assistants →",
       "subtitle": "brings capabilities to your workflow effortlessly."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -35,10 +35,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5774ac78-8e44-4274-ad06-e8d989c63435.png",
     "description": null,
     "seo": {
-      "cta": "Simplify operations →",
-      "subtitle": "helps teams move faster and smarter."
+      "cta": "Automate repetitive work →",
+      "subtitle": "helps teams move faster and smarter instantly."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -49,10 +49,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fleadcrm-as-Header-LeadCRM-16_9.png",
     "description": null,
     "seo": {
-      "cta": "Optimize audience-ready leads →",
-      "subtitle": "simplifies campaign management and analytics."
+      "cta": "Convert more leads →",
+      "subtitle": "simplifies campaign management and analytics across your campaigns."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -64,9 +64,9 @@
     "description": null,
     "seo": {
       "cta": "Optimize your operations →",
-      "subtitle": "simplifies operations and repetitive tasks without hassle."
+      "subtitle": "delivers clarity, speed, and performance across your operations."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -77,10 +77,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F674fe6cb-d253-4bcb-9e94-0f738110a885.png",
     "description": null,
     "seo": {
-      "cta": "Organize operations →",
-      "subtitle": "helps teams move faster and smarter seamlessly."
+      "cta": "Run systems →",
+      "subtitle": "simplifies operations and repetitive tasks."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -91,10 +91,52 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F01f7345e-261a-4ec8-a3cf-c00f84b1d434.png",
     "description": null,
     "seo": {
-      "cta": "Attract your audiences →",
-      "subtitle": "helps you grow and convert your audience effectively so you focus on growth,…"
+      "cta": "Boost your audiences →",
+      "subtitle": "drives measurable results automatically across your campaigns."
     },
-    "normalizedAt": "2025-11-08T21:21:44.124Z",
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
+    "archived": false
+  },
+  {
+    "title": "Yazo",
+    "slug": "yazo-ai-content-generator",
+    "category": "marketing",
+    "link": "https://appsumo.com/products/yazo-ai-content-generator/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fd1696237-d113-4b75-a512-0663b5f3fe01.png",
+    "description": null,
+    "seo": {
+      "cta": "Optimize systems →",
+      "subtitle": "helps teams move faster and smarter."
+    },
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
+    "archived": false
+  },
+  {
+    "title": "WhatsApp CRM By ManyContacts",
+    "slug": "manycontacts",
+    "category": "marketing",
+    "link": "https://appsumo.com/products/manycontacts/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F00095aaa-efa7-4331-8822-53534e5dc434.png",
+    "description": null,
+    "seo": {
+      "cta": "Grow your audience →",
+      "subtitle": "helps you grow and convert your audience effectively."
+    },
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
+    "archived": false
+  },
+  {
+    "title": "GoEmailTracker",
+    "slug": "goemailtracker",
+    "category": "marketing",
+    "link": "https://appsumo.com/products/goemailtracker/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fa0103730-deae-4978-b7a4-bd70ef2902ef.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your workflows →",
+      "subtitle": "streamlines complex workflows seamlessly."
+    },
+    "normalizedAt": "2025-11-08T21:51:00.343Z",
     "archived": false
   },
   {
@@ -109,7 +151,7 @@
       "subtitle": "helps you grow and convert your audience effectively."
     },
     "normalizedAt": "2025-11-08T21:21:44.124Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "SEO Generator",
@@ -123,7 +165,7 @@
       "subtitle": "simplifies operations and repetitive tasks."
     },
     "normalizedAt": "2025-11-08T21:21:44.124Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "SheerSEO",
@@ -137,34 +179,6 @@
       "subtitle": "delivers clarity, speed, and performance across your operations."
     },
     "normalizedAt": "2025-11-08T21:21:44.124Z",
-    "archived": false
-  },
-  {
-    "title": "Yazo",
-    "slug": "yazo-ai-content-generator",
-    "category": "marketing",
-    "link": "https://appsumo.com/products/yazo-ai-content-generator/",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fd1696237-d113-4b75-a512-0663b5f3fe01.png",
-    "description": null,
-    "seo": {
-      "cta": "Simplify performance-optimized…",
-      "subtitle": "helps teams move faster and smarter without hassle."
-    },
-    "normalizedAt": "2025-11-08T20:29:17.989Z",
-    "archived": true
-  },
-  {
-    "title": "WhatsApp CRM By ManyContacts",
-    "slug": "manycontacts",
-    "category": "marketing",
-    "link": "https://appsumo.com/products/manycontacts/",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F00095aaa-efa7-4331-8822-53534e5dc434.png",
-    "description": null,
-    "seo": {
-      "cta": "Convert your audience →",
-      "subtitle": "builds trust and visibility across your brand across your campaigns."
-    },
-    "normalizedAt": "2025-11-08T20:29:17.989Z",
     "archived": true
   },
   {

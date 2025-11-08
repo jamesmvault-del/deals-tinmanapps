@@ -1,19 +1,5 @@
 [
   {
-    "title": "FormDesigner",
-    "slug": "formdesigner",
-    "category": "web",
-    "link": "https://appsumo.com/products/formdesigner/",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
-    "description": null,
-    "seo": {
-      "cta": "Simplify automation-ready systems →",
-      "subtitle": "simplifies operations and repetitive tasks."
-    },
-    "normalizedAt": "2025-11-08T21:21:44.867Z",
-    "archived": false
-  },
-  {
     "title": "Share My Image (Image Hosting)",
     "slug": "marketplace-image-storage-plan",
     "category": "web",
@@ -21,10 +7,24 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fb3081078-05d8-491e-89e7-0a386a66e255.jpeg",
     "description": null,
     "seo": {
-      "cta": "Optimize your operations →",
+      "cta": "Simplify systems →",
+      "subtitle": "helps teams move faster and smarter with ease."
+    },
+    "normalizedAt": "2025-11-08T21:51:01.108Z",
+    "archived": false
+  },
+  {
+    "title": "FormDesigner",
+    "slug": "formdesigner",
+    "category": "web",
+    "link": "https://appsumo.com/products/formdesigner/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify workflows →",
       "subtitle": "helps teams move faster and smarter."
     },
-    "normalizedAt": "2025-11-08T21:21:44.867Z",
+    "normalizedAt": "2025-11-08T21:51:01.108Z",
     "archived": false
   },
   {
@@ -35,10 +35,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F4cddf32f-a885-48dc-ab3c-49ad3e651e11.jpg",
     "description": null,
     "seo": {
-      "cta": "Simplify scalable systems →",
-      "subtitle": "delivers clarity, speed, and performance across your operations."
+      "cta": "Optimize your operations →",
+      "subtitle": "helps teams move faster and smarter."
     },
-    "normalizedAt": "2025-11-08T21:21:44.867Z",
+    "normalizedAt": "2025-11-08T21:51:01.108Z",
     "archived": false
   },
   {
@@ -49,10 +49,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F082bbae6-ad8c-43d1-b9dc-0f17c4c65372.jpg",
     "description": null,
     "seo": {
-      "cta": "Optimize your operations →",
+      "cta": "Simplify scalable operations →",
       "subtitle": "delivers clarity, speed, and performance across your operations."
     },
-    "normalizedAt": "2025-11-08T21:21:44.867Z",
+    "normalizedAt": "2025-11-08T21:51:01.108Z",
     "archived": false
   },
   {
@@ -63,10 +63,10 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fc3a5e225-229f-4029-9ecf-c8347133b530.png",
     "description": null,
     "seo": {
-      "cta": "Simplify scalable workflows →",
-      "subtitle": "simplifies operations and repetitive tasks."
+      "cta": "Simplify automation-ready operations →",
+      "subtitle": "delivers clarity, speed, and performance across your operations."
     },
-    "normalizedAt": "2025-11-08T21:21:44.867Z",
+    "normalizedAt": "2025-11-08T21:51:01.108Z",
     "archived": false
   }
 ]
