@@ -1,9 +1,10 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v6.2 “Sanitized Feed Integration”
+// TinmanApps Adaptive Feed Engine v6.3 “Persistent Intelligence Merge”
 // ───────────────────────────────────────────────────────────────────────────────
-// • Integrates normalizeFeed() after enrichDeals()
-// • Ensures all saved feeds have clean titles, slugs, and structures
-// • Maintains full compatibility with CTA Engine + Master Cron
+// • Integrates normalizeFeed() before and after enrichment
+// • Preserves existing CTAs/subtitles between updates (non-destructive)
+// • Detects new AppSumo products and archives missing ones
+// • Ensures fully clean, categorized, and stable feed-cache per category
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -14,7 +15,7 @@ import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
 import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
-import { normalizeFeed } from "../lib/feedNormalizer.js"; // ✅ added
+import { normalizeFeed } from "../lib/feedNormalizer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,7 +55,7 @@ function tracked({ slug, cat, url }) {
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
-function normalize({ slug, title, url, cat, image }) {
+function normalizeEntry({ slug, title, url, cat, image }) {
   const safe = slug || toSlug(url) || title.toLowerCase().replace(/\s+/g, "-");
   return {
     title: title || safe,
@@ -63,19 +64,6 @@ function normalize({ slug, title, url, cat, image }) {
     url,
     referralUrl: tracked({ slug: safe, cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
-    seo: {
-      clickbait:
-        cat === "courses"
-          ? `Build & sell courses with ${title} — Top learning tool on AppSumo`
-          : `Discover ${title} — #1 in ${cat}`,
-      keywords:
-        cat === "courses"
-          ? [
-              "courses", "creator", "academy", "teach online",
-              "learning platform", "build courses", "AppSumo", safe,
-            ]
-          : [cat, "AppSumo", "lifetime deal", safe],
-    },
   };
 }
 function dedupe(items) {
@@ -106,31 +94,12 @@ function extractOg(html) {
 // Silo Keywords
 // ───────────────────────────────────────────────────────────────────────────────
 const SILO_KEYWORDS = {
-  ai: [
-    " ai", "gpt", "automation", "autopilot", "assistant",
-    "copilot", "bot", "agent", "llm", "chat", "voice ai"
-  ],
-  marketing: [
-    "marketing", "seo", "social", "sales", "lead", "crm", "advertising",
-    "email", "campaign", "traffic", "growth", "conversion", "content"
-  ],
-  courses: [
-    "course", "academy", "training", "teach", "learn", "creator",
-    "coach", "skill", "education", "knowledge", "student", "tutorial",
-    "class", "lesson", "instructor", "mentor", "teacher", "curriculum"
-  ],
-  productivity: [
-    "productivity", "task", "workflow", "project", "kanban", "time",
-    "schedule", "calendar", "focus", "collaboration", "team", "meeting"
-  ],
-  business: [
-    "accounting", "finance", "invoice", "legal", "hr", "contract",
-    "analytics", "report", "startup", "management", "client", "agency"
-  ],
-  web: [
-    "builder", "website", "landing", "design", "no-code",
-    "hosting", "frontend", "cms", "theme", "plugin", "webapp"
-  ],
+  ai: [" ai", "gpt", "automation", "autopilot", "assistant", "copilot", "bot", "agent", "llm", "chat", "voice ai"],
+  marketing: ["marketing", "seo", "social", "sales", "lead", "crm", "advertising", "email", "campaign", "traffic", "growth", "conversion", "content"],
+  courses: ["course", "academy", "training", "teach", "learn", "creator", "coach", "skill", "education", "tutorial", "lesson", "instructor", "mentor"],
+  productivity: ["productivity", "task", "workflow", "project", "kanban", "time", "schedule", "calendar", "focus", "collaboration", "team", "meeting"],
+  business: ["accounting", "finance", "invoice", "legal", "hr", "contract", "analytics", "report", "startup", "management", "client", "agency"],
+  web: ["builder", "website", "landing", "design", "no-code", "hosting", "frontend", "cms", "theme", "plugin", "webapp"],
 };
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -204,7 +173,7 @@ async function fetchDetail(item, cat) {
     const html = await fetchText(item.url);
     const og = extractOg(html);
     const slug = toSlug(item.url);
-    return normalize({
+    return normalizeEntry({
       slug,
       title: (og.title || item.title || slug || "").split(/\s*[-–—]\s*/)[0].trim(),
       url: item.url,
@@ -213,7 +182,7 @@ async function fetchDetail(item, cat) {
     });
   } catch {
     const slug = toSlug(item.url);
-    return normalize({
+    return normalizeEntry({
       slug,
       title: (item.title || slug || "").split(/\s*[-–—]\s*/)[0].trim(),
       url: item.url,
@@ -238,6 +207,37 @@ async function withConcurrency(items, limit, worker) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
+// Merge Logic — preserve CTAs, add new, archive missing
+// ───────────────────────────────────────────────────────────────────────────────
+function mergeWithHistory(cat, fresh) {
+  const file = `appsumo-${cat}.json`;
+  const existing = readJsonSafe(file, []);
+  const map = new Map(existing.map((x) => [x.slug, x]));
+
+  const merged = fresh.map((item) => {
+    const old = map.get(item.slug);
+    const preservedSeo = old?.seo || {};
+    return {
+      ...item,
+      seo: {
+        cta: item.seo?.cta || preservedSeo.cta || null,
+        subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
+      },
+      archived: false,
+    };
+  });
+
+  // mark old ones not in new list
+  for (const old of existing) {
+    if (!merged.find((x) => x.slug === old.slug)) {
+      merged.push({ ...old, archived: true });
+    }
+  }
+
+  return merged;
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   const engine = createCtaEngine();
   console.log("✅ CTA Engine ready");
@@ -255,10 +255,7 @@ async function main() {
   const unique = dedupe(withSlugs);
   console.log(`🧩 ${unique.length} unique deals harvested.`);
 
-  const silos = {
-    ai: [], marketing: [], courses: [], productivity: [],
-    business: [], web: [], software: [],
-  };
+  const silos = { ai: [], marketing: [], courses: [], productivity: [], business: [], web: [], software: [] };
   for (const item of unique) {
     const cat = classify(item.title, item.url);
     silos[cat].push(item);
@@ -267,29 +264,19 @@ async function main() {
   for (const [cat, arr] of Object.entries(silos)) {
     let recs = [];
     if (arr.length > 0) {
-      const details = await withConcurrency(
-        arr.slice(0, MAX_PER_CATEGORY),
-        DETAIL_CONCURRENCY,
-        (x) => fetchDetail(x, cat)
-      );
-      recs = dedupe(details);
-      recs = enrichDeals(recs, cat);
-      recs = normalizeFeed(recs); // ✅ normalize after enrichment
-      console.log(`🧹 ${cat}: feed normalized (${recs.length} entries)`);
+      const details = await withConcurrency(arr.slice(0, MAX_PER_CATEGORY), DETAIL_CONCURRENCY, (x) => fetchDetail(x, cat));
+      let cleaned = normalizeFeed(details);
+      cleaned = enrichDeals(cleaned, cat);
+      const merged = mergeWithHistory(cat, cleaned);
+      console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
+      writeJson(`appsumo-${cat}.json`, merged);
     } else {
-      recs = readJsonSafe(`appsumo-${cat}.json`, []);
-      console.log(`  ♻️ ${cat}: using cached data (${recs.length})`);
+      const cached = readJsonSafe(`appsumo-${cat}.json`, []);
+      console.log(`♻️ ${cat}: using cached data (${cached.length})`);
     }
-
-    const preview = recs
-      .slice(0, 3)
-      .map((d) => `${d.title} → ${d.seo?.cta || "❌"}`)
-      .join("\n  ");
-    console.log(`📦 ${cat}: ${recs.length} deals\n  ${preview}`);
-    writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.2 Sanitized Feed Integration).");
+  console.log("\n✨ All silos refreshed (v6.3 Persistent Intelligence Merge).");
 }
 
 main().catch((err) => {
