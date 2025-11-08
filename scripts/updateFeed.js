@@ -1,8 +1,9 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v6.1.3 “Stable CTA Integration”
-// • Uses enrichDeals() from CTA Engine
-// • Limits per-category items to 10 for testing
-// • Clean fallback handling + improved console logging
+// TinmanApps Adaptive Feed Engine v6.2 “Sanitized Feed Integration”
+// ───────────────────────────────────────────────────────────────────────────────
+// • Integrates normalizeFeed() after enrichDeals()
+// • Ensures all saved feeds have clean titles, slugs, and structures
+// • Maintains full compatibility with CTA Engine + Master Cron
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -13,6 +14,7 @@ import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
 import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
+import { normalizeFeed } from "../lib/feedNormalizer.js"; // ✅ added
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -272,6 +274,8 @@ async function main() {
       );
       recs = dedupe(details);
       recs = enrichDeals(recs, cat);
+      recs = normalizeFeed(recs); // ✅ normalize after enrichment
+      console.log(`🧹 ${cat}: feed normalized (${recs.length} entries)`);
     } else {
       recs = readJsonSafe(`appsumo-${cat}.json`, []);
       console.log(`  ♻️ ${cat}: using cached data (${recs.length})`);
@@ -285,7 +289,7 @@ async function main() {
     writeJson(`appsumo-${cat}.json`, recs);
   }
 
-  console.log("\n✨ All silos refreshed (v6.1.3 Stable CTA Integration).");
+  console.log("\n✨ All silos refreshed (v6.2 Sanitized Feed Integration).");
 }
 
 main().catch((err) => {
