@@ -1,24 +1,5 @@
 [
   {
-    "title": "Share My Image (Image Hosting)",
-    "slug": "marketplace-image-storage-plan",
-    "category": "web",
-    "url": "https://appsumo.com/products/marketplace-image-storage-plan/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-image-storage-plan&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-image-storage-plan%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fb3081078-05d8-491e-89e7-0a386a66e255.jpeg",
-    "seo": {
-      "clickbait": "Discover Share My Image (Image Hosting) — #1 in web",
-      "keywords": [
-        "web",
-        "AppSumo",
-        "lifetime deal",
-        "marketplace-image-storage-plan"
-      ],
-      "cta": "Simplify systems →",
-      "subtitle": "simplifies operations and repetitive tasks with measurable results."
-    }
-  },
-  {
     "title": "FormDesigner",
     "slug": "formdesigner",
     "category": "web",
@@ -34,7 +15,26 @@
         "formdesigner"
       ],
       "cta": "Simplify operations →",
-      "subtitle": "delivers clarity, speed, and performance."
+      "subtitle": "helps teams move faster and smarter."
+    }
+  },
+  {
+    "title": "Share My Image (Image Hosting)",
+    "slug": "marketplace-image-storage-plan",
+    "category": "web",
+    "url": "https://appsumo.com/products/marketplace-image-storage-plan/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=marketplace-image-storage-plan&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-image-storage-plan%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fb3081078-05d8-491e-89e7-0a386a66e255.jpeg",
+    "seo": {
+      "clickbait": "Discover Share My Image (Image Hosting) — #1 in web",
+      "keywords": [
+        "web",
+        "AppSumo",
+        "lifetime deal",
+        "marketplace-image-storage-plan"
+      ],
+      "cta": "Manage your operations →",
+      "subtitle": "simplifies operations and repetitive tasks without hassle."
     }
   },
   {
@@ -52,8 +52,8 @@
         "lifetime deal",
         "bit-form"
       ],
-      "cta": "Improve your operations →",
-      "subtitle": "delivers clarity, speed, and performance."
+      "cta": "Simplify automation-ready…",
+      "subtitle": "helps teams move faster and smarter instantly."
     }
   },
   {
@@ -71,8 +71,8 @@
         "lifetime deal",
         "visitor-tracking"
       ],
-      "cta": "Manage your operations →",
-      "subtitle": "helps teams move faster and smarter so you focus on growth, not guesswork."
+      "cta": "Simplify modular workflows →",
+      "subtitle": "simplifies operations and repetitive tasks with measurable results."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "darkmysite"
       ],
-      "cta": "Simplify workflows →",
-      "subtitle": "simplifies operations and repetitive tasks."
+      "cta": "Simplify scalable operations →",
+      "subtitle": "helps teams move faster and smarter."
     }
   }
 ]
