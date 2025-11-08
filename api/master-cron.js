@@ -1,7 +1,8 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.5 “Omni Feed Guardian + Sanctifier Prime”
+// 🔁 TinmanApps Master Cron v3.6 “Omni Feed Guardian + Sanctifier Prime+ Entropy Fix”
 // Ensures persistent normalization, enrichment, SEO verification, CTA evolution,
-// and historical merge. Integrates seoIntegrity() for metadata enrichment.
+// and historical merge with freshness and duplication control.
+// Integrates seoIntegrity() for metadata enrichment.
 
 import fs from "fs";
 import path from "path";
@@ -43,35 +44,81 @@ function ensureIntegrity(deals) {
   });
 }
 
-// Merge current feed with historical entries (preserving SEO metadata)
+// ─────────────────────────────── Merge Logic ───────────────────────────────
+// Fresh-first SEO priority with freshness gating and archive cleanup.
 function mergeWithHistory(newFeed) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
 
   const oldFeed = JSON.parse(fs.readFileSync(FEED_PATH, "utf8"));
   const map = new Map(oldFeed.map((x) => [x.slug, x]));
+  const now = Date.now();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  let updatedCount = 0;
+  let reusedCount = 0;
+  let archivedCount = 0;
 
   const merged = newFeed.map((item) => {
     const old = map.get(item.slug);
     const preservedSeo = old?.seo || {};
+    const oldTime = preservedSeo.lastVerifiedAt
+      ? new Date(preservedSeo.lastVerifiedAt).getTime()
+      : 0;
+    const isFreshOld = now - oldTime < DAY_MS;
+
+    const newSeo = {
+      cta:
+        item.seo?.cta && item.seo.cta.trim().length > 0
+          ? item.seo.cta
+          : preservedSeo.cta || null,
+      subtitle:
+        item.seo?.subtitle && item.seo.subtitle.trim().length > 0
+          ? item.seo.subtitle
+          : preservedSeo.subtitle || null,
+      clickbait:
+        item.seo?.clickbait && item.seo.clickbait.trim().length > 0
+          ? item.seo.clickbait
+          : preservedSeo.clickbait || null,
+      keywords:
+        Array.isArray(item.seo?.keywords) && item.seo.keywords.length
+          ? item.seo.keywords
+          : preservedSeo.keywords || [],
+      lastVerifiedAt: item.seo?.lastVerifiedAt || preservedSeo.lastVerifiedAt || null,
+    };
+
+    if (item.seo?.cta && item.seo.cta.trim().length > 0) updatedCount++;
+    else reusedCount++;
+
     return {
       ...item,
-      seo: {
-        cta: item.seo?.cta || preservedSeo.cta || null,
-        subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
-        clickbait: item.seo?.clickbait || preservedSeo.clickbait || null,
-        keywords: item.seo?.keywords || preservedSeo.keywords || [],
-      },
+      seo: newSeo,
       archived: false,
     };
   });
 
+  // Add archived items not present in the new feed
   for (const old of oldFeed) {
     if (!merged.find((x) => x.slug === old.slug)) {
       merged.push({ ...old, archived: true });
+      archivedCount++;
     }
   }
 
-  return merged;
+  // Purge archived items older than 30 days
+  const cutoff = now - 30 * DAY_MS;
+  const cleaned = merged.filter((x) => {
+    if (!x.archived) return true;
+    const t = x.seo?.lastVerifiedAt
+      ? new Date(x.seo.lastVerifiedAt).getTime()
+      : now;
+    return t > cutoff;
+  });
+
+  console.log(
+    `🧩 [Merge] ${updatedCount} updated, ${reusedCount} reused, ${archivedCount} archived, ${merged.length - cleaned.length} purged`
+  );
+
+  return cleaned;
 }
 
 // ─────────────────────────────── Handler ───────────────────────────────
@@ -117,7 +164,7 @@ export default async function handler(req, res) {
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 [Cron] SEO Integrity check complete (${verified.length})`);
 
-    // 7️⃣ Merge with historical data
+    // 7️⃣ Merge with historical data (fresh-first logic)
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
     console.log(
