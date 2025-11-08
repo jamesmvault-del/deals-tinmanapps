@@ -19,6 +19,7 @@ import ctrReport from "./api/ctr-report.js";
 import ctaPhrases from "./api/cta-phrases.js";
 import version from "./api/version.js"; // ✅ Version endpoint
 import learningDashboard from "./api/learning-dashboard.js"; // ✅ Adaptive learning dashboard
+import ctaDump from "./api/cta-dump.js"; // ✅ Full CTA/subtitle audit endpoint
 
 // ───────────────────────────────────────────────────────────────────────────────
 // CATEGORY & FRONTEND ENDPOINTS
@@ -51,6 +52,7 @@ app.get("/api/image-proxy", imageProxy);
 app.get("/api/track", track);
 app.get("/api/ctr-report", ctrReport);
 app.get("/api/cta-phrases", ctaPhrases);
+app.get("/api/cta-dump", ctaDump); // ✅ new route for full CTA/subtitle export
 app.get("/api/version", version);
 app.get("/api/learning-dashboard", learningDashboard);
 
@@ -94,6 +96,7 @@ app.listen(PORT, () => {
   console.log(" - /api/track");
   console.log(" - /api/ctr-report");
   console.log(" - /api/cta-phrases");
+  console.log(" - /api/cta-dump");
   console.log(" - /api/version");
   console.log(" - /api/learning-dashboard");
   console.log(" - /api/categories");
