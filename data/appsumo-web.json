@@ -1,24 +1,5 @@
 [
   {
-    "title": "FormDesigner",
-    "slug": "formdesigner",
-    "category": "web",
-    "url": "https://appsumo.com/products/formdesigner/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formdesigner&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformdesigner%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
-    "seo": {
-      "clickbait": "Discover FormDesigner — #1 in web",
-      "keywords": [
-        "web",
-        "AppSumo",
-        "lifetime deal",
-        "formdesigner"
-      ],
-      "cta": "Simplify systems →",
-      "subtitle": "helps teams move faster and smarter."
-    }
-  },
-  {
     "title": "Share My Image (Image Hosting)",
     "slug": "marketplace-image-storage-plan",
     "category": "web",
@@ -34,6 +15,25 @@
         "marketplace-image-storage-plan"
       ],
       "cta": "Automate repetitive work →",
+      "subtitle": "helps teams move faster and smarter."
+    }
+  },
+  {
+    "title": "FormDesigner",
+    "slug": "formdesigner",
+    "category": "web",
+    "url": "https://appsumo.com/products/formdesigner/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=formdesigner&cat=web&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fformdesigner%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3791c0d1-dc65-45e0-b309-88390fa05891.png",
+    "seo": {
+      "clickbait": "Discover FormDesigner — #1 in web",
+      "keywords": [
+        "web",
+        "AppSumo",
+        "lifetime deal",
+        "formdesigner"
+      ],
+      "cta": "Simplify systems →",
       "subtitle": "simplifies operations and repetitive tasks."
     }
   },
@@ -71,7 +71,7 @@
         "lifetime deal",
         "visitor-tracking"
       ],
-      "cta": "Simplify operations →",
+      "cta": "Automate repetitive work →",
       "subtitle": "helps teams move faster and smarter."
     }
   },
@@ -90,8 +90,8 @@
         "lifetime deal",
         "darkmysite"
       ],
-      "cta": "Automate repetitive work →",
-      "subtitle": "simplifies operations and repetitive tasks instantly."
+      "cta": "Improve repetitive work →",
+      "subtitle": "simplifies operations and repetitive tasks."
     }
   }
 ]
