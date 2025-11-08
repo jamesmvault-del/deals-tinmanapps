@@ -14,7 +14,7 @@
         "lifetime deal",
         "dialora"
       ],
-      "cta": "Manage your operations →",
+      "cta": "Automate repetitive work →",
       "subtitle": "helps teams move faster and smarter."
     }
   },
@@ -34,7 +34,7 @@
         "dart"
       ],
       "cta": "Bring ideas to life →",
-      "subtitle": "streamlines your creative process beautifully."
+      "subtitle": "inspires powerful ideas and visuals with ease."
     }
   },
   {
@@ -52,8 +52,8 @@
         "lifetime deal",
         "tidycal"
       ],
-      "cta": "Optimize workflows →",
-      "subtitle": "simplifies operations and repetitive tasks instantly."
+      "cta": "Optimize your operations →",
+      "subtitle": "simplifies operations and repetitive tasks."
     }
   },
   {
@@ -71,8 +71,8 @@
         "lifetime deal",
         "prettyprompt"
       ],
-      "cta": "Organize systems →",
-      "subtitle": "helps teams move faster and smarter seamlessly."
+      "cta": "Simplify operations →",
+      "subtitle": "simplifies operations and repetitive tasks instantly."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "fusebase"
       ],
-      "cta": "Automate repetitive work →",
-      "subtitle": "simplifies operations and repetitive tasks."
+      "cta": "Simplify workflows →",
+      "subtitle": "simplifies operations and repetitive tasks with ease."
     }
   },
   {
@@ -109,26 +109,7 @@
         "lifetime deal",
         "puzzle"
       ],
-      "cta": "Optimize your operations →",
-      "subtitle": "simplifies operations and repetitive tasks."
-    }
-  },
-  {
-    "title": "BreezeDoc",
-    "slug": "breezedoc",
-    "category": "software",
-    "url": "https://appsumo.com/products/breezedoc/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=breezedoc&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fbreezedoc%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BreezeDoc_-_16_9_uuid_3728bc19-1ad4-4811-a25b-0b6dc78edf4b.png",
-    "seo": {
-      "clickbait": "Discover BreezeDoc — #1 in software",
-      "keywords": [
-        "software",
-        "AppSumo",
-        "lifetime deal",
-        "breezedoc"
-      ],
-      "cta": "Simplify workflows →",
+      "cta": "Improve repetitive work →",
       "subtitle": "simplifies operations and repetitive tasks."
     }
   },
@@ -147,8 +128,27 @@
         "lifetime deal",
         "snoooz"
       ],
-      "cta": "Simplify operations →",
+      "cta": "Simplify workflows →",
       "subtitle": "helps teams move faster and smarter."
+    }
+  },
+  {
+    "title": "BreezeDoc",
+    "slug": "breezedoc",
+    "category": "software",
+    "url": "https://appsumo.com/products/breezedoc/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=breezedoc&cat=software&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fbreezedoc%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BreezeDoc_-_16_9_uuid_3728bc19-1ad4-4811-a25b-0b6dc78edf4b.png",
+    "seo": {
+      "clickbait": "Discover BreezeDoc — #1 in software",
+      "keywords": [
+        "software",
+        "AppSumo",
+        "lifetime deal",
+        "breezedoc"
+      ],
+      "cta": "Simplify systems →",
+      "subtitle": "simplifies operations and repetitive tasks seamlessly."
     }
   },
   {
@@ -166,7 +166,7 @@
         "lifetime deal",
         "t0ggles"
       ],
-      "cta": "Simplify systems →",
+      "cta": "Automate repetitive work →",
       "subtitle": "helps teams move faster and smarter."
     }
   },

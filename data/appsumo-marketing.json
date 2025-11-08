@@ -14,8 +14,8 @@
         "lifetime deal",
         "emailit"
       ],
-      "cta": "Build workflows →",
-      "subtitle": "turns manual work into intelligent automation."
+      "cta": "Accelerate confidently →",
+      "subtitle": "helps you build smarter, faster systems."
     }
   },
   {
@@ -33,27 +33,8 @@
         "lifetime deal",
         "reoon-email-verifier"
       ],
-      "cta": "Enhance assistants →",
-      "subtitle": "streamlines complex workflows seamlessly."
-    }
-  },
-  {
-    "title": "LeadRocks",
-    "slug": "leadrocks",
-    "category": "marketing",
-    "url": "https://appsumo.com/products/leadrocks/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadrocks&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadrocks%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5774ac78-8e44-4274-ad06-e8d989c63435.png",
-    "seo": {
-      "clickbait": "Discover LeadRocks — #1 in marketing",
-      "keywords": [
-        "marketing",
-        "AppSumo",
-        "lifetime deal",
-        "leadrocks"
-      ],
-      "cta": "Optimize your operations →",
-      "subtitle": "simplifies operations and repetitive tasks."
+      "cta": "Automate your automation →",
+      "subtitle": "turns manual work into intelligent automation."
     }
   },
   {
@@ -71,8 +52,27 @@
         "lifetime deal",
         "leadcrm"
       ],
-      "cta": "Convert more leads →",
-      "subtitle": "simplifies campaign management and analytics without hassle."
+      "cta": "Optimize audiences →",
+      "subtitle": "drives measurable results automatically."
+    }
+  },
+  {
+    "title": "LeadRocks",
+    "slug": "leadrocks",
+    "category": "marketing",
+    "url": "https://appsumo.com/products/leadrocks/",
+    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=leadrocks&cat=marketing&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fleadrocks%252F",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5774ac78-8e44-4274-ad06-e8d989c63435.png",
+    "seo": {
+      "clickbait": "Discover LeadRocks — #1 in marketing",
+      "keywords": [
+        "marketing",
+        "AppSumo",
+        "lifetime deal",
+        "leadrocks"
+      ],
+      "cta": "Automate repetitive work →",
+      "subtitle": "simplifies operations and repetitive tasks without hassle."
     }
   },
   {
@@ -90,8 +90,8 @@
         "lifetime deal",
         "reoon-yellowpages-scraper"
       ],
-      "cta": "Automate repetitive work →",
-      "subtitle": "simplifies operations and repetitive tasks with ease."
+      "cta": "Optimize your operations →",
+      "subtitle": "helps teams move faster and smarter."
     }
   },
   {
@@ -109,8 +109,8 @@
         "lifetime deal",
         "smatleads"
       ],
-      "cta": "Attract campaigns →",
-      "subtitle": "drives measurable results automatically."
+      "cta": "Boost your →",
+      "subtitle": "simplifies campaign management and analytics."
     }
   },
   {
@@ -128,8 +128,8 @@
         "lifetime deal",
         "easy-text-marketing-platform"
       ],
-      "cta": "Grow your audience →",
-      "subtitle": "simplifies campaign management and analytics."
+      "cta": "Attract more leads →",
+      "subtitle": "simplifies campaign management and analytics seamlessly."
     }
   },
   {
@@ -147,8 +147,8 @@
         "lifetime deal",
         "seo-generator"
       ],
-      "cta": "Simplify workflows →",
-      "subtitle": "helps teams move faster and smarter."
+      "cta": "Simplify operations →",
+      "subtitle": "simplifies operations and repetitive tasks."
     }
   },
   {
@@ -166,8 +166,8 @@
         "lifetime deal",
         "sheerseo"
       ],
-      "cta": "Organize repetitive work →",
-      "subtitle": "helps teams move faster and smarter."
+      "cta": "Simplify systems →",
+      "subtitle": "simplifies operations and repetitive tasks."
     }
   },
   {
@@ -185,8 +185,8 @@
         "lifetime deal",
         "local-scraper-lead-generation-software"
       ],
-      "cta": "Simplify operations →",
-      "subtitle": "simplifies operations and repetitive tasks."
+      "cta": "Simplify workflows →",
+      "subtitle": "helps teams move faster and smarter."
     }
   }
 ]
