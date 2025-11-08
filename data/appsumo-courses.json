@@ -18,8 +18,8 @@
         "AppSumo",
         "notion-template-creator-dashboard"
       ],
-      "cta": "Improve repetitive work →",
-      "subtitle": "helps teams move faster and smarter seamlessly."
+      "cta": "Organize operations →",
+      "subtitle": "helps teams move faster and smarter."
     }
   },
   {
@@ -41,8 +41,8 @@
         "AppSumo",
         "skillplate"
       ],
-      "cta": "Simplify operations →",
-      "subtitle": "helps teams move faster and smarter."
+      "cta": "Optimize your operations →",
+      "subtitle": "helps teams move faster and smarter without hassle."
     }
   },
   {
@@ -65,7 +65,7 @@
         "onlinecoursehost"
       ],
       "cta": "Learn faster today →",
-      "subtitle": "guides you through learning and mastery."
+      "subtitle": "guides you through learning and mastery instantly."
     }
   },
   {
@@ -87,7 +87,7 @@
         "AppSumo",
         "open-elms"
       ],
-      "cta": "Teach up your skills →",
+      "cta": "Master new skills →",
       "subtitle": "makes skill growth effortless and engaging."
     }
   },
@@ -110,8 +110,8 @@
         "AppSumo",
         "learniverse"
       ],
-      "cta": "Optimize your operations →",
-      "subtitle": "simplifies operations and repetitive tasks with ease."
+      "cta": "Simplify systems →",
+      "subtitle": "simplifies operations and repetitive tasks."
     }
   }
 ]

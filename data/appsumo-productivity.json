@@ -14,7 +14,7 @@
         "lifetime deal",
         "marketplace-trackabi"
       ],
-      "cta": "Organize your routines →",
+      "cta": "Focus and achieve more →",
       "subtitle": "turns busywork into streamlined progress."
     }
   },
@@ -33,7 +33,7 @@
         "lifetime deal",
         "marketplace-flowyteam"
       ],
-      "cta": "Run smarter operations →",
+      "cta": "Scale your teams →",
       "subtitle": "simplifies collaboration and scale."
     }
   },
@@ -52,8 +52,8 @@
         "lifetime deal",
         "meeting-reminders"
       ],
-      "cta": "Automate repetitive work →",
-      "subtitle": "simplifies operations and repetitive tasks without hassle."
+      "cta": "Simplify systems →",
+      "subtitle": "helps teams move faster and smarter."
     }
   },
   {
@@ -71,7 +71,7 @@
         "lifetime deal",
         "focusmate"
       ],
-      "cta": "Streamline your routines →",
+      "cta": "Reclaim your time →",
       "subtitle": "keeps you focused and efficient every day."
     }
   },
@@ -90,7 +90,7 @@
         "lifetime deal",
         "vivomeetings"
       ],
-      "cta": "Optimize repetitive work →",
+      "cta": "Optimize your operations →",
       "subtitle": "simplifies operations and repetitive tasks with ease."
     }
   },
@@ -109,7 +109,7 @@
         "lifetime deal",
         "wp-scheduled-posts"
       ],
-      "cta": "Simplify operations →",
+      "cta": "Manage workflows →",
       "subtitle": "simplifies operations and repetitive tasks."
     }
   }
