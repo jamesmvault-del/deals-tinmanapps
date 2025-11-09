@@ -1,12 +1,13 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.8 “Autonomous Feed Integrator + Self-Merge Edition”
-// Ensures full pipeline autonomy: category silos → unified feed → enrichment → SEO integrity.
-// Adds: automatic merge of appsumo-*.json into feed-cache.json before enrichment.
+// 🔁 TinmanApps Master Cron v3.9 “Render-Safe Autonomous Edition”
+// Self-contained cron pipeline for Render ephemeral environments.
+// Auto-runs updateFeed.js before aggregation to rebuild category feeds dynamically.
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
+import { execSync } from "child_process";
 import { backgroundRefresh } from "../lib/proxyCache.js";
 import { evolveCTAs } from "../lib/ctaEvolver.js";
 import { enrichDeals } from "../lib/ctaEngine.js";
@@ -85,11 +86,7 @@ function mergeWithHistory(newFeed) {
     if (item.seo?.cta && item.seo.cta.trim().length > 0) updatedCount++;
     else reusedCount++;
 
-    return {
-      ...item,
-      seo: newSeo,
-      archived: false,
-    };
+    return { ...item, seo: newSeo, archived: false };
   });
 
   for (const old of oldFeed) {
@@ -115,22 +112,7 @@ function mergeWithHistory(newFeed) {
   return cleaned;
 }
 
-// ─────────────────────────────── Cache Purge ───────────────────────────────
-function purgeCaches() {
-  const cacheFiles = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") || f === "feed-cache.json");
-  let removed = 0;
-  for (const file of cacheFiles) {
-    const fullPath = path.join(DATA_DIR, file);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-      removed++;
-    }
-  }
-  console.log(`🧹 [Purge] Removed ${removed} cached files.`);
-  return removed;
-}
-
-// ─────────────────────────────── Category Aggregator ───────────────────────────────
+// ─────────────────────────────── Aggregator ───────────────────────────────
 function aggregateCategoryFeeds() {
   const files = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") && f.endsWith(".json"));
   let aggregated = [];
@@ -138,9 +120,9 @@ function aggregateCategoryFeeds() {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
       aggregated = aggregated.concat(data);
-      console.log(`✅ Loaded ${data.length} from ${file.replace(".json","")}`);
+      console.log(`✅ Loaded ${data.length} from ${file}`);
     } catch (err) {
-      console.warn(`⚠️ Failed to read ${file}:`, err.message);
+      console.warn(`⚠️ Failed to parse ${file}: ${err.message}`);
     }
   }
   fs.writeFileSync(FEED_PATH, JSON.stringify(aggregated, null, 2), "utf8");
@@ -156,23 +138,34 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting refresh cycle @", new Date().toISOString());
 
-    if (force) {
-      console.log("⚠️ [Cron] Force refresh requested — purging caches first...");
-      purgeCaches();
+    // 0️⃣ Always ensure category feeds exist inside Render’s ephemeral FS
+    console.log("⚙️ [Cron] Running updateFeed.js to rebuild category feeds...");
+    try {
+      execSync("node scripts/updateFeed.js", { stdio: "inherit" });
+      console.log("✅ [Cron] Category feeds regenerated successfully.");
+    } catch (err) {
+      console.warn("⚠️ [Cron] updateFeed.js failed to execute:", err.message);
     }
 
-    // 1️⃣ Background AppSumo refresh
+    // 1️⃣ Optional cache purge (when force=1)
+    if (force) {
+      const files = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") || f === "feed-cache.json");
+      for (const f of files) fs.unlinkSync(path.join(DATA_DIR, f));
+      console.log(`🧹 [Purge] Removed ${files.length} cached files.`);
+    }
+
+    // 2️⃣ Background AppSumo refresh (non-blocking integrity check)
     await backgroundRefresh();
     console.log("✅ [Cron] Builder refresh complete");
 
-    // 2️⃣ Merge category JSONs → unified feed
-    let feed = aggregateCategoryFeeds();
+    // 3️⃣ Aggregate category JSONs → unified feed
+    const feed = aggregateCategoryFeeds();
 
-    // 3️⃣ Normalize unified feed
+    // 4️⃣ Normalize unified feed
     const normalized = normalizeFeed(feed);
     console.log(`🧹 [Cron] Feed normalized (${normalized.length})`);
 
-    // 4️⃣ Deduplicate
+    // 5️⃣ Deduplicate
     const seen = new Set();
     const deduped = normalized.filter((item) => {
       const key = sha1(item.slug || item.title);
@@ -181,32 +174,28 @@ export default async function handler(req, res) {
       return true;
     });
 
-    // 5️⃣ Enrich with CTAs + subtitles
+    // 6️⃣ Enrich with CTAs + subtitles
     let enriched = enrichDeals(deduped, "feed");
     enriched = ensureIntegrity(enriched);
     console.log(`✅ [Cron] Feed enriched (${enriched.length})`);
 
-    // 6️⃣ Apply SEO Integrity checks
+    // 7️⃣ SEO Integrity checks
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 [Cron] SEO Integrity check complete (${verified.length})`);
 
-    // 7️⃣ Merge with history
+    // 8️⃣ Merge with historical cache
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
-    console.log(
-      `🧬 [Cron] Feed merged (${merged.length} entries, ${
-        merged.filter((f) => f.archived).length
-      } archived)`
-    );
+    console.log(`🧬 [Cron] Feed merged (${merged.length} entries)`);
 
-    // 8️⃣ Silent insight refresh
+    // 9️⃣ Silent insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("✅ [Cron] Insight refresh complete");
 
-    // 9️⃣ CTA evolution
+    // 🔟 CTA evolution
     evolveCTAs();
     console.log("✅ [Cron] CTA evolution complete");
 
@@ -214,12 +203,12 @@ export default async function handler(req, res) {
     console.log(`✅ [Cron] Full cycle complete in ${duration} ms`);
 
     res.json({
-      message: force
-        ? "Force refresh: caches purged, categories rebuilt, and merged successfully."
-        : "Cycle triggered successfully.",
+      message: "Full refresh completed with automatic feed regeneration.",
       duration,
+      total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
+        "updateFeed(auto-run)",
         "cache-purge(optional)",
         "builder-refresh",
         "category-aggregate",
