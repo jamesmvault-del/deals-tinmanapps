@@ -1,8 +1,8 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.6 “Omni Feed Guardian + Sanctifier Prime+ Entropy Fix”
+// 🔁 TinmanApps Master Cron v3.7 “Cache Purge Guardian + Clean Start Protocol”
 // Ensures persistent normalization, enrichment, SEO verification, CTA evolution,
 // and historical merge with freshness and duplication control.
-// Integrates seoIntegrity() for metadata enrichment.
+// Adds: Automatic cache purge on ?force=1 for full refresh safety.
 
 import fs from "fs";
 import path from "path";
@@ -34,9 +34,7 @@ function sha1(s) {
 function ensureIntegrity(deals) {
   return deals.map((d) => {
     const title = d.title && d.title.trim().length > 2 ? d.title : smartTitle(d.slug);
-    const cta = d.seo?.cta?.trim?.()
-      ? d.seo.cta
-      : "Discover this offer →";
+    const cta = d.seo?.cta?.trim?.() ? d.seo.cta : "Discover this offer →";
     const subtitle = d.seo?.subtitle?.trim?.()
       ? d.seo.subtitle
       : "Explore a fresh deal designed to simplify your workflow.";
@@ -45,7 +43,6 @@ function ensureIntegrity(deals) {
 }
 
 // ─────────────────────────────── Merge Logic ───────────────────────────────
-// Fresh-first SEO priority with freshness gating and archive cleanup.
 function mergeWithHistory(newFeed) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
 
@@ -121,6 +118,30 @@ function mergeWithHistory(newFeed) {
   return cleaned;
 }
 
+// ─────────────────────────────── Cache Purge ───────────────────────────────
+function purgeCaches() {
+  const cacheFiles = [
+    "feed-cache.json",
+    "appsumo-web.json",
+    "appsumo-marketing.json",
+    "appsumo-courses.json",
+    "appsumo-productivity.json",
+    "appsumo-business.json",
+    "appsumo-ai.json",
+    "appsumo-software.json",
+  ];
+  let removed = 0;
+  for (const file of cacheFiles) {
+    const fullPath = path.join(DATA_DIR, file);
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+      removed++;
+    }
+  }
+  console.log(`🧹 [Purge] Removed ${removed} cached files.`);
+  return removed;
+}
+
 // ─────────────────────────────── Handler ───────────────────────────────
 export default async function handler(req, res) {
   const force = req.query.force === "1";
@@ -128,6 +149,12 @@ export default async function handler(req, res) {
 
   try {
     console.log("🔁 [Cron] Starting refresh cycle @", new Date().toISOString());
+
+    // 0️⃣ Optional cache purge (when force=1)
+    if (force) {
+      console.log("⚠️ [Cron] Force refresh requested — purging caches first...");
+      purgeCaches();
+    }
 
     // 1️⃣ Refresh AppSumo data
     await backgroundRefresh();
@@ -188,10 +215,14 @@ export default async function handler(req, res) {
     console.log(`✅ [Cron] Full cycle complete in ${duration} ms`);
 
     res.json({
-      message: "Cycle triggered in background.",
+      message: force
+        ? "Force refresh: caches purged and rebuilt successfully."
+        : "Cycle triggered in background.",
       duration,
       previousRun: new Date().toISOString(),
+      force,
       steps: [
+        "cache-purge(optional)",
         "builder",
         "feed-normalize",
         "feed-enrich",
