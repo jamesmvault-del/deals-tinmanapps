@@ -1,18 +1,16 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v6.4 “Chrome Self-Healing Edition”
+// TinmanApps Adaptive Feed Engine v7.0 “Render-Safe No-Browser Edition”
 // ───────────────────────────────────────────────────────────────────────────────
-// • Adds automatic Puppeteer browser installer (self-repair on cold boots)
-// • Integrates normalizeFeed() before and after enrichment
-// • Preserves existing CTAs/subtitles between updates (non-destructive)
-// • Detects new AppSumo products and archives missing ones
-// • Ensures fully clean, categorized, and stable feed-cache per category
+// • Removes Puppeteer entirely (no Chrome dependency; safe for Render dynos)
+// • Discovers products directly from AppSumo sitemaps (XML only)
+// • Fetches product pages via HTTP and extracts OG tags (title/image)
+// • Classifies into silos; normalizes, enriches with CTA Engine, and merges
+// • Preserves existing CTAs/subtitles; archives missing products
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { execSync } from "child_process";
-import puppeteer from "puppeteer";
 import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
@@ -20,85 +18,61 @@ import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 🧩 Puppeteer Chrome Self-Installer
-// ───────────────────────────────────────────────────────────────────────────────
-try {
-  const chromePath = "/opt/render/.cache/puppeteer/chrome";
-  if (!fs.existsSync(chromePath)) {
-    console.log("🧩 [updateFeed] Chrome not found — installing Puppeteer browser...");
-    execSync("npx puppeteer browsers install chrome", { stdio: "inherit" });
-    console.log("✅ [updateFeed] Chrome installed successfully.");
-  } else {
-    console.log("✅ [updateFeed] Chrome already available.");
-  }
-} catch (err) {
-  console.warn("⚠️ [updateFeed] Puppeteer install check failed:", err.message);
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
 // Paths & constants
 // ───────────────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
+
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-const MAX_PER_CATEGORY = 10;
-const DETAIL_CONCURRENCY = 6;
-const NAV_TIMEOUT_MS = 45000;
+// Tuning
+const MAX_PER_CATEGORY = 10;              // cap per silo written out
+const DETAIL_CONCURRENCY = 8;             // HTTP concurrency for product pages
+const PRODUCT_URL_HARD_CAP = 500;         // don’t pull more than this from sitemaps
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ───────────────────────────────────────────────────────────────────────────────
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-function ensureDir(p) { if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
-function writeJson(f, d) {
+function ensureDir(p) {
+  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+}
+function writeJson(file, data) {
   ensureDir(DATA_DIR);
-  fs.writeFileSync(path.join(DATA_DIR, f), JSON.stringify(d, null, 2));
+  fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2));
 }
-function readJsonSafe(f, fallback = []) {
-  try { return JSON.parse(fs.readFileSync(path.join(DATA_DIR, f), "utf8")); }
-  catch { return fallback; }
+function readJsonSafe(file, fallback = []) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
+  } catch {
+    return fallback;
+  }
 }
-function sha1(s) { return crypto.createHash("sha1").update(String(s)).digest("hex"); }
-function toSlug(url) {
-  const m = url?.match(/\/products\/([^/]+)\//i);
-  return m ? m[1] : null;
-}
-function proxied(src) {
-  return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(src)}`;
-}
-function tracked({ slug, cat, url }) {
-  const masked = REF_PREFIX + encodeURIComponent(url);
-  return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
-    slug
-  )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
-}
-function normalizeEntry({ slug, title, url, cat, image }) {
-  const safe = slug || toSlug(url) || title.toLowerCase().replace(/\s+/g, "-");
-  return {
-    title: title || safe,
-    slug: safe,
-    category: cat,
-    url,
-    referralUrl: tracked({ slug: safe, cat, url }),
-    image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
-  };
+function sha1(s) {
+  return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
 function dedupe(items) {
-  const seen = new Set(); const out = [];
+  const seen = new Set();
+  const out = [];
   for (const i of items) {
-    const k = sha1(i.slug || i.url || i.title);
-    if (!seen.has(k)) { seen.add(k); out.push(i); }
+    const k = sha1(i.url || i.slug || i.title);
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push(i);
+    }
   }
   return out;
 }
 async function fetchText(url) {
   const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.text();
+}
+function toSlug(url) {
+  const m = url?.match(/\/products\/([^/]+)\//i);
+  return m ? m[1] : null;
 }
 function extractOg(html) {
   const get = (p) =>
@@ -110,9 +84,46 @@ function extractOg(html) {
     image: get("og:image") || get("twitter:image"),
   };
 }
+function proxied(src) {
+  return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(src)}`;
+}
+function tracked({ slug, cat, url }) {
+  const masked = REF_PREFIX + encodeURIComponent(url);
+  return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
+    slug
+  )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
+}
+function normalizeEntry({ slug, title, url, cat, image }) {
+  const safeSlug = slug || toSlug(url) || (title || "").toLowerCase().replace(/\s+/g, "-");
+  return {
+    title: title || safeSlug,
+    slug: safeSlug,
+    category: cat,
+    url,
+    referralUrl: tracked({ slug: safeSlug, cat, url }),
+    image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
+  };
+}
+async function withConcurrency(items, limit, worker) {
+  const out = new Array(items.length);
+  let i = 0;
+  const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
+    while (true) {
+      const idx = i++;
+      if (idx >= items.length) return;
+      try {
+        out[idx] = await worker(items[idx], idx);
+      } catch (err) {
+        console.warn(`⚠️ worker ${idx} failed: ${err.message}`);
+      }
+    }
+  });
+  await Promise.all(runners);
+  return out.filter(Boolean);
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Silo Keywords
+// Silo Classification (keyword score based)
 // ───────────────────────────────────────────────────────────────────────────────
 const SILO_KEYWORDS = {
   ai: [" ai", "gpt", "automation", "autopilot", "assistant", "copilot", "bot", "agent", "llm", "chat", "voice ai"],
@@ -122,109 +133,128 @@ const SILO_KEYWORDS = {
   business: ["accounting", "finance", "invoice", "legal", "hr", "contract", "analytics", "report", "startup", "management", "client", "agency"],
   web: ["builder", "website", "landing", "design", "no-code", "hosting", "frontend", "cms", "theme", "plugin", "webapp"],
 };
-
-// ───────────────────────────────────────────────────────────────────────────────
-async function discoverCollections() {
-  const set = new Set();
-  try {
-    const xml = await fetchText("https://appsumo.com/sitemap.xml");
-    const parsed = await parseStringPromise(xml);
-    const urls = parsed?.urlset?.url?.map((u) => u.loc[0]) || [];
-    urls.forEach((u) => { if (u.includes("/software/")) set.add(u.replace(/\/$/, "/")); });
-  } catch {}
-  set.add("https://appsumo.com/software/");
-  return Array.from(set).slice(0, 100);
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-async function scrapeCollection(url, label) {
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-  });
-  const page = await browser.newPage();
-  let items = [];
-  try {
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
-    for (let i = 0; i < 8; i++) { await page.mouse.wheel({ deltaY: 1600 }); await sleep(400); }
-    items = await page.evaluate(() => {
-      const anchors = Array.from(document.querySelectorAll('a[href*="/products/"]'));
-      const seen = new Set(); const out = [];
-      for (const a of anchors) {
-        const href = a.getAttribute("href");
-        if (!href?.includes("/products/")) continue;
-        const abs = new URL(href, location.origin).toString().replace(/\/$/, "/");
-        if (seen.has(abs)) continue;
-        seen.add(abs);
-        let title =
-          a.getAttribute("title") ||
-          a.textContent ||
-          a.querySelector("h2,h3")?.textContent ||
-          "";
-        title = title.replace(/\s+/g, " ").trim();
-        out.push({ url: abs, title });
-      }
-      return out;
-    });
-  } catch (err) {
-    console.warn(`⚠️ scrape failed for ${label}: ${err.message}`);
-  }
-  await browser.close();
-  console.log(`📥 ${label}: scraped ${items.length} items`);
-  return items;
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
 function classify(title, url) {
   const text = `${title} ${url}`.toLowerCase();
   let best = "software";
-  let maxScore = 0;
+  let max = 0;
   for (const [silo, keys] of Object.entries(SILO_KEYWORDS)) {
     let score = 0;
     for (const k of keys) if (text.includes(k)) score++;
-    if (score > maxScore) { maxScore = score; best = silo; }
+    if (score > max) {
+      max = score;
+      best = silo;
+    }
   }
   if (/\/courses?-/.test(url)) best = "courses";
   return best;
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-async function fetchDetail(item, cat) {
+// Sitemap Discovery (no JS, pure XML fetch)
+// ───────────────────────────────────────────────────────────────────────────────
+async function discoverProductUrls() {
+  const productUrls = new Set();
+
+  // 1) Fetch root sitemap (may be <urlset> or <sitemapindex>)
+  let root;
   try {
-    const html = await fetchText(item.url);
+    const xml = await fetchText("https://appsumo.com/sitemap.xml");
+    root = await parseStringPromise(xml);
+  } catch (err) {
+    console.warn("⚠️ sitemap.xml fetch/parse failed:", err.message);
+    root = null;
+  }
+
+  // 2) Collect candidates to crawl
+  const toCrawl = new Set();
+
+  // If root is a sitemap index
+  const indexEntries = root?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) || [];
+  indexEntries.forEach((u) => toCrawl.add(u));
+
+  // If root is a plain urlset, also read it
+  const urlEntries = root?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) || [];
+  urlEntries.forEach((u) => toCrawl.add(u));
+
+  // Always include a few known sitemaps (defensive)
+  [
+    "https://appsumo.com/sitemap.xml",
+    "https://appsumo.com/sitemap_index.xml",
+    "https://appsumo.com/sitemap-products.xml",
+    "https://appsumo.com/sitemap-products1.xml",
+    "https://appsumo.com/sitemap_products.xml",
+    "https://appsumo.com/software/",
+  ].forEach((u) => toCrawl.add(u));
+
+  // 3) Crawl each XML that looks like a sitemap; collect /products/... pages
+  for (const url of Array.from(toCrawl)) {
+    if (!/sitemap/i.test(url)) continue; // only try XML sitemaps here
+    try {
+      const xml = await fetchText(url);
+      const parsed = await parseStringPromise(xml);
+      const urls =
+        parsed?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) ||
+        parsed?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) ||
+        [];
+      for (const loc of urls) {
+        if (typeof loc === "string" && /\/products\/[^/]+\/$/i.test(loc)) {
+          productUrls.add(loc);
+          if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+        }
+      }
+    } catch {
+      // silently continue
+    }
+    if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+  }
+
+  // If still empty (some sites lock sitemaps), do a very small HTML fallback:
+  // try the main /software/ page and pick hrefs that include /products/
+  if (productUrls.size === 0) {
+    try {
+      const html = await fetchText("https://appsumo.com/software/");
+      const matches = Array.from(
+        html.matchAll(/href=["'](https?:\/\/[^"']*\/products\/[^"']*\/)["']/gi)
+      ).map((m) => m[1].replace(/\/+$/, "/"));
+      for (const u of matches) {
+        productUrls.add(u);
+        if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const list = Array.from(productUrls).slice(0, PRODUCT_URL_HARD_CAP);
+  console.log(`🧭 Discovered ${list.length} product URLs from sitemaps.`);
+  return list;
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Detail Fetch (HTTP only, no JS execution)
+// ───────────────────────────────────────────────────────────────────────────────
+async function fetchDetail(url) {
+  const slug = toSlug(url);
+  try {
+    const html = await fetchText(url);
     const og = extractOg(html);
-    const slug = toSlug(item.url);
     return normalizeEntry({
       slug,
-      title: (og.title || item.title || slug || "").split(/\s*[-–—]\s*/)[0].trim(),
-      url: item.url,
-      cat,
+      title: (og.title || "").split(/\s*[-–—]\s*/)[0].trim(),
+      url,
+      cat: classify(og.title || "", url),
       image: og.image,
     });
   } catch {
-    const slug = toSlug(item.url);
+    // Fallback with minimal info
     return normalizeEntry({
       slug,
-      title: (item.title || slug || "").split(/\s*[-–—]\s*/)[0].trim(),
-      url: item.url,
-      cat,
+      title: (slug || "").replace(/[-_]/g, " "),
+      url,
+      cat: classify(slug || "", url),
       image: null,
     });
   }
-}
-async function withConcurrency(items, limit, worker) {
-  const out = new Array(items.length);
-  let i = 0;
-  const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
-    while (true) {
-      const idx = i++;
-      if (idx >= items.length) return;
-      try { out[idx] = await worker(items[idx], idx); }
-      catch (err) { console.error(`❌ worker ${idx}:`, err.message); }
-    }
-  });
-  await Promise.all(runners);
-  return out.filter(Boolean);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -258,46 +288,66 @@ function mergeWithHistory(cat, fresh) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
+// Main
+// ───────────────────────────────────────────────────────────────────────────────
 async function main() {
-  const engine = createCtaEngine();
+  // Ensure data dir exists early
+  ensureDir(DATA_DIR);
+
+  // Init CTA Engine to guarantee availability of templates
+  createCtaEngine();
   console.log("✅ CTA Engine ready");
-  console.log("⏳ Discovering live AppSumo collections…");
-  const collections = await discoverCollections();
 
-  const harvested = [];
-  for (const url of collections) {
-    const label = url.split("/").filter(Boolean).pop();
-    const items = await scrapeCollection(url, label);
-    for (const it of items) harvested.push({ ...it, source: url });
-  }
+  console.log("⏳ Discovering products from AppSumo sitemaps (no-browser) …");
+  const productUrls = await discoverProductUrls();
 
-  const withSlugs = harvested.map((x) => ({ ...x, slug: toSlug(x.url) })).filter((x) => x.slug);
-  const unique = dedupe(withSlugs);
-  console.log(`🧩 ${unique.length} unique deals harvested.`);
+  // Fetch details with concurrency
+  const details = await withConcurrency(productUrls, DETAIL_CONCURRENCY, fetchDetail);
+  const unique = dedupe(details);
+  console.log(`🧩 ${unique.length} unique products resolved.`);
 
-  const silos = { ai: [], marketing: [], courses: [], productivity: [], business: [], web: [], software: [] };
+  // Bucket into silos
+  const silos = {
+    ai: [],
+    marketing: [],
+    courses: [],
+    productivity: [],
+    business: [],
+    web: [],
+    software: [],
+  };
   for (const item of unique) {
-    const cat = classify(item.title, item.url);
-    silos[cat].push(item);
+    const cat = item.category || classify(item.title, item.url);
+    if (silos[cat]) silos[cat].push(item);
+    else silos.software.push(item);
   }
 
+  // Normalize, enrich, merge, and write per silo
   for (const [cat, arr] of Object.entries(silos)) {
-    if (arr.length > 0) {
-      const details = await withConcurrency(arr.slice(0, MAX_PER_CATEGORY), DETAIL_CONCURRENCY, (x) => fetchDetail(x, cat));
-      let cleaned = normalizeFeed(details);
-      cleaned = enrichDeals(cleaned, cat);
-      const merged = mergeWithHistory(cat, cleaned);
-      console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
-      writeJson(`appsumo-${cat}.json`, merged);
-    } else {
+    if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
       console.log(`♻️ ${cat}: using cached data (${cached.length})`);
+      continue;
     }
+
+    // Normalize & enrich
+    let cleaned = normalizeFeed(arr);
+    // Limit per category for stability & page weight
+    cleaned = cleaned.slice(0, MAX_PER_CATEGORY);
+    cleaned = enrichDeals(cleaned, cat);
+
+    // Merge with history
+    const merged = mergeWithHistory(cat, cleaned);
+    console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
+
+    // Persist
+    writeJson(`appsumo-${cat}.json`, merged);
   }
 
-  console.log("\n✨ All silos refreshed (v6.4 Chrome Self-Healing Edition).");
+  console.log("\n✨ All silos refreshed (v7.0 Render-Safe No-Browser Edition).");
 }
 
+// Execute
 main().catch((err) => {
   console.error("Fatal updateFeed error:", err);
   process.exit(1);
