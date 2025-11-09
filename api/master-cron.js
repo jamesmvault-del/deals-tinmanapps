@@ -1,7 +1,7 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.9 “Render-Safe Autonomous Edition”
-// Self-contained cron pipeline for Render ephemeral environments.
-// Auto-runs updateFeed.js before aggregation to rebuild category feeds dynamically.
+// 🔁 TinmanApps Master Cron v4.0 “Autonomous Path-Stabilized Edition”
+// Fully self-contained for Render ephemeral environments.
+// Auto-runs updateFeed.js from an absolute path to rebuild category feeds dynamically.
 
 import fs from "fs";
 import path from "path";
@@ -114,7 +114,7 @@ function mergeWithHistory(newFeed) {
 
 // ─────────────────────────────── Aggregator ───────────────────────────────
 function aggregateCategoryFeeds() {
-  const files = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") && f.endsWith(".json"));
+  const files = fs.readdirSync(DATA_DIR).filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
   let aggregated = [];
   for (const file of files) {
     try {
@@ -139,9 +139,10 @@ export default async function handler(req, res) {
     console.log("🔁 [Cron] Starting refresh cycle @", new Date().toISOString());
 
     // 0️⃣ Always ensure category feeds exist inside Render’s ephemeral FS
+    const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     console.log("⚙️ [Cron] Running updateFeed.js to rebuild category feeds...");
     try {
-      execSync("node scripts/updateFeed.js", { stdio: "inherit" });
+      execSync(`node ${updateFeedPath}`, { stdio: "inherit" });
       console.log("✅ [Cron] Category feeds regenerated successfully.");
     } catch (err) {
       console.warn("⚠️ [Cron] updateFeed.js failed to execute:", err.message);
@@ -149,12 +150,12 @@ export default async function handler(req, res) {
 
     // 1️⃣ Optional cache purge (when force=1)
     if (force) {
-      const files = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") || f === "feed-cache.json");
+      const files = fs.readdirSync(DATA_DIR).filter((f) => f.startsWith("appsumo-") || f === "feed-cache.json");
       for (const f of files) fs.unlinkSync(path.join(DATA_DIR, f));
       console.log(`🧹 [Purge] Removed ${files.length} cached files.`);
     }
 
-    // 2️⃣ Background AppSumo refresh (non-blocking integrity check)
+    // 2️⃣ Background AppSumo refresh
     await backgroundRefresh();
     console.log("✅ [Cron] Builder refresh complete");
 
@@ -183,12 +184,12 @@ export default async function handler(req, res) {
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 [Cron] SEO Integrity check complete (${verified.length})`);
 
-    // 8️⃣ Merge with historical cache
+    // 8️⃣ Merge with history
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
     console.log(`🧬 [Cron] Feed merged (${merged.length} entries)`);
 
-    // 9️⃣ Silent insight refresh
+    // 9️⃣ Insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
@@ -203,12 +204,12 @@ export default async function handler(req, res) {
     console.log(`✅ [Cron] Full cycle complete in ${duration} ms`);
 
     res.json({
-      message: "Full refresh completed with automatic feed regeneration.",
+      message: "Full refresh completed with absolute path feed regeneration.",
       duration,
       total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
-        "updateFeed(auto-run)",
+        "updateFeed(auto-run, absolute path)",
         "cache-purge(optional)",
         "builder-refresh",
         "category-aggregate",
