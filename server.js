@@ -2,10 +2,34 @@
 // TinmanApps — Deal Engine Master Server
 // Handles API routes, category rendering, CTR logging, adaptive SEO endpoints,
 // and live learning dashboards for performance tracking.
+//
+// v3.8 “Self-Healing Puppeteer Edition”
+// ───────────────────────────────────────────────────────────────────────────────
+// Adds: Auto Chrome installer for Puppeteer to fix “Could not find Chrome” errors
+// Ensures Render cold restarts can rebuild Puppeteer’s Chromium cache automatically.
+// ───────────────────────────────────────────────────────────────────────────────
 
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
+import { execSync } from "child_process";
+
+// ───────────────────────────────────────────────────────────────────────────────
+// 🧩 Puppeteer Self-Healing Chrome Installer
+// ───────────────────────────────────────────────────────────────────────────────
+try {
+  const chromePath = "/opt/render/.cache/puppeteer/chrome";
+  if (!fs.existsSync(chromePath)) {
+    console.log("🧩 [Startup] Chrome not found — installing Puppeteer browser…");
+    execSync("npx puppeteer browsers install chrome", { stdio: "inherit" });
+    console.log("✅ [Startup] Chrome installed successfully.");
+  } else {
+    console.log("✅ [Startup] Chrome already available.");
+  }
+} catch (err) {
+  console.warn("⚠️ [Startup] Puppeteer install check failed:", err.message);
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // CORE API ENDPOINTS
