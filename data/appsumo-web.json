@@ -1,5 +1,145 @@
 [
   {
+    "title": "SelfCAD",
+    "slug": "selfcad",
+    "category": "web",
+    "link": "https://appsumo.com/products/selfcad/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-SelfCad.png",
+    "description": null,
+    "seo": {
+      "cta": "Run your operations →",
+      "subtitle": "simplifies to operations and repetitive tasks through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "Stackby",
+    "slug": "stackby",
+    "category": "web",
+    "link": "https://appsumo.com/products/stackby/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Stackby_-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter platforms →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "Kadence",
+    "slug": "kadence",
+    "category": "web",
+    "link": "https://appsumo.com/products/kadence/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F9b8e788f-f571-4b9c-84fa-118860a4908d.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify operations →",
+      "subtitle": "delivers to clarity, speed, and performance within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "CrawlWP",
+    "slug": "crawlwp",
+    "category": "web",
+    "link": "https://appsumo.com/products/crawlwp/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-CrawlWP-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Run your platforms →",
+      "subtitle": "simplifies to operations and repetitive tasks within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "BouncePage",
+    "slug": "bouncepage",
+    "category": "web",
+    "link": "https://appsumo.com/products/bouncepage/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BouncePage_-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify your workflows →",
+      "subtitle": "delivers to clarity, speed, and performance through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "MonSpark",
+    "slug": "monspark",
+    "category": "web",
+    "link": "https://appsumo.com/products/monspark/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-REGULAR-web-Monspark_16_9_uuid_78c81b33-acc1-4432-9347-fbd82ff61f91.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your operations →",
+      "subtitle": "simplifies to operations and repetitive tasks across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "Adobe Animate",
+    "slug": "adobe-animate",
+    "category": "web",
+    "link": "https://appsumo.com/products/adobe-animate/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F0686bc5a-c9ac-49ba-a986-273e438818c5.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter platforms →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "Hotjar",
+    "slug": "hotjar",
+    "category": "web",
+    "link": "https://appsumo.com/products/hotjar/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F5ccf5aef-dcef-4dbf-87e8-645f3c1ac18d.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "BackupGuard WordPress Plugin",
+    "slug": "backupguard-wordpress-plugin-2021",
+    "category": "web",
+    "link": "https://appsumo.com/products/backupguard-wordpress-plugin-2021/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-_BackupGuard2x.jpg",
+    "description": null,
+    "seo": {
+      "cta": "Automate your tasks →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
+    "title": "Visme",
+    "slug": "visme",
+    "category": "web",
+    "link": "https://appsumo.com/products/visme/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F1f38da46-7b18-42c4-9140-e160cba985aa.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your operations →",
+      "subtitle": "delivers to clarity, speed, and performance through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.757Z",
+    "archived": false
+  },
+  {
     "title": "FormDesigner",
     "slug": "formdesigner",
     "category": "web",
@@ -11,7 +151,7 @@
       "subtitle": "helps teams move faster and smarter across your operations."
     },
     "normalizedAt": "2025-11-09T03:36:36.986Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Share My Image (Image Hosting)",
@@ -25,7 +165,7 @@
       "subtitle": "helps teams move faster and smarter through your digital systems."
     },
     "normalizedAt": "2025-11-09T03:36:36.986Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Bit Form",
@@ -39,7 +179,7 @@
       "subtitle": "helps teams move faster and smarter across your tech workflows."
     },
     "normalizedAt": "2025-11-09T03:36:36.986Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Visitor Tracking",
@@ -53,7 +193,7 @@
       "subtitle": "simplifies operations and repetitive tasks across your tech workflows."
     },
     "normalizedAt": "2025-11-09T03:36:36.986Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "DarkMySite",
@@ -67,6 +207,6 @@
       "subtitle": "helps teams move faster and smarter within your automation stack."
     },
     "normalizedAt": "2025-11-09T03:36:36.986Z",
-    "archived": false
+    "archived": true
   }
 ]

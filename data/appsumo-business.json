@@ -1,5 +1,145 @@
 [
   {
+    "title": "ThriveCart",
+    "slug": "thrivecart",
+    "category": "business",
+    "link": "https://appsumo.com/products/thrivecart/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F3de0358f-11dc-4f6f-9ec9-2e8b43d4d59d.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify your systems →",
+      "subtitle": "boosts conversions and simplifies to sales for your customers' journey."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Bench Accounting",
+    "slug": "bench-accounting",
+    "category": "business",
+    "link": "https://appsumo.com/products/bench-accounting/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F6f196bf1-7876-4b31-ba17-f280d998e403.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify systems →",
+      "subtitle": "delivers to clarity, speed, and performance across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Superdocu",
+    "slug": "superdocu",
+    "category": "business",
+    "link": "https://appsumo.com/products/superdocu/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Superdocu.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter platforms →",
+      "subtitle": "delivers to clarity, speed, and performance within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Agency Maestro",
+    "slug": "agency-maestro",
+    "category": "business",
+    "link": "https://appsumo.com/products/agency-maestro/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-agency_maestro2x.png",
+    "description": null,
+    "seo": {
+      "cta": "Scale your teams →",
+      "subtitle": "simplifies to collaboration and scale for your teams and pipelines."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Skyblue Analytics",
+    "slug": "skyblue-analytics",
+    "category": "business",
+    "link": "https://appsumo.com/products/skyblue-analytics/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F44808063-3a06-4ab0-ba7d-7fc1306c3a5d.png",
+    "description": null,
+    "seo": {
+      "cta": "Scale your teams →",
+      "subtitle": "drives consistent results for every team for your teams and pipelines."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "ShareDocView",
+    "slug": "sharedocview",
+    "category": "business",
+    "link": "https://appsumo.com/products/sharedocview/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-ShareDocView.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify operations →",
+      "subtitle": "helps teams move faster and smarter through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "ClientFol.Io",
+    "slug": "clientfolio",
+    "category": "business",
+    "link": "https://appsumo.com/products/clientfolio/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FHeader_DXUkhKP.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter operations →",
+      "subtitle": "simplifies to collaboration and scale for your teams and pipelines."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Werk",
+    "slug": "werk",
+    "category": "business",
+    "link": "https://appsumo.com/products/werk/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Werk.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify your systems →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Parma",
+    "slug": "parma",
+    "category": "business",
+    "link": "https://appsumo.com/products/parma/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Parma-_1920_1080.png",
+    "description": null,
+    "seo": {
+      "cta": "Run your workflows →",
+      "subtitle": "delivers to clarity, speed, and performance across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "SiteBehaviour",
+    "slug": "sitebehaviour",
+    "category": "business",
+    "link": "https://appsumo.com/products/sitebehaviour/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-SiteBehaviour_-_16_9_uuid_d3736c28-46df-4f52-b7ec-766d128b0de9.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter workflows →",
+      "subtitle": "delivers to clarity, speed, and performance across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
     "title": "Chrome Tab Reminder",
     "slug": "chrome-tab-reminder",
     "category": "business",
@@ -11,7 +151,7 @@
       "subtitle": "helps teams move faster and smarter across your tech workflows."
     },
     "normalizedAt": "2025-11-09T03:36:36.406Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "AgencyPro",
@@ -25,7 +165,7 @@
       "subtitle": "drives consistent results for every team for your teams and pipelines."
     },
     "normalizedAt": "2025-11-09T03:36:36.406Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Scoop Analytics",
@@ -39,6 +179,6 @@
       "subtitle": "simplifies to collaboration and scale within your organizational systems."
     },
     "normalizedAt": "2025-11-09T03:36:36.406Z",
-    "archived": false
+    "archived": true
   }
 ]

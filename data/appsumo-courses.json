@@ -1,5 +1,145 @@
 [
   {
+    "title": "Antler Launch Academy",
+    "slug": "antler-launch-academy",
+    "category": "courses",
+    "link": "https://appsumo.com/products/antler-launch-academy/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-AntlerLaunchAcademy.jpg",
+    "description": null,
+    "seo": {
+      "cta": "Level up your skills →",
+      "subtitle": "guides you through learning learning learning and mastery within your learning…"
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Payhip",
+    "slug": "payhip",
+    "category": "courses",
+    "link": "https://appsumo.com/products/payhip/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F2ffe0286-3c18-4368-bc82-5c2950eafa22.png",
+    "description": null,
+    "seo": {
+      "cta": "Run your workflows →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Elite Learning",
+    "slug": "elite-learning",
+    "category": "courses",
+    "link": "https://appsumo.com/products/elite-learning/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F9709f2a9-9bff-45e4-b334-e1fb1bc552eb.png",
+    "description": null,
+    "seo": {
+      "cta": "Master your skills →",
+      "subtitle": "makes skill growth effortless and engaging within your process."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Sumo",
+    "slug": "sumosize-your-success-course",
+    "category": "courses",
+    "link": "https://appsumo.com/products/sumosize-your-success-course/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fsumo-size-deal.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter operations →",
+      "subtitle": "simplifies to operations and repetitive tasks across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Persona Music",
+    "slug": "persona-music",
+    "category": "courses",
+    "link": "https://appsumo.com/products/persona-music/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-REGULAR-web-PersonaMusic__16_9_uuid_7a094a6b-fe5f-49a8-b891-066cdbbf642d.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify systems →",
+      "subtitle": "delivers to clarity, speed, and performance through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Go4clic",
+    "slug": "go4clic",
+    "category": "courses",
+    "link": "https://appsumo.com/products/go4clic/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Go4Clic.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter operations →",
+      "subtitle": "helps teams move faster and smarter through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "Heights Platform",
+    "slug": "heights-platform",
+    "category": "courses",
+    "link": "https://appsumo.com/products/heights-platform/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Heights_Platform_1.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks through your digital systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "BrainCert",
+    "slug": "braincert",
+    "category": "courses",
+    "link": "https://appsumo.com/products/braincert/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BrainCert_-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your operations →",
+      "subtitle": "delivers to next-level performance through automation for your workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "How To Make A $1,000 A Month Business Course",
+    "slug": "monthly1k",
+    "category": "courses",
+    "link": "https://appsumo.com/products/monthly1k/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-monthly1k.jpg",
+    "description": null,
+    "seo": {
+      "cta": "Grow your store →",
+      "subtitle": "guides you through learning learning learning and mastery for your creation…"
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
+    "title": "White Linen Canva Coaching &Amp; Service Provider Template Bundle",
+    "slug": "white-linen-canva-coaching-service-provider-template-bu",
+    "category": "courses",
+    "link": "https://appsumo.com/products/white-linen-canva-coaching-service-provider-template-bu/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F38fe77f8-96af-4bec-a3a6-a3e3e0e1a846.jpg",
+    "description": null,
+    "seo": {
+      "cta": "Automate your tasks →",
+      "subtitle": "simplifies to operations and repetitive tasks within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.755Z",
+    "archived": false
+  },
+  {
     "title": "Notion Template Creator Dashboard",
     "slug": "notion-template-creator-dashboard",
     "category": "courses",
@@ -11,7 +151,7 @@
       "subtitle": "helps teams move faster and smarter within your automation stack."
     },
     "normalizedAt": "2025-11-09T03:36:35.277Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Skillplate",
@@ -25,7 +165,7 @@
       "subtitle": "simplifies to operations and repetitive tasks across your operations."
     },
     "normalizedAt": "2025-11-09T03:36:35.277Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "OnlineCourseHost.Com",
@@ -39,7 +179,7 @@
       "subtitle": "makes skill growth effortless and engaging within your learning process."
     },
     "normalizedAt": "2025-11-09T03:36:35.277Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Open ELMS Learning Generator",
@@ -53,7 +193,7 @@
       "subtitle": "guides you through and mastery through guided learning."
     },
     "normalizedAt": "2025-11-09T03:36:35.277Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Learniverse",
@@ -67,6 +207,6 @@
       "subtitle": "simplifies to operations and repetitive tasks through your digital systems."
     },
     "normalizedAt": "2025-11-09T03:36:35.277Z",
-    "archived": false
+    "archived": true
   }
 ]

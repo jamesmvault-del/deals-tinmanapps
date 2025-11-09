@@ -1,5 +1,19 @@
 [
   {
+    "title": "Multimedia5",
+    "slug": "multimedia5-2020",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/multimedia5-2020/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Multimedia5_467YJRY.jpg",
+    "description": null,
+    "seo": {
+      "cta": "Streamline routines →",
+      "subtitle": "boosts clarity and daily consistency within your habits."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
     "title": "Trackabi Time Tracker App",
     "slug": "marketplace-trackabi",
     "category": "productivity",
@@ -7,10 +21,122 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Ff98d1f0d-c842-4500-b53f-fcafa9512d16.png",
     "description": null,
     "seo": {
-      "cta": "Organize your projects →",
-      "subtitle": "boosts clarity and daily consistency in your daily workflows."
+      "cta": "Organize your workflows →",
+      "subtitle": "boosts clarity and daily consistency across your routines."
     },
-    "normalizedAt": "2025-11-09T03:36:35.888Z",
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Toggl Track",
+    "slug": "toggl-track",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/toggl-track/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F40b6bc48-2ed5-47cf-a713-036308c9a2de.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter operations →",
+      "subtitle": "delivers clarity, speed, and performance within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Jira",
+    "slug": "jira",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/jira/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F0331d6c4-d5d8-4dfb-8316-0a7f6685f082.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your workflows →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "WebMOBI",
+    "slug": "webmobi",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/webmobi/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Webmobi.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your tasks →",
+      "subtitle": "helps teams move faster and smarter across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Spark Mail",
+    "slug": "spark-mail",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/spark-mail/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F4cde7227-c74d-4427-9c24-da5583394ff4.png",
+    "description": null,
+    "seo": {
+      "cta": "Build your systems →",
+      "subtitle": "turns manual work into intelligent automation across your intelligent systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Pond5",
+    "slug": "pond5",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/pond5/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F57ed5b70-0382-48ef-8231-7ca21637a7ba.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Wrike",
+    "slug": "wrike",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/wrike/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F78ed56d6-d130-447e-8432-17e3d85dcb7a.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify systems →",
+      "subtitle": "helps teams move faster and smarter across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "Sidekick Browser",
+    "slug": "sidekick",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/sidekick/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Sidekick_Browser_-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify your workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
+    "archived": false
+  },
+  {
+    "title": "BOOKM",
+    "slug": "bookm",
+    "category": "productivity",
+    "link": "https://appsumo.com/products/bookm/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-BOOKM-_169.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify operations →",
+      "subtitle": "helps teams move faster and smarter across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.756Z",
     "archived": false
   },
   {
@@ -25,7 +151,7 @@
       "subtitle": "drives consistent results for every within your organizational systems."
     },
     "normalizedAt": "2025-11-09T03:36:35.888Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Meeting Reminders",
@@ -39,7 +165,7 @@
       "subtitle": "helps teams move faster and smarter within your automation stack."
     },
     "normalizedAt": "2025-11-09T03:36:35.888Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Focusmate Private Group Access",
@@ -53,7 +179,7 @@
       "subtitle": "boosts clarity and daily consistency in your daily workflows."
     },
     "normalizedAt": "2025-11-09T03:36:35.888Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Vivomeetings",
@@ -67,7 +193,7 @@
       "subtitle": "delivers to clarity, speed, and performance through your digital systems."
     },
     "normalizedAt": "2025-11-09T03:36:35.888Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "WP Scheduled Posts",
@@ -81,6 +207,6 @@
       "subtitle": "delivers to clarity, speed, and performance through your digital systems."
     },
     "normalizedAt": "2025-11-09T03:36:35.888Z",
-    "archived": false
+    "archived": true
   }
 ]

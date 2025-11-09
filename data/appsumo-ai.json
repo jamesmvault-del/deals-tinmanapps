@@ -1,5 +1,145 @@
 [
   {
+    "title": "Hipclip",
+    "slug": "hipclip",
+    "category": "ai",
+    "link": "https://appsumo.com/products/hipclip/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Hipclip-_1920_1080.png",
+    "description": null,
+    "seo": {
+      "cta": "Run smarter operations →",
+      "subtitle": "delivers to clarity, speed, and performance within your automation stack."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Speechki",
+    "slug": "speechki",
+    "category": "ai",
+    "link": "https://appsumo.com/products/speechki/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Speechki_-_16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your tasks →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Timetics",
+    "slug": "timetics",
+    "category": "ai",
+    "link": "https://appsumo.com/products/timetics/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Timetics-_1920_1080.png",
+    "description": null,
+    "seo": {
+      "cta": "Reclaim your →",
+      "subtitle": "keeps you focused and efficient every day through your productivity systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Kroto",
+    "slug": "kroto",
+    "category": "ai",
+    "link": "https://appsumo.com/products/kroto/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Kroto_-_16_9_JcDnUPI_uuid_005ac934-1756-4cb0-ba88-cd1b4d01d00d.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify your operations →",
+      "subtitle": "helps teams move faster and smarter across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Petrova AI",
+    "slug": "petrova-ai",
+    "category": "ai",
+    "link": "https://appsumo.com/products/petrova-ai/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-Header-Petrova_AI-16_9.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your workflows →",
+      "subtitle": "delivers to next-level performance through automation across your intelligent…"
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Agent23.AI Chatbot",
+    "slug": "agent23ai-chatbot",
+    "category": "ai",
+    "link": "https://appsumo.com/products/agent23ai-chatbot/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F37be7922-640e-4622-8b83-a6c3eb994017.png",
+    "description": null,
+    "seo": {
+      "cta": "Streamline automation intelligently →",
+      "subtitle": "helps you build smarter, faster systems for your workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "BotStar",
+    "slug": "botstar",
+    "category": "ai",
+    "link": "https://appsumo.com/products/botstar/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-botstar2x.png",
+    "description": null,
+    "seo": {
+      "cta": "Simplify workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Sidekick Ai",
+    "slug": "sidekick-ai-sl",
+    "category": "ai",
+    "link": "https://appsumo.com/products/sidekick-ai-sl/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FSK_main.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your tasks →",
+      "subtitle": "turns manual work into intelligent automation across your intelligent systems."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "Let&#X27;S Connect",
+    "slug": "lets-connect",
+    "category": "ai",
+    "link": "https://appsumo.com/products/lets-connect/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-Lets_Connect.png",
+    "description": null,
+    "seo": {
+      "cta": "Run your operations →",
+      "subtitle": "simplifies to operations and repetitive tasks across your operations."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
+    "title": "LouiseBot",
+    "slug": "louisebot",
+    "category": "ai",
+    "link": "https://appsumo.com/products/louisebot/",
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-LouiseBot-_16_9_uuid_f0044181-67e0-4377-a2f4-90285e379f93.png",
+    "description": null,
+    "seo": {
+      "cta": "Automate your workflows →",
+      "subtitle": "simplifies to operations and repetitive tasks across your tech workflows."
+    },
+    "normalizedAt": "2025-11-09T04:06:32.749Z",
+    "archived": false
+  },
+  {
     "title": "XInterview AI",
     "slug": "xinterview",
     "category": "ai",
@@ -11,7 +151,7 @@
       "subtitle": "helps you build smarter, faster systems for your workflows."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Logic Sheet",
@@ -25,7 +165,7 @@
       "subtitle": "helps teams move faster and smarter within your automation stack."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Stella AI",
@@ -39,7 +179,7 @@
       "subtitle": "helps you build smarter, faster systems through AI-powered automation."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Dorin AI",
@@ -53,7 +193,7 @@
       "subtitle": "delivers to next-level performance through automation for your workflows."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Nexuscale AI",
@@ -67,7 +207,7 @@
       "subtitle": "helps you build smarter, faster systems through AI-powered automation."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Unmixr AI",
@@ -81,7 +221,7 @@
       "subtitle": "helps you build smarter, faster systems through AI-powered automation."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Writecream",
@@ -95,7 +235,7 @@
       "subtitle": "delivers to clarity, speed, and performance through your digital systems."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "BerqWP",
@@ -109,7 +249,7 @@
       "subtitle": "delivers to clarity, speed, and performance across your tech workflows."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Affpilot AI",
@@ -123,7 +263,7 @@
       "subtitle": "delivers to next-level performance through automation through AI-powered…"
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "Writeseed",
@@ -137,7 +277,7 @@
       "subtitle": "helps teams move faster and smarter across your operations."
     },
     "normalizedAt": "2025-11-09T03:36:33.859Z",
-    "archived": false
+    "archived": true
   },
   {
     "title": "SheetMagic: ChatGPT + Google Sheets AI Integration",
