@@ -1,6 +1,7 @@
 // /scripts/updateFeed.js
-// TinmanApps Adaptive Feed Engine v6.3 “Persistent Intelligence Merge”
+// TinmanApps Adaptive Feed Engine v6.4 “Chrome Self-Healing Edition”
 // ───────────────────────────────────────────────────────────────────────────────
+// • Adds automatic Puppeteer browser installer (self-repair on cold boots)
 // • Integrates normalizeFeed() before and after enrichment
 // • Preserves existing CTAs/subtitles between updates (non-destructive)
 // • Detects new AppSumo products and archives missing ones
@@ -10,6 +11,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import puppeteer from "puppeteer";
 import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
@@ -17,6 +19,25 @@ import crypto from "crypto";
 import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 
+// ───────────────────────────────────────────────────────────────────────────────
+// 🧩 Puppeteer Chrome Self-Installer
+// ───────────────────────────────────────────────────────────────────────────────
+try {
+  const chromePath = "/opt/render/.cache/puppeteer/chrome";
+  if (!fs.existsSync(chromePath)) {
+    console.log("🧩 [updateFeed] Chrome not found — installing Puppeteer browser...");
+    execSync("npx puppeteer browsers install chrome", { stdio: "inherit" });
+    console.log("✅ [updateFeed] Chrome installed successfully.");
+  } else {
+    console.log("✅ [updateFeed] Chrome already available.");
+  }
+} catch (err) {
+  console.warn("⚠️ [updateFeed] Puppeteer install check failed:", err.message);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Paths & constants
+// ───────────────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
@@ -227,7 +248,6 @@ function mergeWithHistory(cat, fresh) {
     };
   });
 
-  // mark old ones not in new list
   for (const old of existing) {
     if (!merged.find((x) => x.slug === old.slug)) {
       merged.push({ ...old, archived: true });
@@ -262,7 +282,6 @@ async function main() {
   }
 
   for (const [cat, arr] of Object.entries(silos)) {
-    let recs = [];
     if (arr.length > 0) {
       const details = await withConcurrency(arr.slice(0, MAX_PER_CATEGORY), DETAIL_CONCURRENCY, (x) => fetchDetail(x, cat));
       let cleaned = normalizeFeed(details);
@@ -276,7 +295,7 @@ async function main() {
     }
   }
 
-  console.log("\n✨ All silos refreshed (v6.3 Persistent Intelligence Merge).");
+  console.log("\n✨ All silos refreshed (v6.4 Chrome Self-Healing Edition).");
 }
 
 main().catch((err) => {
