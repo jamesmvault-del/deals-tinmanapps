@@ -1,19 +1,18 @@
 // /api/master-cron.js
-// 🔁 TinmanApps Master Cron v3.7 “Cache Purge Guardian + Clean Start Protocol”
-// Ensures persistent normalization, enrichment, SEO verification, CTA evolution,
-// and historical merge with freshness and duplication control.
-// Adds: Automatic cache purge on ?force=1 for full refresh safety.
+// 🔁 TinmanApps Master Cron v3.8 “Autonomous Feed Integrator + Self-Merge Edition”
+// Ensures full pipeline autonomy: category silos → unified feed → enrichment → SEO integrity.
+// Adds: automatic merge of appsumo-*.json into feed-cache.json before enrichment.
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import crypto from "crypto";
 import { backgroundRefresh } from "../lib/proxyCache.js";
 import { evolveCTAs } from "../lib/ctaEvolver.js";
 import { enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import insightHandler from "./insight.js";
-import { fileURLToPath } from "url";
-import crypto from "crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,7 +92,6 @@ function mergeWithHistory(newFeed) {
     };
   });
 
-  // Add archived items not present in the new feed
   for (const old of oldFeed) {
     if (!merged.find((x) => x.slug === old.slug)) {
       merged.push({ ...old, archived: true });
@@ -101,7 +99,6 @@ function mergeWithHistory(newFeed) {
     }
   }
 
-  // Purge archived items older than 30 days
   const cutoff = now - 30 * DAY_MS;
   const cleaned = merged.filter((x) => {
     if (!x.archived) return true;
@@ -120,16 +117,7 @@ function mergeWithHistory(newFeed) {
 
 // ─────────────────────────────── Cache Purge ───────────────────────────────
 function purgeCaches() {
-  const cacheFiles = [
-    "feed-cache.json",
-    "appsumo-web.json",
-    "appsumo-marketing.json",
-    "appsumo-courses.json",
-    "appsumo-productivity.json",
-    "appsumo-business.json",
-    "appsumo-ai.json",
-    "appsumo-software.json",
-  ];
+  const cacheFiles = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") || f === "feed-cache.json");
   let removed = 0;
   for (const file of cacheFiles) {
     const fullPath = path.join(DATA_DIR, file);
@@ -142,6 +130,24 @@ function purgeCaches() {
   return removed;
 }
 
+// ─────────────────────────────── Category Aggregator ───────────────────────────────
+function aggregateCategoryFeeds() {
+  const files = fs.readdirSync(DATA_DIR).filter(f => f.startsWith("appsumo-") && f.endsWith(".json"));
+  let aggregated = [];
+  for (const file of files) {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
+      aggregated = aggregated.concat(data);
+      console.log(`✅ Loaded ${data.length} from ${file.replace(".json","")}`);
+    } catch (err) {
+      console.warn(`⚠️ Failed to read ${file}:`, err.message);
+    }
+  }
+  fs.writeFileSync(FEED_PATH, JSON.stringify(aggregated, null, 2), "utf8");
+  console.log(`✅ [Aggregator] Combined ${aggregated.length} deals → feed-cache.json`);
+  return aggregated;
+}
+
 // ─────────────────────────────── Handler ───────────────────────────────
 export default async function handler(req, res) {
   const force = req.query.force === "1";
@@ -150,30 +156,23 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting refresh cycle @", new Date().toISOString());
 
-    // 0️⃣ Optional cache purge (when force=1)
     if (force) {
       console.log("⚠️ [Cron] Force refresh requested — purging caches first...");
       purgeCaches();
     }
 
-    // 1️⃣ Refresh AppSumo data
+    // 1️⃣ Background AppSumo refresh
     await backgroundRefresh();
     console.log("✅ [Cron] Builder refresh complete");
 
-    // 2️⃣ Load or initialize feed
-    let feed = [];
-    if (fs.existsSync(FEED_PATH)) {
-      feed = JSON.parse(fs.readFileSync(FEED_PATH, "utf8"));
-      console.log(`📄 [Cron] Loaded ${feed.length} feed entries`);
-    } else {
-      console.warn("⚠️ [Cron] No existing feed found, initializing new cache.");
-    }
+    // 2️⃣ Merge category JSONs → unified feed
+    let feed = aggregateCategoryFeeds();
 
-    // 3️⃣ Normalize feed
+    // 3️⃣ Normalize unified feed
     const normalized = normalizeFeed(feed);
     console.log(`🧹 [Cron] Feed normalized (${normalized.length})`);
 
-    // 4️⃣ Deduplicate by slug/title hash
+    // 4️⃣ Deduplicate
     const seen = new Set();
     const deduped = normalized.filter((item) => {
       const key = sha1(item.slug || item.title);
@@ -182,16 +181,16 @@ export default async function handler(req, res) {
       return true;
     });
 
-    // 5️⃣ Enrich feed with CTAs/subtitles
+    // 5️⃣ Enrich with CTAs + subtitles
     let enriched = enrichDeals(deduped, "feed");
     enriched = ensureIntegrity(enriched);
     console.log(`✅ [Cron] Feed enriched (${enriched.length})`);
 
-    // 6️⃣ Apply SEO Integrity verification + metadata enrichment
+    // 6️⃣ Apply SEO Integrity checks
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 [Cron] SEO Integrity check complete (${verified.length})`);
 
-    // 7️⃣ Merge with historical data (fresh-first logic)
+    // 7️⃣ Merge with history
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2), "utf8");
     console.log(
@@ -200,14 +199,14 @@ export default async function handler(req, res) {
       } archived)`
     );
 
-    // 8️⃣ Run silent insight refresh
+    // 8️⃣ Silent insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("✅ [Cron] Insight refresh complete");
 
-    // 9️⃣ Run CTA evolution
+    // 9️⃣ CTA evolution
     evolveCTAs();
     console.log("✅ [Cron] CTA evolution complete");
 
@@ -216,14 +215,14 @@ export default async function handler(req, res) {
 
     res.json({
       message: force
-        ? "Force refresh: caches purged and rebuilt successfully."
-        : "Cycle triggered in background.",
+        ? "Force refresh: caches purged, categories rebuilt, and merged successfully."
+        : "Cycle triggered successfully.",
       duration,
       previousRun: new Date().toISOString(),
-      force,
       steps: [
         "cache-purge(optional)",
-        "builder",
+        "builder-refresh",
+        "category-aggregate",
         "feed-normalize",
         "feed-enrich",
         "seo-integrity",
