@@ -1,14 +1,15 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v4.3 “Deterministic Self-Healing Edition”
+ * TinmanApps Master Cron v4.4 “Archive-Safe Deterministic”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ Always runs updateFeed.js FIRST (absolute path, Render-safe)
+ * ✅ Always runs scripts/updateFeed.js FIRST (absolute path, Render-safe)
  * ✅ Never deletes category files (appsumo-*.json)
  * ✅ Optional purge ONLY deletes feed-cache.json (never categories)
- * ✅ Guaranteed non-empty feed
- * ✅ CTA evolution separate from updateFeed (no conflicts)
- * ✅ Merges SEO history cleanly (cta, subtitle, keywords, clickbait)
- * ✅ Full pipeline stability on Render ephemeral FS
+ * ✅ Clean aggregation from appsumo-*.json → feed-cache.json
+ * ✅ normalizeFeed() → cleanseFeed() → enrichDeals() → ensureSeoIntegrity()
+ * ✅ Merges SEO history (cta, subtitle, keywords, clickbait, lastVerifiedAt)
+ * ✅ CTA Evolver + Insight refresh at the end
+ * ✅ Guaranteed non-empty feed under failure conditions
  */
 
 import fs from "fs";
@@ -22,6 +23,7 @@ import { evolveCTAs } from "../lib/ctaEvolver.js";
 import { enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
+import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
 // ─────────────────────────────────────────── Paths ───────────────────────────────────────────
@@ -33,29 +35,21 @@ const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function smartTitle(slug = "") {
-  return slug
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
+  return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).trim();
 }
-
 function sha1(str) {
   return crypto.createHash("sha1").update(String(str)).digest("hex");
 }
-
+function ensureDir(p) {
+  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+}
 function ensureIntegrity(items) {
   return items.map((d) => {
     const title = d.title?.trim?.().length > 2 ? d.title : smartTitle(d.slug);
     const cta = d.seo?.cta?.trim?.() ? d.seo.cta : "Discover this offer →";
-    const subtitle = d.seo?.subtitle?.trim?.()
-      ? d.seo.subtitle
-      : "Explore a fresh deal designed to streamline your workflow.";
-
-    return {
-      ...d,
-      title,
-      seo: { ...(d.seo || {}), cta, subtitle },
-    };
+    const subtitle =
+      d.seo?.subtitle?.trim?.() ? d.seo.subtitle : "Explore a fresh deal designed to streamline your workflow.";
+    return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
 
@@ -101,27 +95,21 @@ function mergeWithHistory(newFeed) {
   const cutoff = now - 30 * DAY_MS;
   const cleaned = merged.filter((x) => {
     if (!x.archived) return true;
-    const t = x.seo?.lastVerifiedAt
-      ? new Date(x.seo.lastVerifiedAt).getTime()
-      : now;
+    const t = x.seo?.lastVerifiedAt ? new Date(x.seo.lastVerifiedAt).getTime() : now;
     return t > cutoff;
   });
 
   console.log(
-    `🧩 [Merge] updated=${updated}, reused=${reused}, archived=${archived}, purged=${
-      merged.length - cleaned.length
-    }`
+    `🧩 [Merge] updated=${updated}, reused=${reused}, archived=${archived}, purged=${merged.length - cleaned.length}`
   );
-
   return cleaned;
 }
 
 // ───────────────────────────────────────── Aggregator ─────────────────────────────────────────
 function aggregateCategoryFeeds() {
-  const files = fs
-    .readdirSync(DATA_DIR)
-    .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+  ensureDir(DATA_DIR);
 
+  const files = fs.readdirSync(DATA_DIR).filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
   let aggregated = [];
 
   for (const file of files) {
@@ -146,10 +134,9 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting self-healing refresh:", new Date().toISOString());
 
-    // ✅ Step 1 — ALWAYS run updateFeed.js first
+    // ✅ 1) Always regenerate per-category silos
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     console.log("⚙️ Running updateFeed.js…");
-
     try {
       execSync(`node "${updateFeedPath}"`, { stdio: "inherit" });
       console.log("✅ updateFeed.js completed.");
@@ -157,24 +144,25 @@ export default async function handler(req, res) {
       console.warn("⚠️ updateFeed.js error:", err.message);
     }
 
-    // ✅ Step 2 — Optional purge ONLY feed-cache.json (NEVER category files)
+    // ✅ 2) Optional purge of feed-cache.json ONLY
     if (force) {
       if (fs.existsSync(FEED_PATH)) fs.unlinkSync(FEED_PATH);
       console.log("🧹 Purged feed-cache.json (force=1)");
     }
 
-    // ✅ Step 3 — Background builder refresh
+    // ✅ 3) Background builder refresh (GitHub proxy safety net)
     await backgroundRefresh();
     console.log("✅ backgroundRefresh() OK");
 
-    // ✅ Step 4 — Aggregate category silos
+    // ✅ 4) Aggregate categories → raw feed
     const raw = aggregateCategoryFeeds();
     console.log(`📦 Aggregated: ${raw.length}`);
 
-    // ✅ Step 5 — Normalize → dedupe → enrich
+    // ✅ 5) Normalize
     const normalized = normalizeFeed(raw);
     console.log(`🧹 Normalized: ${normalized.length}`);
 
+    // ✅ 6) Deduplicate (slug/title hash)
     const seen = new Set();
     const deduped = normalized.filter((item) => {
       const key = sha1(item.slug || item.title);
@@ -184,26 +172,32 @@ export default async function handler(req, res) {
     });
     console.log(`📑 Deduped: ${deduped.length}`);
 
-    let enriched = enrichDeals(deduped, "feed");
+    // ✅ 7) Cleanse vs previous cache (archive guardian) BEFORE enrichment
+    const cleansed = cleanseFeed(deduped);
+    console.log(`🛡️  Cleansed (archive-aware): ${cleansed.length}`);
+
+    // ✅ 8) Enrich (CTA + subtitle) then ensure baseline integrity
+    let enriched = enrichDeals(cleansed, "feed");
     enriched = ensureIntegrity(enriched);
     console.log(`✨ Enriched: ${enriched.length}`);
 
+    // ✅ 9) SEO integrity (clickbait, keywords, entropy)
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity OK: ${verified.length}`);
 
-    // ✅ Step 6 — Merge with SEO history
+    // ✅ 10) Merge with SEO history
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged: ${merged.length}`);
 
-    // ✅ Step 7 — Insight refresh (silent)
+    // ✅ 11) Silent Insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("🧠 Insight updated");
 
-    // ✅ Step 8 — CTA evolutionary engine
+    // ✅ 12) CTA evolutionary engine
     evolveCTAs();
     console.log("🎯 CTA evolution complete");
 
@@ -221,6 +215,7 @@ export default async function handler(req, res) {
         "category-aggregate",
         "normalize",
         "dedupe",
+        "cleanse",          // ← NEW: archive-aware merge pre-enrichment
         "enrich",
         "seo-integrity",
         "merge-history",
