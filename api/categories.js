@@ -1,12 +1,13 @@
 // /api/categories.js
-// TinmanApps — Category Renderer v6.0 “SmartRank SEO Dominator+”
+// TinmanApps — Category Renderer v7.0 “Active-Only SEO Dominator+”
 // ───────────────────────────────────────────────────────────────────────────────
-// What’s new vs v5.1
-// • Hard-aligned with current pipeline (updateFeed v7.x, ctaEngine v4.x, insight v3.x)
-// • Safer field handling (supports url/link/product_url), strict fallbacks
-// • RankDeals integration retained (CTR + semantic + long-tail + freshness)
-// • Guaranteed referral masking via /api/track + REF_PREFIX
-// • Clean SEO meta + structured data, deterministic HTML, Render-safe
+// Alignment with updateFeed v7.7:
+// • Only ACTIVE items render (archived items hidden completely)
+// • Structured data reflects ONLY active items
+// • RankDeals runs only on active subset
+// • Clean canonical SEO, deterministic HTML, Render-safe
+// • Referral-safe masking via /api/track + REF_PREFIX
+// • Hard 48-card visual cap after active filtering
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -33,6 +34,8 @@ const CATS = {
   courses: "Courses & Learning",
   business: "Business Management",
   web: "Web & Design Tools",
+  ecommerce: "Ecommerce Tools",
+  creative: "Creative & Design Tools",
 };
 
 const ARCHETYPE = {
@@ -43,6 +46,8 @@ const ARCHETYPE = {
   courses: "Authority & Learning",
   business: "Confidence & Strategy",
   web: "Design & Innovation",
+  ecommerce: "Store Performance",
+  creative: "Creative Excellence",
 };
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -140,25 +145,29 @@ export default async function handler(req, res) {
   const title = CATS[cat];
   if (!title) return res.status(404).send("Category not found.");
 
-  // Load silo file created by scripts/updateFeed.js
-  let deals = loadJsonSafe(`appsumo-${cat}.json`, []);
-  const total = deals.length;
+  // Load full silo
+  let allDeals = loadJsonSafe(`appsumo-${cat}.json`, []);
+  const totalAll = allDeals.length;
 
-  // Smart ranking (CTR + momentum + long-tail + freshness)
+  // ✅ Filter ACTIVE only (strict)
+  let deals = allDeals.filter((d) => !d.archived);
+  const activeCount = deals.length;
+
+  // ✅ Ranking engine only runs on active items
   try {
     deals = rankDeals(deals, cat);
   } catch (e) {
-    console.warn("⚠️ rankDeals error, using natural order:", e.message);
+    console.warn("⚠️ rankDeals error, falling back to natural order:", e.message);
   }
 
-  // Render cap for perf (visual density)
+  // ✅ Visual render cap (post-ranking)
   deals = deals.slice(0, 48);
 
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
   const pageTitle = `${title} | AppSumo Lifetime Deals`;
-  const pageDesc = `Discover the best ${title.toLowerCase()} — live AppSumo lifetime deals, ranked by performance and updated automatically.`;
+  const pageDesc = `Discover the top ${title.toLowerCase()} — live AppSumo lifetime deals, updated automatically.`;
 
-  // Structured data
+  // ✅ Structured data reflects ACTIVE ONLY
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -173,7 +182,7 @@ export default async function handler(req, res) {
     "@type": "ItemList",
     name: `${title} Deals`,
     url: canonical,
-    numberOfItems: total,
+    numberOfItems: activeCount,
     itemListElement: deals.map((d, i) => ({
       "@type": "ListItem",
       position: i + 1,
@@ -184,7 +193,9 @@ export default async function handler(req, res) {
 
   const engine = createCtaEngine();
 
-  // Cards
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CARD RENDERING (active only)
+  // ─────────────────────────────────────────────────────────────────────────────
   const cards = deals
     .map((d) => {
       const srcUrl = baseUrl(d);
@@ -256,6 +267,7 @@ export default async function handler(req, res) {
 <meta property="og:url" content="${canonical}" />
 <meta property="og:image" content="${SITE_ORIGIN}/assets/placeholder.webp" />
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+
 <style>
 :root {
   --fg:#101326;--muted:#62697e;--card:#fff;--bg:#f7f8fb;
@@ -282,17 +294,18 @@ main{padding:12px 16px 36px;max-width:1200px;margin:0 auto;}
 .cta:hover{transform:translateY(-1px);}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36px;}
 </style>
+
 <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
 <script type="application/ld+json">${JSON.stringify(itemListLd)}</script>
 </head>
 <body>
 <header>
   <h1>${escapeHtml(title)}</h1>
-  <div class="sub">${ARCHETYPE[cat]} • ${total} deals</div>
+  <div class="sub">${ARCHETYPE[cat]} • ${activeCount} active deals</div>
 </header>
 <main>
   <section class="grid">
-    ${cards || `<p>No deals available right now.</p>`}
+    ${cards || `<p>No active deals available right now.</p>`}
   </section>
 </main>
 <footer>${escapeHtml(ARCHETYPE[cat])}</footer>
@@ -300,9 +313,6 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36p
 </html>`;
 
   res.setHeader("Content-Type", "text/html");
-  res.setHeader(
-    "Cache-Control",
-    "public, max-age=600, stale-while-revalidate=120"
-  );
+  res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=120");
   res.send(html);
 }
