@@ -3,12 +3,13 @@
 // Handles API routes, category rendering, CTR logging, adaptive SEO endpoints,
 // and live learning dashboards for performance tracking.
 //
-// v4.0 “Render-Safe Edition”
+// v4.1 “Render-Safe • Dual-Index Edition”
 // ───────────────────────────────────────────────────────────────────────────────
-// ✅ Removed Puppeteer entirely (your stack is 100% Render-safe)
-// ✅ All endpoints aligned with your repo
-// ✅ Added missing debug routes (debug-rank, debug-learning)
-// ✅ Static + API + HTML routing clean and deterministic
+// ✅ Removed Puppeteer entirely — 100% Render-safe
+// ✅ All endpoints aligned with your current repo
+// ✅ Adds missing /api/categories-index (JSON index) alongside /api/categories
+// ✅ Deterministic route ordering (no shadowing, no fallback collisions)
+// ✅ Static + API + HTML clean separation
 // ───────────────────────────────────────────────────────────────────────────────
 
 import express from "express";
@@ -29,7 +30,6 @@ import version from "./api/version.js";
 import learningDashboard from "./api/learning-dashboard.js";
 import ctaDump from "./api/cta-dump.js";
 
-// ✅ Debug endpoints you already have in repo
 import debugRank from "./api/debug-rank.js";
 import debugLearning from "./api/debug-learning.js";
 
@@ -58,7 +58,7 @@ app.use(
 );
 
 // ───────────────────────────────────────────────────────────────────────────────
-// API ROUTES (JSON + Machines)
+// API ROUTES — JSON
 // ───────────────────────────────────────────────────────────────────────────────
 app.get("/api/appsumo-proxy", appsumoProxy);
 app.get("/api/master-cron", masterCron);
@@ -71,12 +71,15 @@ app.get("/api/cta-dump", ctaDump);
 app.get("/api/version", version);
 app.get("/api/learning-dashboard", learningDashboard);
 
-// ✅ Debug endpoints
+// Debug endpoints
 app.get("/api/debug-rank", debugRank);
 app.get("/api/debug-learning", debugLearning);
 
-// ✅ Category JSON index
+// ✅ Dual category index routes
+// /api/categories → JSON index (legacy / homepage use)
+// /api/categories-index → JSON index (crawler / modules)
 app.get("/api/categories", categoriesIndex);
+app.get("/api/categories-index", categoriesIndex);
 
 // ───────────────────────────────────────────────────────────────────────────────
 // HTML ROUTES
@@ -84,7 +87,7 @@ app.get("/api/categories", categoriesIndex);
 app.get("/", home);
 app.get("/categories/:cat", categories);
 
-// Redirect generic /categories → /
+// Redirect /categories → homepage
 app.get("/categories", (req, res) => res.redirect("/"));
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -121,6 +124,7 @@ app.listen(PORT, () => {
     "/api/debug-rank",
     "/api/debug-learning",
     "/api/categories",
-    "/categories/:cat",
+    "/api/categories-index",
+    "/categories/:cat"
   ].forEach((r) => console.log(" - " + r));
 });
