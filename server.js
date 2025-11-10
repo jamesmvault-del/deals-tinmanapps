@@ -3,36 +3,20 @@
 // Handles API routes, category rendering, CTR logging, adaptive SEO endpoints,
 // and live learning dashboards for performance tracking.
 //
-// v3.8 “Self-Healing Puppeteer Edition”
+// v4.0 “Render-Safe Edition”
 // ───────────────────────────────────────────────────────────────────────────────
-// Adds: Auto Chrome installer for Puppeteer to fix “Could not find Chrome” errors
-// Ensures Render cold restarts can rebuild Puppeteer’s Chromium cache automatically.
+// ✅ Removed Puppeteer entirely (your stack is 100% Render-safe)
+// ✅ All endpoints aligned with your repo
+// ✅ Added missing debug routes (debug-rank, debug-learning)
+// ✅ Static + API + HTML routing clean and deterministic
 // ───────────────────────────────────────────────────────────────────────────────
 
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
-import { execSync } from "child_process";
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 🧩 Puppeteer Self-Healing Chrome Installer
-// ───────────────────────────────────────────────────────────────────────────────
-try {
-  const chromePath = "/opt/render/.cache/puppeteer/chrome";
-  if (!fs.existsSync(chromePath)) {
-    console.log("🧩 [Startup] Chrome not found — installing Puppeteer browser…");
-    execSync("npx puppeteer browsers install chrome", { stdio: "inherit" });
-    console.log("✅ [Startup] Chrome installed successfully.");
-  } else {
-    console.log("✅ [Startup] Chrome already available.");
-  }
-} catch (err) {
-  console.warn("⚠️ [Startup] Puppeteer install check failed:", err.message);
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-// CORE API ENDPOINTS
+// API ENDPOINTS
 // ───────────────────────────────────────────────────────────────────────────────
 import appsumoProxy from "./api/appsumo-proxy.js";
 import masterCron from "./api/master-cron.js";
@@ -41,17 +25,24 @@ import imageProxy from "./api/image-proxy.js";
 import track from "./api/track.js";
 import ctrReport from "./api/ctr-report.js";
 import ctaPhrases from "./api/cta-phrases.js";
-import version from "./api/version.js"; // ✅ Version endpoint
-import learningDashboard from "./api/learning-dashboard.js"; // ✅ Adaptive learning dashboard
-import ctaDump from "./api/cta-dump.js"; // ✅ Full CTA/subtitle audit endpoint
+import version from "./api/version.js";
+import learningDashboard from "./api/learning-dashboard.js";
+import ctaDump from "./api/cta-dump.js";
+
+// ✅ Debug endpoints you already have in repo
+import debugRank from "./api/debug-rank.js";
+import debugLearning from "./api/debug-learning.js";
 
 // ───────────────────────────────────────────────────────────────────────────────
-// CATEGORY & FRONTEND ENDPOINTS
+// CATEGORY + FRONTEND ENDPOINTS
 // ───────────────────────────────────────────────────────────────────────────────
-import categoriesIndex from "./api/categories-index.js"; // JSON list of categories
-import categories from "./api/categories.js"; // HTML renderer per category
-import home from "./api/home.js"; // Homepage
+import categoriesIndex from "./api/categories-index.js";
+import categories from "./api/categories.js";
+import home from "./api/home.js";
 
+// ───────────────────────────────────────────────────────────────────────────────
+// APP SETUP
+// ───────────────────────────────────────────────────────────────────────────────
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,7 +58,7 @@ app.use(
 );
 
 // ───────────────────────────────────────────────────────────────────────────────
-// API ROUTES
+// API ROUTES (JSON + Machines)
 // ───────────────────────────────────────────────────────────────────────────────
 app.get("/api/appsumo-proxy", appsumoProxy);
 app.get("/api/master-cron", masterCron);
@@ -76,23 +67,25 @@ app.get("/api/image-proxy", imageProxy);
 app.get("/api/track", track);
 app.get("/api/ctr-report", ctrReport);
 app.get("/api/cta-phrases", ctaPhrases);
-app.get("/api/cta-dump", ctaDump); // ✅ new route for full CTA/subtitle export
+app.get("/api/cta-dump", ctaDump);
 app.get("/api/version", version);
 app.get("/api/learning-dashboard", learningDashboard);
 
-// ───────────────────────────────────────────────────────────────────────────────
-// CATEGORY ROUTES
-// ───────────────────────────────────────────────────────────────────────────────
-app.get("/api/categories", categoriesIndex); // JSON category index
-app.get("/categories/:cat", categories); // HTML renderer
+// ✅ Debug endpoints
+app.get("/api/debug-rank", debugRank);
+app.get("/api/debug-learning", debugLearning);
+
+// ✅ Category JSON index
+app.get("/api/categories", categoriesIndex);
 
 // ───────────────────────────────────────────────────────────────────────────────
-// FRONTEND ROUTES (HTML)
+// HTML ROUTES
 // ───────────────────────────────────────────────────────────────────────────────
 app.get("/", home);
-app.get("/categories", (req, res) => {
-  res.redirect("/"); // simple redirect for now
-});
+app.get("/categories/:cat", categories);
+
+// Redirect generic /categories → /
+app.get("/categories", (req, res) => res.redirect("/"));
 
 // ───────────────────────────────────────────────────────────────────────────────
 // HEALTH CHECK
@@ -100,7 +93,7 @@ app.get("/categories", (req, res) => {
 app.get("/health", (req, res) => res.send("✅ Healthy"));
 
 // ───────────────────────────────────────────────────────────────────────────────
-// FALLBACK HANDLER
+// FALLBACK HANDLER (404)
 // ───────────────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).send("Page not found.");
@@ -110,20 +103,24 @@ app.use((req, res) => {
 // START SERVER
 // ───────────────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
   console.log(`🚀 TinmanApps Deal Engine running on port ${PORT}`);
-  console.log("✅ Registered routes:");
-  console.log(" - /api/appsumo-proxy");
-  console.log(" - /api/master-cron");
-  console.log(" - /api/insight");
-  console.log(" - /api/image-proxy");
-  console.log(" - /api/track");
-  console.log(" - /api/ctr-report");
-  console.log(" - /api/cta-phrases");
-  console.log(" - /api/cta-dump");
-  console.log(" - /api/version");
-  console.log(" - /api/learning-dashboard");
-  console.log(" - /api/categories");
-  console.log(" - /categories/:cat");
-  console.log(" - / (home)");
+  console.log("✅ Active API routes:");
+  [
+    "/api/appsumo-proxy",
+    "/api/master-cron",
+    "/api/insight",
+    "/api/image-proxy",
+    "/api/track",
+    "/api/ctr-report",
+    "/api/cta-phrases",
+    "/api/cta-dump",
+    "/api/version",
+    "/api/learning-dashboard",
+    "/api/debug-rank",
+    "/api/debug-learning",
+    "/api/categories",
+    "/categories/:cat",
+  ].forEach((r) => console.log(" - " + r));
 });
