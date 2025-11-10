@@ -1,13 +1,15 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v7.5 “Render-Safe • Self-Healing • Cluster v5”
+ * TinmanApps Adaptive Feed Engine v7.6
+ * “Render-Safe • Self-Healing • Cluster v5 • Creative+Ecommerce Silos”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ 100% Render-safe (no Puppeteer, no headless Chrome)
- * ✅ Discovers products from AppSumo XML sitemaps (with resilient fallbacks)
- * ✅ Fetches product pages via HTTP + extracts OG:title / OG:image / meta:description
+ * ✅ 100% Render-safe (no headless Chrome)
+ * ✅ Discovers products from AppSumo XML sitemaps (resilient fallbacks)
+ * ✅ Fetches product pages via HTTP; extracts OG:title / OG:image / meta:description
  * ✅ Classifies with Semantic Cluster v5 (detectCluster) — deterministic & safe
  * ✅ Normalizes (feedNormalizer v2) → Enriches (ctaEngine v4.5) per category
  * ✅ Preserves historical CTAs/subtitles (mergeWithHistory) + archives missing
+ * ✅ Includes ecommerce & creative silos (parity with proxyCache / clusters)
  * ✅ MAX_PER_CATEGORY easy flip to Infinity for “show everything”
  * ✅ Clean, deterministic, non-conflicting with master-cron / evolver
  */
@@ -84,7 +86,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v7.5 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v7.6 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -102,7 +104,9 @@ async function fetchText(url, tries = RETRIES) {
 }
 
 function toSlug(url) {
-  const m = url?.match(/\/products\/([^/]+)\/?$/i) || url?.match(/\/products\/([^/]+)\//i);
+  const m =
+    url?.match(/\/products\/([^/]+)\/?$/i) ||
+    url?.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
 }
 
@@ -144,7 +148,10 @@ function normalizeEntry({ slug, title, url, cat, image, description }) {
   const safeSlug =
     slug ||
     toSlug(url) ||
-    (title || "").toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+    (title || "")
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-");
   return {
     title: title || safeSlug,
     slug: safeSlug,
@@ -183,11 +190,13 @@ function classify(title, url) {
   const guess = detectCluster(t);
   if (guess && guess !== "software") return guess;
 
-  // URL nudges
+  // URL nudges (defensive)
   if (/\/courses?\b|academy|tutorial|training/i.test(url)) return "courses";
   if (/\/marketing|crm|leads|campaign/i.test(url)) return "marketing";
   if (/\/productivity|task|kanban|calendar/i.test(url)) return "productivity";
   if (/\/web|wordpress|landing|builder/i.test(url)) return "web";
+  if (/\/shop|store|checkout|cart|ecommerce/i.test(url)) return "ecommerce";
+  if (/\/creative|design|brand|media|graphics?/i.test(url)) return "creative";
 
   return "software";
 }
@@ -359,6 +368,13 @@ async function main() {
   console.log("⏳ Discovering AppSumo products…");
   const productUrls = await discoverProductUrls();
 
+  // If discovery fails entirely, do not clobber existing category files
+  if (!productUrls.length) {
+    console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
+    console.log("✨ UpdateFeed v7.6 completed (no-op due to zero discovery).");
+    return;
+  }
+
   // Fetch details in parallel
   const details = await withConcurrency(productUrls, DETAIL_CONCURRENCY, fetchDetail);
   const unique = dedupe(details);
@@ -372,6 +388,8 @@ async function main() {
     productivity: [],
     business: [],
     web: [],
+    ecommerce: [],
+    creative: [],
     software: [],
   };
 
@@ -404,7 +422,7 @@ async function main() {
     console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
   }
 
-  console.log("\n✨ All silos refreshed (v7.5 Render-Safe • Cluster v5).");
+  console.log("\n✨ All silos refreshed (v7.6 Render-Safe • Cluster v5 • Creative+Ecommerce).");
 }
 
 // Execute
