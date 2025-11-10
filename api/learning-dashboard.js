@@ -1,17 +1,26 @@
 // /api/learning-dashboard.js
-// 📈 TinmanApps Adaptive Learning Dashboard v1.1 “CTR Trend Memory”
+// TinmanApps — Adaptive Learning Dashboard v2.0 “CTR Resonance Explorer”
 // ───────────────────────────────────────────────────────────────────────────────
-// Adds: 7-day CTR trend chart using `recent` array in ctr-insights.json
-// Shows total clicks, active learning categories, top biases, and tone bias evolution
+// What this version adds:
+// • Reads true reinforcement data from ctr-insights.json.learning
+// • Extracts toneBias via learningGovernor.getLearningBias()
+// • Displays category CTR share, reinforcement totals, top patterns
+// • Clean 7-day CTR trend from `recent` array
+// • Zero external dependencies, pure Node, Render-safe
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
+import url from "url";
+import { getLearningBias } from "../lib/learningGovernor.js";
 
-const LEARN_FILE = path.resolve("./data/learning-governor.json");
-const CTR_FILE = path.resolve("./data/ctr-insights.json");
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const DATA_DIR = path.resolve(__dirname, "../data");
 
-function loadJsonSafe(p, fallback = {}) {
+const CTR_FILE = path.join(DATA_DIR, "ctr-insights.json");
+const LEARN_FILE = path.join(DATA_DIR, "learning-governor.json"); // optional external state
+
+function loadJsonSafe(p, fallback) {
   try {
     return JSON.parse(fs.readFileSync(p, "utf8"));
   } catch {
@@ -20,188 +29,217 @@ function loadJsonSafe(p, fallback = {}) {
 }
 
 export default async function handler(req, res) {
-  const learning = loadJsonSafe(LEARN_FILE, {});
+  // CTR + learning sources
   const ctr = loadJsonSafe(CTR_FILE, {
     totalClicks: 0,
+    byDeal: {},
     byCategory: {},
     recent: [],
+    learning: {},   // { [category]: { [patternKey]: { clicks, impressions } } }
   });
 
-  // --- CTR trend for past 7 days ---
+  // Optional historical file (if ever used)
+  const legacy = loadJsonSafe(LEARN_FILE, {});
+
+  // Merge legacy if needed
+  const learning = {
+    ...(legacy.learning || {}),
+    ...(ctr.learning || {}),
+  };
+
   const today = new Date();
+
+  // --- Build 7-day CTR trend ---
   const dailyCounts = Array(7).fill(0);
-  ctr.recent.forEach((r) => {
-    const date = new Date(r.at);
-    const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
-    if (diffDays >= 0 && diffDays < 7) dailyCounts[6 - diffDays]++;
-  });
-  const trendData = JSON.stringify(dailyCounts);
+  for (const r of ctr.recent) {
+    const t = new Date(r.at);
+    const diff = Math.floor((today - t) / (1000 * 60 * 60 * 24));
+    if (diff >= 0 && diff < 7) dailyCounts[6 - diff]++;
+  }
+  const trendJson = JSON.stringify(dailyCounts);
 
-  // --- Table rows ---
-  const rows = Object.entries(learning).map(([category, data]) => {
-    const clicks = ctr.byCategory?.[category] || 0;
-    const tone = data.toneBias || "neutral";
-    const biasKeys = Object.keys(data.biases || {});
-    const topBiases =
-      biasKeys.length > 0
-        ? biasKeys
-            .sort((a, b) => (data.biases[b] || 0) - (data.biases[a] || 0))
-            .slice(0, 5)
-        : [];
-    const totalBias = biasKeys.reduce(
-      (acc, k) => acc + (data.biases[k] || 0),
-      0
-    );
+  // --- Build category learning table ---
+  const categories = Object.keys(learning);
 
-    return `
-      <tr>
-        <td>${category}</td>
-        <td>${tone}</td>
-        <td>${clicks}</td>
-        <td>${totalBias}</td>
-        <td>${topBiases.join(", ") || "—"}</td>
-      </tr>
-    `;
-  });
+  const rowsHTML = categories
+    .map((category) => {
+      const patterns = learning[category] || {};
+      const patternKeys = Object.keys(patterns);
 
-  // --- HTML render ---
+      // Reinforcement totals
+      let totalReinf = 0;
+      const sortable = [];
+      for (const key of patternKeys) {
+        const r = patterns[key];
+        const v = (r?.clicks || 0) * 1.0 + (r?.impressions || 0) * 0.2;
+        sortable.push([key, v]);
+        totalReinf += v;
+      }
+
+      sortable.sort((a, b) => b[1] - a[1]);
+      const top = sortable.slice(0, 5).map(([k]) => k);
+
+      // Category CTR share
+      const clicks = ctr.byCategory?.[category] || 0;
+
+      // Tone bias via governor
+      let toneBias = "neutral";
+      try {
+        const bias = getLearningBias(category);
+        toneBias = bias?.toneBias || "neutral";
+      } catch {
+        toneBias = "neutral";
+      }
+
+      return `
+        <tr>
+          <td>${category}</td>
+          <td>${toneBias}</td>
+          <td>${clicks}</td>
+          <td>${Math.round(totalReinf)}</td>
+          <td>${top.join(", ") || "—"}</td>
+        </tr>
+      `;
+    })
+    .join("\n");
+
+  // --- HTML ---
   const html = `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>TinmanApps Learning Dashboard</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-        background: #f6f8fb;
-        margin: 0;
-        color: #1a1d26;
-      }
-      header {
-        padding: 20px 24px;
-        background: #2a63f6;
-        color: #fff;
-        box-shadow: 0 2px 10px rgba(0,0,0,.1);
-      }
-      h1 { margin: 0; font-size: 22px; }
-      main {
-        padding: 24px;
-        max-width: 900px;
-        margin: 0 auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-        box-shadow: 0 2px 6px rgba(0,0,0,.05);
-        border-radius: 10px;
-        overflow: hidden;
-      }
-      th, td {
-        text-align: left;
-        padding: 10px 12px;
-      }
-      th {
-        background: #eef2ff;
-        color: #2a63f6;
-        text-transform: uppercase;
-        font-size: 12px;
-        letter-spacing: 0.05em;
-      }
-      tr:nth-child(even) { background: #fafbfe; }
-      footer {
-        text-align: center;
-        padding: 18px;
-        font-size: 13px;
-        color: #7a8199;
-      }
-      .metric {
-        font-size: 28px;
-        font-weight: 600;
-        color: #2a63f6;
-      }
-      .metric-sub { font-size: 13px; color: #7a8199; margin-top: 4px; }
-      .grid { display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
-      .card {
-        flex: 1 1 240px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,.06);
-        padding: 16px 18px;
-      }
-      canvas {
-        width: 100%;
-        height: 160px;
-        margin-top: 12px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 5px rgba(0,0,0,.08);
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>🧠 TinmanApps Learning Dashboard</h1>
-      <div style="font-size:13px;opacity:.85;">CTR Evolution & Tone Reinforcement Overview</div>
-    </header>
-    <main>
-      <div class="grid">
-        <div class="card">
-          <div class="metric">${ctr.totalClicks || 0}</div>
-          <div class="metric-sub">Total Clicks Recorded</div>
-        </div>
-        <div class="card">
-          <div class="metric">${Object.keys(learning).length}</div>
-          <div class="metric-sub">Active Learning Categories</div>
-        </div>
-      </div>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TinmanApps Learning Dashboard</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background: #f6f8fb;
+    margin: 0;
+    color: #101326;
+  }
+  header {
+    padding: 22px 24px;
+    background: #2a63f6;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  }
+  h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  .sub { opacity: 0.85; font-size: 14px; margin-top: 2px; }
+  main { padding: 24px; max-width: 1080px; margin: 0 auto; }
+  .grid { display:flex; gap:24px; flex-wrap:wrap; margin-bottom:28px; }
+  .card {
+    flex:1 1 240px;
+    background:#fff;
+    border-radius:12px;
+    padding:18px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  .metric {
+    font-size:30px;
+    font-weight:700;
+    color:#2a63f6;
+  }
+  .metric-sub { margin-top:4px; font-size:13px; color:#6c7392; }
 
-      <h3 style="margin:12px 0 4px;">📈 CTR Trend (past 7 days)</h3>
-      <canvas id="trend"></canvas>
+  table {
+    width:100%; border-collapse:collapse;
+    background:#fff; margin-top:24px;
+    border-radius:12px; overflow:hidden;
+    box-shadow:0 2px 6px rgba(0,0,0,.06);
+  }
+  th {
+    background:#eef2ff; padding:12px;
+    color:#2a63f6; text-transform:uppercase;
+    font-size:12px; letter-spacing:0.04em;
+  }
+  td { padding:12px; font-size:14px; border-bottom:1px solid #eef1f5; }
+  tr:hover { background:#fafcff; }
+  
+  canvas {
+    width:100%; height:160px;
+    background:#fff; border-radius:8px;
+    box-shadow:0 1px 5px rgba(0,0,0,.08);
+    margin-top:12px;
+  }
 
-      <table style="margin-top:28px;">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Tone</th>
-            <th>Clicks</th>
-            <th>Reinforcements</th>
-            <th>Top Biases</th>
-          </tr>
-        </thead>
-        <tbody>${rows.join("")}</tbody>
-      </table>
-    </main>
-    <footer>
-      Updated ${new Date().toLocaleString()} • Data auto-syncs with ctr-insights.json + learning-governor.json
-    </footer>
-    <script>
-      const data = ${trendData};
-      const canvas = document.getElementById("trend");
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width, h = canvas.height;
-      const step = w / (data.length - 1);
-      const max = Math.max(...data, 1);
-      ctx.clearRect(0, 0, w, h);
-      ctx.beginPath();
-      ctx.moveTo(0, h - (data[0] / max) * (h - 20) - 10);
-      for (let i = 1; i < data.length; i++) {
-        const x = i * step;
-        const y = h - (data[i] / max) * (h - 20) - 10;
-        ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = "#2a63f6";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-      ctx.fillStyle = "rgba(42,99,246,0.1)";
-      ctx.lineTo(w, h);
-      ctx.lineTo(0, h);
-      ctx.closePath();
-      ctx.fill();
-    </script>
-  </body>
-  </html>`;
+  footer {
+    text-align:center;
+    padding:22px 12px 38px;
+    color:#79819d;
+    font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 TinmanApps Learning Dashboard</h1>
+  <div class="sub">Reinforcement memory • Tone evolution • CTR resonance</div>
+</header>
+
+<main>
+  <div class="grid">
+    <div class="card">
+      <div class="metric">${ctr.totalClicks || 0}</div>
+      <div class="metric-sub">Total Clicks Recorded</div>
+    </div>
+    <div class="card">
+      <div class="metric">${categories.length}</div>
+      <div class="metric-sub">Learning Categories</div>
+    </div>
+  </div>
+
+  <h3 style="margin:0 0 6px;">📈 CTR Trend (Past 7 Days)</h3>
+  <canvas id="trend"></canvas>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Tone Bias</th>
+        <th>Clicks</th>
+        <th>Reinforcement</th>
+        <th>Top Patterns</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHTML}</tbody>
+  </table>
+</main>
+
+<footer>
+  Updated ${new Date().toLocaleString()} • Data synced from ctr-insights.json
+</footer>
+
+<script>
+  const data = ${trendJson};
+  const c = document.getElementById("trend");
+  const ctx = c.getContext("2d");
+  const W = c.width, H = c.height;
+  const max = Math.max(...data, 1);
+  const step = W / (data.length - 1);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath();
+  ctx.moveTo(0, H - (data[0]/max)*(H-20) - 10);
+
+  for (let i=1; i<data.length; i++){
+    const x = i * step;
+    const y = H - (data[i]/max)*(H-20) - 10;
+    ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle="#2a63f6";
+  ctx.lineWidth=2.2;
+  ctx.stroke();
+
+  ctx.fillStyle="rgba(42,99,246,0.12)";
+  ctx.lineTo(W,H);
+  ctx.lineTo(0,H);
+  ctx.closePath();
+  ctx.fill();
+</script>
+
+</body>
+</html>`;
 
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-store");
