@@ -1,22 +1,15 @@
-// /api/master-cron.js
-// 🔁 TinmanApps Master Cron v4.1 “Deterministic Self-Healing Edition”
-// FINAL ARCHITECTURE — updateFeed.js ALWAYS runs first.
-// Guarantees category files ALWAYS exist inside Render ephemeral FS.
-//
-// Pipeline:
-//   1) Rebuild all appsumo-*.json via updateFeed.js
-//   2) Optional purge (ONLY feed-cache.json when force=1 — never delete categories)
-//   3) backgroundRefresh() sanity sync
-//   4) Aggregate category silos into unified feed-cache.json
-//   5) Normalize → dedupe → enrich (CTA+subtitle)
-//   6) SEO integrity enforcement
-//   7) Merge with history (CTA/subtitle preservation)
-//   8) Silent insight refresh
-//   9) CTA evolution
-//
-// ✅ ZERO conditions where feed becomes empty
-// ✅ ZERO accidental deletion of category files
-// ✅ FULL Render-safe design
+/**
+ * /api/master-cron.js
+ * TinmanApps Master Cron v4.3 “Deterministic Self-Healing Edition”
+ * ───────────────────────────────────────────────────────────────────────────────
+ * ✅ Always runs updateFeed.js FIRST (absolute path, Render-safe)
+ * ✅ Never deletes category files (appsumo-*.json)
+ * ✅ Optional purge ONLY deletes feed-cache.json (never categories)
+ * ✅ Guaranteed non-empty feed
+ * ✅ CTA evolution separate from updateFeed (no conflicts)
+ * ✅ Merges SEO history cleanly (cta, subtitle, keywords, clickbait)
+ * ✅ Full pipeline stability on Render ephemeral FS
+ */
 
 import fs from "fs";
 import path from "path";
@@ -31,12 +24,14 @@ import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import insightHandler from "./insight.js";
 
+// ─────────────────────────────────────────── Paths ───────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 
-// ────────────────────────────────────────── Helpers ──────────────────────────────────────────
+// ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function smartTitle(slug = "") {
   return slug
     .replace(/[-_]+/g, " ")
@@ -44,18 +39,17 @@ function smartTitle(slug = "") {
     .trim();
 }
 
-function sha1(s) {
-  return crypto.createHash("sha1").update(String(s)).digest("hex");
+function sha1(str) {
+  return crypto.createHash("sha1").update(String(str)).digest("hex");
 }
 
-function ensureIntegrity(deals) {
-  return deals.map((d) => {
-    const title =
-      d.title && d.title.trim().length > 2 ? d.title : smartTitle(d.slug);
+function ensureIntegrity(items) {
+  return items.map((d) => {
+    const title = d.title?.trim?.().length > 2 ? d.title : smartTitle(d.slug);
     const cta = d.seo?.cta?.trim?.() ? d.seo.cta : "Discover this offer →";
     const subtitle = d.seo?.subtitle?.trim?.()
       ? d.seo.subtitle
-      : "Explore a fresh deal designed to simplify your workflow.";
+      : "Explore a fresh deal designed to streamline your workflow.";
 
     return {
       ...d,
@@ -65,24 +59,25 @@ function ensureIntegrity(deals) {
   });
 }
 
-// ────────────────────────────────────────── Merge Logic ──────────────────────────────────────────
+// ───────────────────────────────────────── Merge with History ──────────────────────────────────────
 function mergeWithHistory(newFeed) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
 
   const oldFeed = JSON.parse(fs.readFileSync(FEED_PATH, "utf8"));
   const map = new Map(oldFeed.map((x) => [x.slug, x]));
+
   const now = Date.now();
   const DAY_MS = 24 * 60 * 60 * 1000;
 
-  let updatedCount = 0;
-  let reusedCount = 0;
-  let archivedCount = 0;
+  let updated = 0;
+  let reused = 0;
+  let archived = 0;
 
   const merged = newFeed.map((item) => {
     const prev = map.get(item.slug);
     const oldSeo = prev?.seo || {};
 
-    const newSeo = {
+    const finalSeo = {
       cta: item.seo?.cta || oldSeo.cta || null,
       subtitle: item.seo?.subtitle || oldSeo.subtitle || null,
       clickbait: item.seo?.clickbait || oldSeo.clickbait || null,
@@ -90,16 +85,16 @@ function mergeWithHistory(newFeed) {
       lastVerifiedAt: item.seo?.lastVerifiedAt || oldSeo.lastVerifiedAt || null,
     };
 
-    if (item.seo?.cta) updatedCount++;
-    else reusedCount++;
+    if (item.seo?.cta) updated++;
+    else reused++;
 
-    return { ...item, seo: newSeo, archived: false };
+    return { ...item, seo: finalSeo, archived: false };
   });
 
   for (const old of oldFeed) {
     if (!merged.find((x) => x.slug === old.slug)) {
       merged.push({ ...old, archived: true });
-      archivedCount++;
+      archived++;
     }
   }
 
@@ -113,15 +108,15 @@ function mergeWithHistory(newFeed) {
   });
 
   console.log(
-    `🧩 [Merge] ${updatedCount} updated, ${reusedCount} reused, ${archivedCount} archived, ${
+    `🧩 [Merge] updated=${updated}, reused=${reused}, archived=${archived}, purged=${
       merged.length - cleaned.length
-    } purged`
+    }`
   );
 
   return cleaned;
 }
 
-// ────────────────────────────────────────── Aggregator ──────────────────────────────────────────
+// ───────────────────────────────────────── Aggregator ─────────────────────────────────────────
 function aggregateCategoryFeeds() {
   const files = fs
     .readdirSync(DATA_DIR)
@@ -133,28 +128,28 @@ function aggregateCategoryFeeds() {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
       aggregated = aggregated.concat(data);
-      console.log(`✅ Loaded ${data.length} from ${file}`);
+      console.log(`✅ Loaded ${data.length} → ${file}`);
     } catch (err) {
       console.warn(`⚠️ Failed to parse ${file}: ${err.message}`);
     }
   }
 
   fs.writeFileSync(FEED_PATH, JSON.stringify(aggregated, null, 2));
-  console.log(`✅ [Aggregator] Combined ${aggregated.length} deals → feed-cache.json`);
   return aggregated;
 }
 
-// ────────────────────────────────────────── Handler ──────────────────────────────────────────
+// ───────────────────────────────────────── Handler ─────────────────────────────────────────
 export default async function handler(req, res) {
   const force = req.query.force === "1";
   const start = Date.now();
 
   try {
-    console.log("🔁 [Cron] Starting refresh @", new Date().toISOString());
+    console.log("🔁 [Cron] Starting self-healing refresh:", new Date().toISOString());
 
-    // ✅ ALWAYS rebuild category silos first (Render-safe)
+    // ✅ Step 1 — ALWAYS run updateFeed.js first
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
-    console.log("⚙️ Running updateFeed.js (absolute path)…");
+    console.log("⚙️ Running updateFeed.js…");
+
     try {
       execSync(`node "${updateFeedPath}"`, { stdio: "inherit" });
       console.log("✅ updateFeed.js completed.");
@@ -162,30 +157,32 @@ export default async function handler(req, res) {
       console.warn("⚠️ updateFeed.js error:", err.message);
     }
 
-    // ✅ Force purge ONLY feed-cache.json (Never delete category JSONs)
+    // ✅ Step 2 — Optional purge ONLY feed-cache.json (NEVER category files)
     if (force) {
       if (fs.existsSync(FEED_PATH)) fs.unlinkSync(FEED_PATH);
-      console.log("🧹 Purged feed-cache.json only (force=1).");
+      console.log("🧹 Purged feed-cache.json (force=1)");
     }
 
-    // ✅ Background sanity sync
+    // ✅ Step 3 — Background builder refresh
     await backgroundRefresh();
-    console.log("✅ Builder refresh complete");
+    console.log("✅ backgroundRefresh() OK");
 
-    // ✅ Combine categories → unified feed
-    const feed = aggregateCategoryFeeds();
+    // ✅ Step 4 — Aggregate category silos
+    const raw = aggregateCategoryFeeds();
+    console.log(`📦 Aggregated: ${raw.length}`);
 
-    // ✅ Normalize → dedupe → enrich
-    const normalized = normalizeFeed(feed);
+    // ✅ Step 5 — Normalize → dedupe → enrich
+    const normalized = normalizeFeed(raw);
     console.log(`🧹 Normalized: ${normalized.length}`);
 
     const seen = new Set();
-    const deduped = normalized.filter((d) => {
-      const key = sha1(d.slug || d.title);
+    const deduped = normalized.filter((item) => {
+      const key = sha1(item.slug || item.title);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
+    console.log(`📑 Deduped: ${deduped.length}`);
 
     let enriched = enrichDeals(deduped, "feed");
     enriched = ensureIntegrity(enriched);
@@ -194,34 +191,33 @@ export default async function handler(req, res) {
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity OK: ${verified.length}`);
 
-    // ✅ Merge with preserved SEO history
+    // ✅ Step 6 — Merge with SEO history
     const merged = mergeWithHistory(verified);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
-    console.log(`🧬 Merged: ${merged.length} entries`);
+    console.log(`🧬 Final merged: ${merged.length}`);
 
-    // ✅ Hidden insight update
+    // ✅ Step 7 — Insight refresh (silent)
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
-    console.log("🧠 Insight refresh OK");
+    console.log("🧠 Insight updated");
 
-    // ✅ CTA evolution
+    // ✅ Step 8 — CTA evolutionary engine
     evolveCTAs();
     console.log("🎯 CTA evolution complete");
 
-    const ms = Date.now() - start;
-    console.log(`✅ Completed in ${ms}ms`);
+    const duration = Date.now() - start;
 
     res.json({
-      message: "Self-healing refresh completed.",
-      duration: ms,
+      message: "Self-healing refresh complete",
+      duration,
       total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
         "updateFeed(auto-run)",
         "purge(feed-cache-only)",
-        "builder-refresh",
+        "background-refresh",
         "category-aggregate",
         "normalize",
         "dedupe",
@@ -233,7 +229,7 @@ export default async function handler(req, res) {
       ],
     });
   } catch (err) {
-    console.error("❌ Cron Error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("❌ [Cron Error]:", err);
+    res.status(500).json({ error: "Cron failed", details: err.message });
   }
 }
