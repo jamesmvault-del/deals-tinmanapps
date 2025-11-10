@@ -1,16 +1,15 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v7.2 “Render-Safe No-Browser Edition”
+ * TinmanApps Adaptive Feed Engine v7.5 “Render-Safe • Self-Healing • Cluster v5”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ 100% Render-safe (no Puppeteer, no Chrome dependencies)
- * ✅ Discovers products from AppSumo XML sitemaps
- * ✅ Fetches product pages via HTTP to extract OG:title + OG:image
- * ✅ Classifies into silos using keyword scoring
- * ✅ Normalizes & enriches deals using CTA Engine
- * ✅ Preserves historical CTAs/subtitles via merge logic
- * ✅ Archives missing products correctly
- * ✅ MAX_PER_CATEGORY easily adjustable for future “show everything”
- * ✅ Clean, deterministic, non-conflicting with master-cron evolver
+ * ✅ 100% Render-safe (no Puppeteer, no headless Chrome)
+ * ✅ Discovers products from AppSumo XML sitemaps (with resilient fallbacks)
+ * ✅ Fetches product pages via HTTP + extracts OG:title / OG:image / meta:description
+ * ✅ Classifies with Semantic Cluster v5 (detectCluster) — deterministic & safe
+ * ✅ Normalizes (feedNormalizer v2) → Enriches (ctaEngine v4.5) per category
+ * ✅ Preserves historical CTAs/subtitles (mergeWithHistory) + archives missing
+ * ✅ MAX_PER_CATEGORY easy flip to Infinity for “show everything”
+ * ✅ Clean, deterministic, non-conflicting with master-cron / evolver
  */
 
 import fs from "fs";
@@ -19,15 +18,16 @@ import { fileURLToPath } from "url";
 import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
+
 import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
+import { detectCluster } from "../lib/semanticCluster.js";
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Paths & Constants
+// Paths & constants
 // ───────────────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const DATA_DIR = path.join(__dirname, "..", "data");
 
 const SITE_ORIGIN =
@@ -35,23 +35,23 @@ const SITE_ORIGIN =
 
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
 
-// Tuning — YOU CAN CHANGE THIS ANY TIME
-const MAX_PER_CATEGORY = 10;                 // future? set to Infinity to show all
+// Tuning — adjust freely
+const MAX_PER_CATEGORY = 10;                 // set to Infinity to show all
 const DETAIL_CONCURRENCY = 8;                // HTTP concurrency
 const PRODUCT_URL_HARD_CAP = 500;            // safety guard
+const HTTP_TIMEOUT_MS = 12000;               // per-request guard
+const RETRIES = 2;                           // network retry attempts
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Utility Helpers
+// Helpers
 // ───────────────────────────────────────────────────────────────────────────────
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
-
 function writeJson(file, data) {
   ensureDir(DATA_DIR);
   fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2));
 }
-
 function readJsonSafe(file, fallback = []) {
   try {
     return JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
@@ -59,11 +59,9 @@ function readJsonSafe(file, fallback = []) {
     return fallback;
   }
 }
-
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
-
 function dedupe(items) {
   const seen = new Set();
   const out = [];
@@ -77,30 +75,58 @@ function dedupe(items) {
   return out;
 }
 
-async function fetchText(url) {
-  const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
-  return res.text();
+async function fetchText(url, tries = RETRIES) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      redirect: "follow",
+      signal: ctrl.signal,
+      headers: {
+        "user-agent":
+          "TinmanApps/UpdateFeed v7.5 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
+    return await res.text();
+  } catch (e) {
+    if (tries > 0) {
+      await new Promise((r) => setTimeout(r, 400 * (RETRIES - tries + 1)));
+      return fetchText(url, tries - 1);
+    }
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 function toSlug(url) {
-  const m = url?.match(/\/products\/([^/]+)\//i);
+  const m = url?.match(/\/products\/([^/]+)\/?$/i) || url?.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
 }
 
-function extractOg(html) {
-  const get = (p) =>
-    html.match(
-      new RegExp(
-        `<meta[^>]+property=["']${p}["'][^>]+content=["']([^"']+)["']`,
-        "i"
-      )
-    )?.[1];
+function extractMeta(html, name) {
+  // supports property= / name=
+  const re = new RegExp(
+    `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']+)["']`,
+    "i"
+  );
+  return html.match(re)?.[1] || null;
+}
 
-  return {
-    title: get("og:title") || html.match(/<title>([^<]+)<\/title>/i)?.[1],
-    image: get("og:image") || get("twitter:image"),
-  };
+function extractOg(html) {
+  const title =
+    extractMeta(html, "og:title") ||
+    html.match(/<title>([^<]+)<\/title>/i)?.[1] ||
+    null;
+  const image =
+    extractMeta(html, "og:image") || extractMeta(html, "twitter:image") || null;
+  const desc =
+    extractMeta(html, "og:description") ||
+    extractMeta(html, "description") ||
+    null;
+  return { title, image, description: desc };
 }
 
 function proxied(src) {
@@ -114,26 +140,25 @@ function tracked({ slug, cat, url }) {
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
 
-function normalizeEntry({ slug, title, url, cat, image }) {
+function normalizeEntry({ slug, title, url, cat, image, description }) {
   const safeSlug =
     slug ||
     toSlug(url) ||
-    (title || "").toLowerCase().replace(/\s+/g, "-");
-
+    (title || "").toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
   return {
     title: title || safeSlug,
     slug: safeSlug,
     category: cat,
-    url,
+    url, // raw product url (normalizeFeed will map to link/referral later)
     referralUrl: tracked({ slug: safeSlug, cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
+    description: description || null,
   };
 }
 
 async function withConcurrency(items, limit, worker) {
   const out = new Array(items.length);
   let index = 0;
-
   const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
     while (true) {
       const i = index++;
@@ -145,125 +170,47 @@ async function withConcurrency(items, limit, worker) {
       }
     }
   });
-
   await Promise.all(runners);
   return out.filter(Boolean);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Silo Classification
+// Category classification — use Semantic Cluster v5
 // ───────────────────────────────────────────────────────────────────────────────
-const SILO_KEYWORDS = {
-  ai: [
-    " ai",
-    "gpt",
-    "automation",
-    "autopilot",
-    "assistant",
-    "copilot",
-    "bot",
-    "agent",
-    "llm",
-    "chat",
-    "voice ai",
-  ],
-  marketing: [
-    "marketing",
-    "seo",
-    "social",
-    "sales",
-    "lead",
-    "crm",
-    "advertising",
-    "email",
-    "campaign",
-    "traffic",
-    "growth",
-    "conversion",
-    "content",
-  ],
-  courses: [
-    "course",
-    "academy",
-    "training",
-    "teach",
-    "learn",
-    "creator",
-    "coach",
-    "skill",
-    "education",
-    "tutorial",
-    "lesson",
-    "instructor",
-    "mentor",
-  ],
-  productivity: [
-    "productivity",
-    "task",
-    "workflow",
-    "project",
-    "kanban",
-    "time",
-    "schedule",
-    "calendar",
-    "focus",
-    "collaboration",
-    "team",
-    "meeting",
-  ],
-  business: [
-    "accounting",
-    "finance",
-    "invoice",
-    "legal",
-    "hr",
-    "contract",
-    "analytics",
-    "report",
-    "startup",
-    "management",
-    "client",
-    "agency",
-  ],
-  web: [
-    "builder",
-    "website",
-    "landing",
-    "design",
-    "no-code",
-    "hosting",
-    "frontend",
-    "cms",
-    "theme",
-    "plugin",
-    "webapp",
-  ],
-};
-
 function classify(title, url) {
-  const text = `${title} ${url}`.toLowerCase();
-  let best = "software";
-  let max = 0;
+  // Prefer strong title signals; fallback to URL hints; guaranteed fallback to 'software'
+  const t = String(title || "").trim();
+  const guess = detectCluster(t);
+  if (guess && guess !== "software") return guess;
 
-  for (const [silo, keys] of Object.entries(SILO_KEYWORDS)) {
-    let score = 0;
-    for (const k of keys) if (text.includes(k)) score++;
-    if (score > max) {
-      max = score;
-      best = silo;
-    }
-  }
+  // URL nudges
+  if (/\/courses?\b|academy|tutorial|training/i.test(url)) return "courses";
+  if (/\/marketing|crm|leads|campaign/i.test(url)) return "marketing";
+  if (/\/productivity|task|kanban|calendar/i.test(url)) return "productivity";
+  if (/\/web|wordpress|landing|builder/i.test(url)) return "web";
 
-  if (/\/courses?-/.test(url)) best = "courses";
-  return best;
+  return "software";
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Sitemap Discovery (XML only, Render-safe)
+// Sitemap discovery (XML-first; Render-safe)
 // ───────────────────────────────────────────────────────────────────────────────
+function canonicalize(u) {
+  try {
+    const s = new URL(u);
+    // keep only canonical product pages
+    if (!/\/products\/[^/]+\/?$/i.test(s.pathname)) return null;
+    s.pathname = s.pathname.replace(/\/+$/, "/");
+    return s.toString();
+  } catch {
+    return null;
+  }
+}
+
 async function discoverProductUrls() {
   const productUrls = new Set();
 
+  // 1) Fetch root sitemap (could be urlset or sitemapindex)
   let root;
   try {
     const xml = await fetchText("https://appsumo.com/sitemap.xml");
@@ -279,19 +226,19 @@ async function discoverProductUrls() {
     root?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) || [];
   indexEntries.forEach((u) => toCrawl.add(u));
 
-  const urlEntries =
-    root?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) || [];
+  const urlEntries = root?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) || [];
   urlEntries.forEach((u) => toCrawl.add(u));
 
+  // known variants (defensive)
   [
     "https://appsumo.com/sitemap.xml",
     "https://appsumo.com/sitemap_index.xml",
     "https://appsumo.com/sitemap-products.xml",
     "https://appsumo.com/sitemap-products1.xml",
     "https://appsumo.com/sitemap_products.xml",
-    "https://appsumo.com/software/",
   ].forEach((u) => toCrawl.add(u));
 
+  // 2) crawl sitemaps and extract /products/... pages
   for (const url of Array.from(toCrawl)) {
     if (!/sitemap/i.test(url)) continue;
     try {
@@ -302,11 +249,11 @@ async function discoverProductUrls() {
         parsed?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) ||
         [];
 
-      for (const loc of urls) {
-        if (typeof loc === "string" && /\/products\/[^/]+\/$/i.test(loc)) {
-          productUrls.add(loc);
-          if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
-        }
+      for (const locRaw of urls) {
+        const loc = canonicalize(locRaw);
+        if (!loc) continue;
+        productUrls.add(loc);
+        if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
       }
     } catch {
       // continue silently
@@ -314,16 +261,15 @@ async function discoverProductUrls() {
     if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
   }
 
+  // 3) very small HTML fallback — /software/ page links
   if (productUrls.size === 0) {
     try {
       const html = await fetchText("https://appsumo.com/software/");
       const matches = Array.from(
-        html.matchAll(
-          /href=["'](https?:\/\/[^"']*\/products\/[^"']*\/)["']/gi
-        )
-      ).map((m) => m[1].replace(/\/+$/, "/"));
-
+        html.matchAll(/href=["'](https?:\/\/[^"']*\/products\/[^"']*\/?)["']/gi)
+      ).map((m) => canonicalize(m[1]));
       for (const u of matches) {
+        if (!u) continue;
         productUrls.add(u);
         if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
       }
@@ -338,35 +284,40 @@ async function discoverProductUrls() {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// HTTP Detail Fetch
+// Detail fetch (Render-safe; retries; OG + description)
 // ───────────────────────────────────────────────────────────────────────────────
 async function fetchDetail(url) {
   const slug = toSlug(url);
-
   try {
     const html = await fetchText(url);
     const og = extractOg(html);
 
+    const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
+    const cat = classify(titleClean || og.title || "", url);
+
     return normalizeEntry({
       slug,
-      title: (og.title || "").split(/\s*[-–—]\s*/)[0].trim(),
+      title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
       url,
-      cat: classify(og.title || "", url),
+      cat,
       image: og.image,
+      description: og.description,
     });
   } catch {
+    // Fallback with minimal info
     return normalizeEntry({
       slug,
-      title: (slug || "").replace(/[-_]/g, " "),
+      title: (slug || "").replace(/[-_]/g, " ") || "Untitled",
       url,
       cat: classify(slug || "", url),
       image: null,
+      description: null,
     });
   }
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Merge Logic — preserve CTAs/subtitles
+// Merge Logic — preserve CTAs/subtitles, archive missing
 // ───────────────────────────────────────────────────────────────────────────────
 function mergeWithHistory(cat, fresh) {
   const file = `appsumo-${cat}.json`;
@@ -396,25 +347,24 @@ function mergeWithHistory(cat, fresh) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Main Runtime
+// Main
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   ensureDir(DATA_DIR);
 
+  // Ensure CTA engine templates are initialized
   createCtaEngine();
   console.log("✅ CTA Engine ready");
 
   console.log("⏳ Discovering AppSumo products…");
   const productUrls = await discoverProductUrls();
 
-  const details = await withConcurrency(
-    productUrls,
-    DETAIL_CONCURRENCY,
-    fetchDetail
-  );
+  // Fetch details in parallel
+  const details = await withConcurrency(productUrls, DETAIL_CONCURRENCY, fetchDetail);
   const unique = dedupe(details);
   console.log(`🧩 ${unique.length} unique products resolved`);
 
+  // Bucket by category (semantic v5)
   const silos = {
     ai: [],
     marketing: [],
@@ -431,6 +381,7 @@ async function main() {
     else silos.software.push(item);
   }
 
+  // Normalize → limit → enrich → merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -440,20 +391,23 @@ async function main() {
 
     let cleaned = normalizeFeed(arr);
 
+    // stability + page weight; flip to Infinity when ready to show all
     cleaned = cleaned.slice(0, MAX_PER_CATEGORY);
 
+    // enrich with CTA/subtitle tuned per category
     cleaned = enrichDeals(cleaned, cat);
 
+    // preserve historical SEO & archive missing
     const merged = mergeWithHistory(cat, cleaned);
 
     writeJson(`appsumo-${cat}.json`, merged);
-
     console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
   }
 
-  console.log("\n✨ All silos refreshed (v7.2 Render-Safe).");
+  console.log("\n✨ All silos refreshed (v7.5 Render-Safe • Cluster v5).");
 }
 
+// Execute
 main().catch((err) => {
   console.error("Fatal updateFeed error:", err);
   process.exit(1);
