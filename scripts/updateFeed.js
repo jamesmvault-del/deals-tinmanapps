@@ -1,18 +1,17 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v7.7
- * “Render-Safe • Self-Healing • Cluster v5 • New-First Active Cap”
+ * TinmanApps Adaptive Feed Engine v7.8
+ * “Render-Safe • Self-Healing • Cluster v5 • New-First + Lastmod Priority”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ 100% Render-safe (no headless Chrome)
- * ✅ Discovers products from AppSumo XML sitemaps (resilient fallbacks)
- * ✅ Fetches product pages via HTTP; extracts OG:title / OG:image / meta:description
+ * ✅ Discovers products from AppSumo XML sitemaps (captures <lastmod>)
+ * ✅ Fetches product pages; extracts OG:title / OG:image / meta:description
  * ✅ Classifies with Semantic Cluster v5 (detectCluster) — deterministic & safe
  * ✅ Normalizes (feedNormalizer v2) → Enriches (ctaEngine v4.5) per category
  * ✅ Preserves historical CTAs/subtitles; archives missing
- * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow is archived)
- * ✅ “New-first” selection: all newly discovered items get active priority
- * ✅ Includes ecommerce & creative silos (parity with proxyCache / clusters)
- * ✅ Clean, deterministic, non-conflicting with master-cron / evolver
+ * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow stays archived backlog)
+ * ✅ New-first selection (prefer unseen) + lastmod recency priority
+ * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt for each deal
  */
 
 import fs from "fs";
@@ -39,11 +38,11 @@ const SITE_ORIGIN =
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
 
 // Tuning — adjust freely
-const MAX_PER_CATEGORY = 10;                 // set to Infinity to show all
-const DETAIL_CONCURRENCY = 8;                // HTTP concurrency
-const PRODUCT_URL_HARD_CAP = 500;            // safety guard
-const HTTP_TIMEOUT_MS = 12000;               // per-request guard
-const RETRIES = 2;                           // network retry attempts
+const MAX_PER_CATEGORY = 10;          // set to Infinity to show all
+const DETAIL_CONCURRENCY = 8;         // HTTP concurrency
+const PRODUCT_URL_HARD_CAP = 500;     // safety guard
+const HTTP_TIMEOUT_MS = 12000;        // per-request guard
+const RETRIES = 2;                    // network retry attempts
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -65,11 +64,11 @@ function readJsonSafe(file, fallback = []) {
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
-function dedupe(items) {
+function dedupe(items, keyFn) {
   const seen = new Set();
   const out = [];
   for (const i of items) {
-    const k = sha1(i.url || i.slug || i.title);
+    const k = keyFn ? keyFn(i) : sha1(i.url || i.slug || i.title);
     if (!seen.has(k)) {
       seen.add(k);
       out.push(i);
@@ -87,7 +86,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v7.7 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v7.8 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -145,7 +144,7 @@ function tracked({ slug, cat, url }) {
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
 
-function normalizeEntry({ slug, title, url, cat, image, description }) {
+function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) {
   const safeSlug =
     slug ||
     toSlug(url) ||
@@ -161,6 +160,7 @@ function normalizeEntry({ slug, title, url, cat, image, description }) {
     referralUrl: tracked({ slug: safeSlug, cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
     description: description || null,
+    lastmodAt: lastmod ? new Date(lastmod).toISOString() : null, // NEW: carry sitemap lastmod
   };
 }
 
@@ -203,7 +203,8 @@ function classify(title, url) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Sitemap discovery (XML-first; Render-safe)
+// Sitemap discovery (captures <lastmod>)
+// Returns: Array<{ url, lastmod }>
 // ───────────────────────────────────────────────────────────────────────────────
 function canonicalize(u) {
   try {
@@ -217,62 +218,70 @@ function canonicalize(u) {
   }
 }
 
-async function discoverProductUrls() {
-  const productUrls = new Set();
-
-  // 1) Fetch root sitemap (could be urlset or sitemapindex)
-  let root;
+async function parseSitemapAt(url) {
   try {
-    const xml = await fetchText("https://appsumo.com/sitemap.xml");
-    root = await parseStringPromise(xml);
-  } catch (err) {
-    console.warn("⚠️ root sitemap fetch failed:", err.message);
-    root = null;
+    const xml = await fetchText(url);
+    const parsed = await parseStringPromise(xml);
+    return parsed;
+  } catch {
+    return null;
   }
+}
 
-  const toCrawl = new Set();
+function collectFromUrlset(urlset) {
+  const out = [];
+  const rows = urlset?.url || [];
+  for (const row of rows) {
+    const loc = row.loc?.[0];
+    const lm = row.lastmod?.[0];
+    const canon = canonicalize(loc);
+    if (canon) out.push({ url: canon, lastmod: lm || null });
+  }
+  return out;
+}
 
-  const indexEntries =
-    root?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) || [];
-  indexEntries.forEach((u) => toCrawl.add(u));
-
-  const urlEntries = root?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) || [];
-  urlEntries.forEach((u) => toCrawl.add(u));
-
-  // known variants (defensive)
-  [
+async function discoverProductUrls() {
+  const seen = new Map(); // url -> lastmod (max)
+  const seed = [
     "https://appsumo.com/sitemap.xml",
     "https://appsumo.com/sitemap_index.xml",
     "https://appsumo.com/sitemap-products.xml",
     "https://appsumo.com/sitemap-products1.xml",
     "https://appsumo.com/sitemap_products.xml",
-  ].forEach((u) => toCrawl.add(u));
+  ];
 
-  // 2) crawl sitemaps and extract /products/... pages
-  for (const url of Array.from(toCrawl)) {
-    if (!/sitemap/i.test(url)) continue;
-    try {
-      const xml = await fetchText(url);
-      const parsed = await parseStringPromise(xml);
-      const urls =
-        parsed?.urlset?.url?.map((u) => u.loc?.[0]).filter(Boolean) ||
-        parsed?.sitemapindex?.sitemap?.map((s) => s.loc?.[0]).filter(Boolean) ||
-        [];
+  const queue = [...seed];
+  const visited = new Set();
 
-      for (const locRaw of urls) {
-        const loc = canonicalize(locRaw);
-        if (!loc) continue;
-        productUrls.add(loc);
-        if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+  while (queue.length && seen.size < PRODUCT_URL_HARD_CAP) {
+    const next = queue.shift();
+    if (!next || visited.has(next)) continue;
+    visited.add(next);
+
+    const doc = await parseSitemapAt(next);
+    if (!doc) continue;
+
+    // urlset → collect product URLs
+    if (doc.urlset) {
+      for (const { url, lastmod } of collectFromUrlset(doc.urlset)) {
+        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
+        const prev = seen.get(url);
+        if (!prev || (lastmod && new Date(lastmod) > new Date(prev))) {
+          seen.set(url, lastmod || prev || null);
+        }
       }
-    } catch {
-      // continue silently
     }
-    if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+
+    // sitemapindex → enqueue children
+    const subs = doc.sitemapindex?.sitemap || [];
+    for (const sm of subs) {
+      const loc = sm.loc?.[0];
+      if (loc && !visited.has(loc)) queue.push(loc);
+    }
   }
 
-  // 3) very small HTML fallback — /software/ page links
-  if (productUrls.size === 0) {
+  // Fallback: scrape /software/ if nothing found
+  if (seen.size === 0) {
     try {
       const html = await fetchText("https://appsumo.com/software/");
       const matches = Array.from(
@@ -280,23 +289,25 @@ async function discoverProductUrls() {
       ).map((m) => canonicalize(m[1]));
       for (const u of matches) {
         if (!u) continue;
-        productUrls.add(u);
-        if (productUrls.size >= PRODUCT_URL_HARD_CAP) break;
+        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
+        if (!seen.has(u)) seen.set(u, null);
       }
     } catch {
       // ignore
     }
   }
 
-  const list = Array.from(productUrls).slice(0, PRODUCT_URL_HARD_CAP);
+  const list = Array.from(seen.entries()).map(([url, lastmod]) => ({ url, lastmod }));
   console.log(`🧭 Discovered ${list.length} product URLs`);
-  return list;
+  return list.slice(0, PRODUCT_URL_HARD_CAP);
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Detail fetch (Render-safe; retries; OG + description)
+// input: { url, lastmod }
 // ───────────────────────────────────────────────────────────────────────────────
-async function fetchDetail(url) {
+async function fetchDetail(entry) {
+  const { url, lastmod } = entry;
   const slug = toSlug(url);
   try {
     const html = await fetchText(url);
@@ -312,6 +323,7 @@ async function fetchDetail(url) {
       cat,
       image: og.image,
       description: og.description,
+      lastmod,
     });
   } catch {
     // Fallback with minimal info
@@ -322,58 +334,85 @@ async function fetchDetail(url) {
       cat: classify(slug || "", url),
       image: null,
       description: null,
+      lastmod,
     });
   }
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Active-cap merge: preserve SEO, archive overflow, NEW-FIRST priority
+// Active-cap merge: NEW-FIRST + LASTMOD priority + history preservation
+// - Preserves SEO (cta/subtitle)
+// - Adds firstSeenAt / lastSeenAt / lastmodAt
+// - Strict cap on ACTIVE items; overflow archived (backlog)
 // ───────────────────────────────────────────────────────────────────────────────
 function mergeWithHistoryActiveCap(cat, fresh, cap) {
+  const nowISO = new Date().toISOString();
   const file = `appsumo-${cat}.json`;
   const existing = readJsonSafe(file, []);
   const prevBySlug = new Map(existing.map((x) => [x.slug, x]));
 
-  // mark which fresh items are new vs previously known
-  const newFresh = [];
-  const knownFresh = [];
+  // Mark freshness status and carry lastmodAt
+  const newItems = [];
+  const knownItems = [];
+
   for (const item of fresh) {
-    if (prevBySlug.has(item.slug)) knownFresh.push(item);
-    else newFresh.push(item);
+    if (prevBySlug.has(item.slug)) knownItems.push(item);
+    else newItems.push(item);
   }
 
-  // NEW-FIRST: all new items are preferred for active slots
-  const orderedFresh = [...newFresh, ...knownFresh];
+  // NEW-FIRST priority, then by lastmodAt desc (true recency), then alpha
+  const sortByRecency = (a, b) => {
+    const la = a.lastmodAt ? Date.parse(a.lastmodAt) : 0;
+    const lb = b.lastmodAt ? Date.parse(b.lastmodAt) : 0;
+    if (lb !== la) return lb - la;
+    return String(a.title || a.slug).localeCompare(String(b.title || b.slug));
+  };
+  newItems.sort(sortByRecency);
+  knownItems.sort(sortByRecency);
+
+  const ordered = [...newItems, ...knownItems];
 
   // Decide active set (cap may be Infinity)
   const activeSet = new Set(
-    (Number.isFinite(cap) ? orderedFresh.slice(0, cap) : orderedFresh).map((x) => x.slug)
+    (Number.isFinite(cap) ? ordered.slice(0, cap) : ordered).map((x) => x.slug)
   );
 
-  // Build merged list:
-  // - Items present in 'fresh' are updated and marked active if within cap; else archived
-  // - Items missing from 'fresh' but in 'existing' are kept as archived (history)
+  // Build merged:
   const merged = [];
 
   // 1) update/insert all fresh
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
     const preservedSeo = prev?.seo || {};
+    const firstSeenAt = prev?.firstSeenAt || nowISO; // set on first discovery
+    const lastSeenAt = nowISO;
+
     const updated = {
       ...item,
       seo: {
         cta: item.seo?.cta || preservedSeo.cta || null,
         subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
       },
+      firstSeenAt,
+      lastSeenAt,
+      // keep the most recent lastmod timestamp we know
+      lastmodAt:
+        item.lastmodAt ||
+        prev?.lastmodAt ||
+        null,
       archived: !activeSet.has(item.slug),
     };
     merged.push(updated);
   }
 
-  // 2) add previously-known but missing in fresh → archived
+  // 2) add previously-known but missing in fresh → archived, keep timestamps
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
-      merged.push({ ...prev, archived: true });
+      merged.push({
+        ...prev,
+        archived: true,
+        lastSeenAt: prev.lastSeenAt || nowISO,
+      });
     }
   }
 
@@ -391,18 +430,20 @@ async function main() {
   console.log("✅ CTA Engine ready");
 
   console.log("⏳ Discovering AppSumo products…");
-  const productUrls = await discoverProductUrls();
+  const discovered = await discoverProductUrls();
 
   // If discovery fails entirely, do not clobber existing category files
-  if (!productUrls.length) {
+  if (!discovered.length) {
     console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
-    console.log("✨ UpdateFeed v7.7 completed (no-op due to zero discovery).");
+    console.log("✨ UpdateFeed v7.8 completed (no-op due to zero discovery).");
     return;
   }
 
   // Fetch details in parallel
-  const details = await withConcurrency(productUrls, DETAIL_CONCURRENCY, fetchDetail);
-  const unique = dedupe(details);
+  const details = await withConcurrency(discovered, DETAIL_CONCURRENCY, fetchDetail);
+
+  // Deduplicate by canonical URL (keeps most recent lastmod order implicitly)
+  const unique = dedupe(details, (d) => d.url);
   console.log(`🧩 ${unique.length} unique products resolved`);
 
   // Bucket by category (semantic v5)
@@ -424,7 +465,7 @@ async function main() {
     else silos.software.push(item);
   }
 
-  // Normalize → enrich → NEW-FIRST active-cap merge → write per category
+  // Normalize → enrich → NEW-FIRST+LASTMOD active-cap merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -437,17 +478,22 @@ async function main() {
     // Enrich with CTA/subtitle tuned per category (before merge so new items get SEO)
     cleaned = enrichDeals(cleaned, cat);
 
-    // NEW-FIRST active-cap aware merge (strictly enforce cap on ACTIVE items)
+    // NEW-FIRST + LASTMOD priority active-cap aware merge
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
 
-    const activeCount = merged.filter(x => !x.archived).length;
+    const activeCount = merged.filter((x) => !x.archived).length;
     const totalCount = merged.length;
-    console.log(`🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)`);
+    const newCount = cleaned.filter((x) => !merged.find(m => m.slug === x.slug && m.firstSeenAt)).length;
+    console.log(
+      `🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)${
+        newCount ? ` • new=${newCount}` : ""
+      }`
+    );
   }
 
-  console.log("\n✨ All silos refreshed (v7.7 New-First • Strict Active Cap).");
+  console.log("\n✨ All silos refreshed (v7.8 New-First + Lastmod Priority + First-Seen tracking).");
 }
 
 // Execute
