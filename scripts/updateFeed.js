@@ -1,16 +1,17 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v7.6
- * “Render-Safe • Self-Healing • Cluster v5 • Creative+Ecommerce Silos”
+ * TinmanApps Adaptive Feed Engine v7.7
+ * “Render-Safe • Self-Healing • Cluster v5 • New-First Active Cap”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ 100% Render-safe (no headless Chrome)
  * ✅ Discovers products from AppSumo XML sitemaps (resilient fallbacks)
  * ✅ Fetches product pages via HTTP; extracts OG:title / OG:image / meta:description
  * ✅ Classifies with Semantic Cluster v5 (detectCluster) — deterministic & safe
  * ✅ Normalizes (feedNormalizer v2) → Enriches (ctaEngine v4.5) per category
- * ✅ Preserves historical CTAs/subtitles (mergeWithHistory) + archives missing
+ * ✅ Preserves historical CTAs/subtitles; archives missing
+ * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow is archived)
+ * ✅ “New-first” selection: all newly discovered items get active priority
  * ✅ Includes ecommerce & creative silos (parity with proxyCache / clusters)
- * ✅ MAX_PER_CATEGORY easy flip to Infinity for “show everything”
  * ✅ Clean, deterministic, non-conflicting with master-cron / evolver
  */
 
@@ -86,7 +87,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v7.6 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v7.7 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -326,29 +327,53 @@ async function fetchDetail(url) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Merge Logic — preserve CTAs/subtitles, archive missing
+// Active-cap merge: preserve SEO, archive overflow, NEW-FIRST priority
 // ───────────────────────────────────────────────────────────────────────────────
-function mergeWithHistory(cat, fresh) {
+function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const file = `appsumo-${cat}.json`;
   const existing = readJsonSafe(file, []);
-  const map = new Map(existing.map((x) => [x.slug, x]));
+  const prevBySlug = new Map(existing.map((x) => [x.slug, x]));
 
-  const merged = fresh.map((item) => {
-    const old = map.get(item.slug);
-    const preservedSeo = old?.seo || {};
-    return {
+  // mark which fresh items are new vs previously known
+  const newFresh = [];
+  const knownFresh = [];
+  for (const item of fresh) {
+    if (prevBySlug.has(item.slug)) knownFresh.push(item);
+    else newFresh.push(item);
+  }
+
+  // NEW-FIRST: all new items are preferred for active slots
+  const orderedFresh = [...newFresh, ...knownFresh];
+
+  // Decide active set (cap may be Infinity)
+  const activeSet = new Set(
+    (Number.isFinite(cap) ? orderedFresh.slice(0, cap) : orderedFresh).map((x) => x.slug)
+  );
+
+  // Build merged list:
+  // - Items present in 'fresh' are updated and marked active if within cap; else archived
+  // - Items missing from 'fresh' but in 'existing' are kept as archived (history)
+  const merged = [];
+
+  // 1) update/insert all fresh
+  for (const item of fresh) {
+    const prev = prevBySlug.get(item.slug);
+    const preservedSeo = prev?.seo || {};
+    const updated = {
       ...item,
       seo: {
         cta: item.seo?.cta || preservedSeo.cta || null,
         subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
       },
-      archived: false,
+      archived: !activeSet.has(item.slug),
     };
-  });
+    merged.push(updated);
+  }
 
-  for (const old of existing) {
-    if (!merged.find((x) => x.slug === old.slug)) {
-      merged.push({ ...old, archived: true });
+  // 2) add previously-known but missing in fresh → archived
+  for (const prev of existing) {
+    if (!fresh.find((x) => x.slug === prev.slug)) {
+      merged.push({ ...prev, archived: true });
     }
   }
 
@@ -371,7 +396,7 @@ async function main() {
   // If discovery fails entirely, do not clobber existing category files
   if (!productUrls.length) {
     console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
-    console.log("✨ UpdateFeed v7.6 completed (no-op due to zero discovery).");
+    console.log("✨ UpdateFeed v7.7 completed (no-op due to zero discovery).");
     return;
   }
 
@@ -399,7 +424,7 @@ async function main() {
     else silos.software.push(item);
   }
 
-  // Normalize → limit → enrich → merge → write per category
+  // Normalize → enrich → NEW-FIRST active-cap merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -409,20 +434,20 @@ async function main() {
 
     let cleaned = normalizeFeed(arr);
 
-    // stability + page weight; flip to Infinity when ready to show all
-    cleaned = cleaned.slice(0, MAX_PER_CATEGORY);
-
-    // enrich with CTA/subtitle tuned per category
+    // Enrich with CTA/subtitle tuned per category (before merge so new items get SEO)
     cleaned = enrichDeals(cleaned, cat);
 
-    // preserve historical SEO & archive missing
-    const merged = mergeWithHistory(cat, cleaned);
+    // NEW-FIRST active-cap aware merge (strictly enforce cap on ACTIVE items)
+    const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
-    console.log(`🧹 ${cat}: normalized + merged (${merged.length} entries)`);
+
+    const activeCount = merged.filter(x => !x.archived).length;
+    const totalCount = merged.length;
+    console.log(`🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)`);
   }
 
-  console.log("\n✨ All silos refreshed (v7.6 Render-Safe • Cluster v5 • Creative+Ecommerce).");
+  console.log("\n✨ All silos refreshed (v7.7 New-First • Strict Active Cap).");
 }
 
 // Execute
