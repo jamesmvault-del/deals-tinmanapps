@@ -1,13 +1,13 @@
 // /api/home.js
-// TinmanApps Home Index v4.0 “Adaptive SEO Surface”
+// TinmanApps Home Index v5.0 “Active-Only SEO Surface+”
 // ───────────────────────────────────────────────────────────────────────────────
-// Purpose:
-// • Render a clean SEO-optimised homepage
-// • Pulls live deal counts from per-category JSON files
-// • Integrates optional Insight Pulse signals for trend-aware ordering
-// • Ultra-lightweight: zero branding, zero analytics clutter
-// • Guaranteed Render-safe (FS reads only)
-// • No raw URLs, no ref leakage
+// Alignment with updateFeed v7.7:
+// • Counts only ACTIVE (non-archived) deals
+// • Full taxonomy (ai, marketing, productivity, software, courses, business, web, ecommerce, creative)
+// • SEO-first layout with schema correctness
+// • Uses Insight Pulse boost ordering if available
+// • Zero branding, zero analytics, zero ref leakage
+// • 100% Render-safe (FS reads only)
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -17,77 +17,99 @@ import url from "url";
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
 
-// Category labels (same taxonomy as updateFeed + master-cron)
+// Full taxonomy (must match updateFeed + categories.js + silos)
 const CATEGORIES = {
-  software: "Software Deals",
+  ai: "AI & Automation Tools",
   marketing: "Marketing & Sales Tools",
   productivity: "Productivity Boosters",
-  ai: "AI & Automation Tools",
-  courses: "Courses & Learning"
+  software: "Software Deals",
+  courses: "Courses & Learning",
+  business: "Business Management",
+  web: "Web & Design Tools",
+  ecommerce: "Ecommerce Tools",
+  creative: "Creative & Design Tools",
 };
 
+// ───────────────────────────────────────────────────────────────────────────────
 // Safe JSON loader
+// ───────────────────────────────────────────────────────────────────────────────
 function loadJsonSafe(file, fallback = []) {
   try {
     const full = path.join(DATA_DIR, file);
-    if (fs.existsSync(full)) {
-      return JSON.parse(fs.readFileSync(full, "utf8"));
-    }
-  } catch {}
-  return fallback;
+    if (!fs.existsSync(full)) return fallback;
+    return JSON.parse(fs.readFileSync(full, "utf8"));
+  } catch {
+    return fallback;
+  }
 }
 
-// Load Insight Pulse metadata if available
+// Optional Insight Pulse data
 function loadInsight() {
   try {
-    const p = path.join(DATA_DIR, "insight-latest.json");
-    if (fs.existsSync(p)) {
-      return JSON.parse(fs.readFileSync(p, "utf8"));
-    }
-  } catch {}
-  return null;
+    const full = path.join(DATA_DIR, "insight-latest.json");
+    if (!fs.existsSync(full)) return null;
+    return JSON.parse(fs.readFileSync(full, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// MAIN HANDLER
+// ───────────────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   try {
     const insight = loadInsight();
+
     const boostScores =
       insight?.categories
         ? Object.fromEntries(
-            Object.entries(insight.categories).map(([k, v]) => [k, v.boost || 0])
+            Object.entries(insight.categories).map(([k, v]) => [
+              k,
+              Number(v.boost || 0),
+            ])
           )
         : {};
 
-    // Build category blocks
+    // Build live category blocks (ACTIVE DEALS ONLY)
     const blocks = Object.entries(CATEGORIES).map(([key, label]) => {
-      const data = loadJsonSafe(`appsumo-${key}.json`, []);
-      const first = data[0];
+      const silo = loadJsonSafe(`appsumo-${key}.json`, []);
+
+      // active only (align with v7.7 strict-cap output)
+      const active = silo.filter((d) => !d.archived);
+      const first = active[0];
 
       return {
         key,
         label,
-        count: data.length,
+        count: active.length,
         img:
           first?.image ||
           "https://deals.tinmanapps.com/assets/placeholder.webp",
-        boost: boostScores[key] ?? 0
+        boost: boostScores[key] ?? 0,
       };
     });
 
-    // Sort visually by “boost score” (SEO-relevant ordering)
+    // Insight Pulse ordering — boosted categories rise to top
     blocks.sort((a, b) => b.boost - a.boost);
 
-    // HTML output (CSS-inlined, clean, ultra-fast)
+    // ───────────────────────────────────────────────────────────────────────────
+    // HTML (clean, SEO-optimised, extremely lightweight)
+    // ───────────────────────────────────────────────────────────────────────────
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Live AppSumo Deals — Categorised & Auto-Refreshed</title>
-<meta name="description" content="Browse live AppSumo deals, organised by category and continuously refreshed through a self-optimising adaptive engine." />
-<meta property="og:title" content="Live AppSumo Deals — Categorised & Auto-Refreshed" />
-<meta property="og:description" content="Explore every AppSumo deal with enhanced SEO, category intelligence, and adaptive refresh." />
+<title>Live AppSumo Deals by Category — Auto-Refreshed Daily</title>
+<meta name="description" content="Browse live AppSumo lifetime deals organised by category — automatically refreshed and self-optimising." />
+<link rel="canonical" href="https://deals.tinmanapps.com/" />
+
+<meta property="og:title" content="Live AppSumo Deals — Updated Automatically" />
+<meta property="og:description" content="Explore every active AppSumo deal with adaptive category intelligence and daily refresh." />
 <meta property="og:image" content="https://deals.tinmanapps.com/assets/placeholder.webp" />
+<meta property="og:type" content="website" />
+
 <style>
   body {
     font-family: system-ui, sans-serif;
@@ -96,11 +118,12 @@ export default async function handler(req, res) {
     margin: 0;
     padding: 2rem;
   }
-  h1 { margin-bottom: 1rem; font-size: 2rem; }
+  h1 { margin-bottom: 1.2rem; font-size: 2rem; }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
     gap: 1.25rem;
+    margin-top: 1rem;
   }
   a.card {
     display: block;
@@ -122,7 +145,7 @@ export default async function handler(req, res) {
     margin-bottom: .7rem;
     background: #eee;
   }
-  h2 { margin: .2rem 0 .3rem; font-size: 1.1rem; }
+  h2 { margin: .1rem 0 .35rem; font-size: 1.1rem; }
   p { margin: 0; font-size: .9rem; color: #555; }
   .boost {
     font-size: .75rem;
@@ -131,8 +154,9 @@ export default async function handler(req, res) {
   }
 </style>
 </head>
+
 <body>
-<h1>AppSumo Deal Categories</h1>
+<h1>AppSumo Deals by Category</h1>
 
 <div class="grid">
 ${blocks
@@ -141,12 +165,8 @@ ${blocks
   <a class="card" href="/categories/${b.key}">
     <img src="${b.img}" alt="${b.label}" loading="lazy" />
     <h2>${b.label}</h2>
-    <p>${b.count} live deals</p>
-    ${
-      b.boost
-        ? `<div class="boost">SEO Boost Score: ${b.boost.toFixed(2)}</div>`
-        : ""
-    }
+    <p>${b.count} active deals</p>
+    ${b.boost ? `<div class="boost">SEO Boost: ${b.boost.toFixed(2)}</div>` : ""}
   </a>`
   )
   .join("\n")}
