@@ -1,17 +1,18 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v7.8
- * “Render-Safe • Self-Healing • Cluster v5 • New-First + Lastmod Priority”
+ * TinmanApps Adaptive Feed Engine v8.0
+ * “Render-Safe • Deterministic • New-First + Lastmod Priority • No Hidden Deps”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ 100% Render-safe (no headless Chrome)
  * ✅ Discovers products from AppSumo XML sitemaps (captures <lastmod>)
  * ✅ Fetches product pages; extracts OG:title / OG:image / meta:description
- * ✅ Classifies with Semantic Cluster v5 (detectCluster) — deterministic & safe
- * ✅ Normalizes (feedNormalizer v2) → Enriches (ctaEngine v4.5) per category
+ * ✅ Deterministic category classifier (no external semantic module required)
+ * ✅ Normalizes (feedNormalizer v3.1) → Enriches (ctaEngine v6.4) per item’s own category
  * ✅ Preserves historical CTAs/subtitles; archives missing
- * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow stays archived backlog)
+ * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow archived backlog)
  * ✅ New-first selection (prefer unseen) + lastmod recency priority
  * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt for each deal
+ * ✅ Referral integrity: masked redirects via /api/track; images via /api/image-proxy
  */
 
 import fs from "fs";
@@ -23,7 +24,6 @@ import crypto from "crypto";
 
 import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
-import { detectCluster } from "../lib/semanticCluster.js";
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Paths & constants
@@ -37,10 +37,10 @@ const SITE_ORIGIN =
 
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
 
-// Tuning — adjust freely
+// Tuning
 const MAX_PER_CATEGORY = 10;          // set to Infinity to show all
 const DETAIL_CONCURRENCY = 8;         // HTTP concurrency
-const PRODUCT_URL_HARD_CAP = 500;     // safety guard
+const PRODUCT_URL_HARD_CAP = 800;     // safety guard
 const HTTP_TIMEOUT_MS = 12000;        // per-request guard
 const RETRIES = 2;                    // network retry attempts
 
@@ -86,7 +86,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v7.8 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v8.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -153,14 +153,14 @@ function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) 
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
   return {
-    title: title || safeSlug,
-    slug: safeSlug,
+    title: title || (safeSlug || "Untitled"),
+    slug: safeSlug || "untitled",
     category: cat,
     url, // raw product url (normalizeFeed will map to link/referral later)
-    referralUrl: tracked({ slug: safeSlug, cat, url }),
+    referralUrl: tracked({ slug: safeSlug || "untitled", cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
     description: description || null,
-    lastmodAt: lastmod ? new Date(lastmod).toISOString() : null, // NEW: carry sitemap lastmod
+    lastmodAt: lastmod ? new Date(lastmod).toISOString() : null, // carry sitemap lastmod
   };
 }
 
@@ -183,21 +183,31 @@ async function withConcurrency(items, limit, worker) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Category classification — use Semantic Cluster v5
+// Deterministic category classifier (no external semanticCluster module)
 // ───────────────────────────────────────────────────────────────────────────────
 function classify(title, url) {
-  // Prefer strong title signals; fallback to URL hints; guaranteed fallback to 'software'
-  const t = String(title || "").trim();
-  const guess = detectCluster(t);
-  if (guess && guess !== "software") return guess;
+  const t = String(title || "").toLowerCase();
+  const u = String(url || "").toLowerCase();
+
+  // Strong title signals
+  if (/\b(ai|chatgpt|gpt|machine learning|ml|nlp|stable diffusion)\b/i.test(title)) return "ai";
+  if (/\b(course|academy|bootcamp|lesson|tutorial|training|masterclass)\b/i.test(title)) return "courses";
+  if (/\b(marketing|seo|campaign|newsletter|social|advert|affiliate|influencer)\b/i.test(title)) return "marketing";
+  if (/\b(task|kanban|todo|calendar|pomodoro|productivity|habit|meeting)\b/i.test(title)) return "productivity";
+  if (/\b(woocommerce|shopify|checkout|cart|store|ecommerce|upsell)\b/i.test(title)) return "ecommerce";
+  if (/\b(brand|design|graphic|video|image|creative|studio|art|logo)\b/i.test(title)) return "creative";
+  if (/\b(website|wordpress|landing|builder|webflow|frontend|page builder|ui|ux)\b/i.test(title)) return "web";
+  if (/\b(crm|invoice|accounting|clients|agency|operations|analytics|finance)\b/i.test(title)) return "business";
 
   // URL nudges (defensive)
-  if (/\/courses?\b|academy|tutorial|training/i.test(url)) return "courses";
-  if (/\/marketing|crm|leads|campaign/i.test(url)) return "marketing";
-  if (/\/productivity|task|kanban|calendar/i.test(url)) return "productivity";
-  if (/\/web|wordpress|landing|builder/i.test(url)) return "web";
-  if (/\/shop|store|checkout|cart|ecommerce/i.test(url)) return "ecommerce";
-  if (/\/creative|design|brand|media|graphics?/i.test(url)) return "creative";
+  if (/\/courses?\b|academy|tutorial|training/i.test(u)) return "courses";
+  if (/\/marketing|crm|leads|campaign/i.test(u)) return "marketing";
+  if (/\/productivity|task|kanban|calendar/i.test(u)) return "productivity";
+  if (/\/web|wordpress|landing|builder/i.test(u)) return "web";
+  if (/\/shop|store|checkout|cart|ecommerce/i.test(u)) return "ecommerce";
+  if (/\/creative|design|brand|media|graphic/i.test(u)) return "creative";
+  if (/\/ai|gpt|machine-?learning|ml|nlp/i.test(u)) return "ai";
+  if (/\/agency|client|invoice|accounting|analytics|finance/i.test(u)) return "business";
 
   return "software";
 }
@@ -351,7 +361,6 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const existing = readJsonSafe(file, []);
   const prevBySlug = new Map(existing.map((x) => [x.slug, x]));
 
-  // Mark freshness status and carry lastmodAt
   const newItems = [];
   const knownItems = [];
 
@@ -360,7 +369,6 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
     else newItems.push(item);
   }
 
-  // NEW-FIRST priority, then by lastmodAt desc (true recency), then alpha
   const sortByRecency = (a, b) => {
     const la = a.lastmodAt ? Date.parse(a.lastmodAt) : 0;
     const lb = b.lastmodAt ? Date.parse(b.lastmodAt) : 0;
@@ -372,19 +380,17 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 
   const ordered = [...newItems, ...knownItems];
 
-  // Decide active set (cap may be Infinity)
   const activeSet = new Set(
     (Number.isFinite(cap) ? ordered.slice(0, cap) : ordered).map((x) => x.slug)
   );
 
-  // Build merged:
   const merged = [];
 
-  // 1) update/insert all fresh
+  // Update/insert fresh
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
     const preservedSeo = prev?.seo || {};
-    const firstSeenAt = prev?.firstSeenAt || nowISO; // set on first discovery
+    const firstSeenAt = prev?.firstSeenAt || nowISO;
     const lastSeenAt = nowISO;
 
     const updated = {
@@ -395,17 +401,13 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
       },
       firstSeenAt,
       lastSeenAt,
-      // keep the most recent lastmod timestamp we know
-      lastmodAt:
-        item.lastmodAt ||
-        prev?.lastmodAt ||
-        null,
+      lastmodAt: item.lastmodAt || prev?.lastmodAt || null,
       archived: !activeSet.has(item.slug),
     };
     merged.push(updated);
   }
 
-  // 2) add previously-known but missing in fresh → archived, keep timestamps
+  // Carry over missing → archived
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
       merged.push({
@@ -425,7 +427,7 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 async function main() {
   ensureDir(DATA_DIR);
 
-  // Ensure CTA engine templates are initialized
+  // Initialize CTA engine (ensures deterministic template pools loaded)
   createCtaEngine();
   console.log("✅ CTA Engine ready");
 
@@ -435,7 +437,7 @@ async function main() {
   // If discovery fails entirely, do not clobber existing category files
   if (!discovered.length) {
     console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
-    console.log("✨ UpdateFeed v7.8 completed (no-op due to zero discovery).");
+    console.log("✨ UpdateFeed v8.0 completed (no-op due to zero discovery).");
     return;
   }
 
@@ -446,7 +448,7 @@ async function main() {
   const unique = dedupe(details, (d) => d.url);
   console.log(`🧩 ${unique.length} unique products resolved`);
 
-  // Bucket by category (semantic v5)
+  // Bucket by category (deterministic classifier)
   const silos = {
     ai: [],
     marketing: [],
@@ -460,12 +462,12 @@ async function main() {
   };
 
   for (const item of unique) {
-    const cat = item.category || classify(item.title, item.url);
+    const cat = (item.category || classify(item.title, item.url)).toLowerCase();
     if (silos[cat]) silos[cat].push(item);
     else silos.software.push(item);
   }
 
-  // Normalize → enrich → NEW-FIRST+LASTMOD active-cap merge → write per category
+  // Normalize → enrich (per own category) → NEW-FIRST+LASTMOD active-cap merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -475,8 +477,8 @@ async function main() {
 
     let cleaned = normalizeFeed(arr);
 
-    // Enrich with CTA/subtitle tuned per category (before merge so new items get SEO)
-    cleaned = enrichDeals(cleaned, cat);
+    // Enrich with CTA/subtitle tuned per item’s own category (regen later may overwrite globally)
+    cleaned = enrichDeals(cleaned);
 
     // NEW-FIRST + LASTMOD priority active-cap aware merge
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
@@ -485,15 +487,12 @@ async function main() {
 
     const activeCount = merged.filter((x) => !x.archived).length;
     const totalCount = merged.length;
-    const newCount = cleaned.filter((x) => !merged.find(m => m.slug === x.slug && m.firstSeenAt)).length;
     console.log(
-      `🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)${
-        newCount ? ` • new=${newCount}` : ""
-      }`
+      `🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)`
     );
   }
 
-  console.log("\n✨ All silos refreshed (v7.8 New-First + Lastmod Priority + First-Seen tracking).");
+  console.log("\n✨ All silos refreshed (v8.0 Deterministic New-First + Lastmod + First-Seen tracking).");
 }
 
 // Execute
