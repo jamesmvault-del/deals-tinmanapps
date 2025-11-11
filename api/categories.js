@@ -1,10 +1,10 @@
 // /api/categories.js
-// TinmanApps — Category Renderer v7.1 “Active-Only SEO Dominator+ (Strict Subtitles)”
+// TinmanApps — Category Renderer v7.2 “Active-Only SEO Dominator+ (Strict Subtitles, No Ranking)”
 // ───────────────────────────────────────────────────────────────────────────────
-// Alignment with updateFeed v7.7:
+// Alignment with updateFeed v7.7 & CTA Engine v7.0:
 // • Only ACTIVE items render (archived items hidden completely)
 // • Structured data reflects ONLY active items
-// • RankDeals runs only on active subset
+// • Deterministic order: uses category file order from updateFeed (no ranking)
 // • Clean canonical SEO, deterministic HTML, Render-safe
 // • Referral-safe masking via /api/track + REF_PREFIX
 // • Hard 48-card visual cap after active filtering
@@ -16,7 +16,6 @@ import fs from "fs";
 import path from "path";
 import url from "url";
 import { createCtaEngine } from "../lib/ctaEngine.js";
-import { rankDeals } from "../lib/rankingEngine.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
@@ -152,14 +151,8 @@ export default async function handler(req, res) {
   let deals = allDeals.filter((d) => !d.archived);
   const activeCount = deals.length;
 
-  // ✅ Ranking engine only runs on active items
-  try {
-    deals = rankDeals(deals, cat);
-  } catch (e) {
-    console.warn("⚠️ rankDeals error, falling back to natural order:", e.message);
-  }
-
-  // ✅ Visual render cap (post-ranking)
+  // ✅ Deterministic order: keep file order from updateFeed/merge (no ranking)
+  // ✅ Visual render cap (post-filter)
   deals = deals.slice(0, 48);
 
   const canonical = `${SITE_ORIGIN}/categories/${cat}`;
@@ -182,12 +175,14 @@ export default async function handler(req, res) {
     name: `${title} Deals`,
     url: canonical,
     numberOfItems: activeCount,
-    itemListElement: deals.map((d, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      url: baseUrl(d) || canonical,
-      name: d.title || d.slug || "Deal",
-    })),
+    itemListElement: deals.map((d, i) => ([
+      {
+        "@type": "ListItem",
+        position: i + 1,
+        url: baseUrl(d) || canonical,
+        name: (d.title || d.slug || "Deal")
+      }
+    ])).flat(),
   };
 
   const engine = createCtaEngine();
