@@ -1,120 +1,168 @@
 // /api/appsumo-proxy.js
-// 🌍 TinmanApps Adaptive AppSumo Proxy
-// Merges category feeds → adds referral + image + SEO metadata
+// ───────────────────────────────────────────────────────────────────────────────
+// TinmanApps — AppSumo Ingestion + Referral Governor v4.1
+// “Deterministic • Referral-Safe • Category-Pure Edition”
+//
+// WHAT THIS FILE NOW DOES:
+// • Loads local AppSumo silos: data/appsumo-*.json
+// • Generates SLUGS deterministically
+// • Builds **masked referral URLs only** (never external raw links)
+// • Inserts placeholder image if missing
+// • NEVER generates CTA or subtitle (handled by ctaEngine + seoIntegrity)
+// • Ensures SEO fields exist (minimal safe defaults only — no hype)
+// • Zero randomness, zero resurrection, zero raw affiliate exposure
+// • 100% safe for master-cron + regeneration phases
+//
+// OUTPUT SHAPE:
+// categories: {
+//   ai:    [ {title, slug, url, referralUrl, image, category, seo} ],
+//   ...etc
+// }
+//
+// The feed-cleanser → normalizer → ctaEngine → seoIntegrity pipeline
+// will enrich these safely.
+// ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import url from "url";
 
-// ✅ Define file paths relative to project root
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, "../data");
+const DATA_DIR = path.join(__dirname, "../data");
 
-// ✅ Referral prefix (AppSumo affiliate ID)
-const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
+// ───────────────────────────────────────────────────────────────────────────────
+// GLOBAL REFERRAL MASK (do NOT change at runtime)
+// Always masked. Never external. No leakage.
+// ───────────────────────────────────────────────────────────────────────────────
+const MASK_PREFIX = "https://tinmanapps.com/r?url=";
 
-// ✅ Safe JSON loader
-function loadJson(file) {
+// ───────────────────────────────────────────────────────────────────────────────
+// Safe JSON loader
+// ───────────────────────────────────────────────────────────────────────────────
+function loadJson(filename) {
   try {
-    const fullPath = path.join(dataDir, file);
-    if (fs.existsSync(fullPath)) {
-      const raw = fs.readFileSync(fullPath, "utf8");
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.error(`❌ Failed to load ${file}:`, err);
+    const full = path.join(DATA_DIR, filename);
+    if (!fs.existsSync(full)) return [];
+    return JSON.parse(fs.readFileSync(full, "utf8"));
+  } catch {
+    return [];
   }
-  return [];
 }
 
-// ✅ Basic SEO / CTR enhancement
-function enrichDeal(deal, category) {
-  const baseUrl = deal.url || "";
-  const slug = baseUrl.split("/products/")[1]?.replace("/", "") || "unknown";
+// ───────────────────────────────────────────────────────────────────────────────
+// Deterministic slug builder (no randomness ever)
+// ───────────────────────────────────────────────────────────────────────────────
+function makeSlug(raw = "") {
+  const base =
+    raw
+      .toLowerCase()
+      .trim()
+      .replace(/https?:\/\/[^/]+\/products\//, "")
+      .replace(/[^a-z0-9\-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/(^-|-$)/g, "") || "unknown";
 
+  return base;
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Minimal SEO object — NEVER generates CTA/SUBTITLE here
+// (these are generated later by regenerateSeo → ctaEngine → seoIntegrity)
+// ───────────────────────────────────────────────────────────────────────────────
+function minimalSeo(deal, category, slug) {
   return {
-    title: deal.title?.trim() || slug,
-    slug,
-    category,
-    url: baseUrl,
-    referralUrl: REF_PREFIX + encodeURIComponent(baseUrl),
-    image:
-      deal.image ||
-      `https://deals.tinmanapps.com/assets/placeholder.webp`,
-    seo: {
-      clickbait: `Discover ${deal.title} — #1 in ${category}`,
-      keywords: [
-        category,
-        "AppSumo",
-        "lifetime deal",
-        deal.title?.toLowerCase(),
-        "exclusive offer"
-      ],
-      cta: [
-        "Unlock this deal →",
-        "Save big today →",
-        "Get instant lifetime access →",
-        "Upgrade your workflow →"
-      ][Math.floor(Math.random() * 4)]
-    }
+    clickbait: `Explore ${deal.title || slug}`,
+    keywords: [
+      category,
+      "appsumo",
+      "lifetime deal",
+      (deal.title || "").toLowerCase(),
+    ].filter(Boolean),
   };
 }
 
-// ✅ API endpoint
-export default async function appsumoProxy(req, res) {
-  try {
-    const { cat, refresh } = req.query;
-    const start = Date.now();
+// ───────────────────────────────────────────────────────────────────────────────
+// Deal normalizer — category-pure, deterministic
+// ───────────────────────────────────────────────────────────────────────────────
+function normalizeDeal(d, category) {
+  const url = d.url || d.link || "";
+  const slug = makeSlug(url);
 
-    // Category files to merge
+  return {
+    title: d.title?.trim() || slug,
+    slug,
+    category,
+    url,
+    referralUrl: `${MASK_PREFIX}${encodeURIComponent(url)}`, // ALWAYS masked
+    image: d.image || "https://deals.tinmanapps.com/assets/placeholder.webp",
+    archived: false,
+    seo: minimalSeo(d, category, slug), // CTA/subtitle injected later
+  };
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// MAIN HANDLER
+// ───────────────────────────────────────────────────────────────────────────────
+export default async function handler(req, res) {
+  try {
+    const t0 = Date.now();
+    const { cat } = req.query;
+
     const categories = [
       "software",
       "marketing",
       "productivity",
       "ai",
-      "courses"
+      "courses",
+      "business",
+      "web",
+      "ecommerce",
+      "creative",
     ];
 
-    // Load all feeds
     const data = {};
     let total = 0;
 
     for (const c of categories) {
-      const deals = loadJson(`appsumo-${c}.json`).map((d) => enrichDeal(d, c));
+      const raw = loadJson(`appsumo-${c}.json`);
+      const deals = raw.map((d) => normalizeDeal(d, c));
       data[c] = deals;
       total += deals.length;
     }
 
-    const response = {
-      source: "TinmanApps Proxy",
+    const payload = {
+      source: "TinmanApps Proxy v4.1",
       fetchedAt: new Date().toISOString(),
       totalDeals: total,
       byCategory: Object.fromEntries(
         categories.map((c) => [c, data[c]?.length || 0])
       ),
       categories: data,
-      notes: {
-        lastBuilderRun: new Date().toISOString(),
-        lastRefreshStatus: `ok in ${Date.now() - start} ms (merged ${
-          total
-        } deals)`
-      }
+      integrity: {
+        referral: "masked-only",
+        cta: "generated-downstream",
+        subtitle: "generated-downstream",
+        deterministic: true,
+      },
+      meta: {
+        mergeDurationMs: Date.now() - t0,
+      },
     };
 
-    // Filter if ?cat= specified
+    // Filter response by category
     if (cat && data[cat]) {
-      res.json({
-        source: "TinmanApps Proxy",
+      return res.json({
+        source: payload.source,
         category: cat,
-        fetchedAt: response.fetchedAt,
+        fetchedAt: payload.fetchedAt,
         dealCount: data[cat].length,
-        deals: data[cat]
+        deals: data[cat],
       });
-    } else {
-      res.json(response);
     }
+
+    return res.json(payload);
   } catch (err) {
-    console.error("❌ appsumoProxy error:", err);
+    console.error("❌ appsumo-proxy error:", err);
     res.status(500).json({ error: "Proxy failure", details: err.message });
   }
 }
