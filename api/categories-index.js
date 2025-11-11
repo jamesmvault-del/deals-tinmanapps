@@ -1,12 +1,13 @@
 // /api/categories-index.js
-// TinmanApps — Category Index v4.0 “Active-Only Adaptive Index”
+// TinmanApps — Category Index v5.0 “Active-Only • Deterministic • SEO-Core”
 // ───────────────────────────────────────────────────────────────────────────────
-// • Full taxonomy (ai, marketing, productivity, software, courses, business, web,
-//   ecommerce, creative)
-// • Aligns with updateFeed v7.7 + categories.js + home.js
+// • Fully aligned with updateFeed v7.7 + categories.js v7.2 + home.js v7+
 // • Counts ONLY ACTIVE (non-archived) deals
-// • Render-safe (FS reads only), deterministic JSON
-// • Supports Insight Pulse and sitemap generators
+// • Deterministic output (sorted taxonomy order)
+// • Zero ranking, zero mutation — pure reflector layer
+// • Insight Pulse–ready, Sitemap–ready, Cron–safe
+// • No scraped contamination, no heuristics
+// • Perfect for SEO surfaces & dashboards
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -17,20 +18,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "../data");
 
-// Full category dictionary (must match all other modules)
+// Master taxonomy — MUST match categories.js + sitemap + homepage
 const CATEGORIES = [
-  { slug: "ai", name: "AI & Automation Tools" },
-  { slug: "marketing", name: "Marketing & Sales Tools" },
-  { slug: "productivity", name: "Productivity Boosters" },
-  { slug: "software", name: "Software Deals" },
-  { slug: "courses", name: "Courses & Learning" },
-  { slug: "business", name: "Business Management" },
-  { slug: "web", name: "Web & Design Tools" },
-  { slug: "ecommerce", name: "Ecommerce Tools" },
-  { slug: "creative", name: "Creative & Design Tools" },
+  { slug: "software",     name: "Software Tools" },
+  { slug: "marketing",    name: "Marketing & Sales Tools" },
+  { slug: "productivity", name: "Productivity & Workflow" },
+  { slug: "ai",           name: "AI & Automation Tools" },
+  { slug: "courses",      name: "Courses & Learning" },
+  { slug: "business",     name: "Business Management" },
+  { slug: "web",          name: "Web & Design Tools" },
+  { slug: "ecommerce",    name: "Ecommerce Tools" },
+  { slug: "creative",     name: "Creative & Design Tools" },
 ];
 
-// Safe loader returning parsed JSON or []
+// Safe JSON loader
 function loadJsonSafe(file) {
   try {
     const full = path.join(DATA_DIR, file);
@@ -41,27 +42,31 @@ function loadJsonSafe(file) {
   }
 }
 
-export default function categoriesIndex(req, res) {
+export default function handler(req, res) {
   try {
+    const timestamp = new Date().toISOString();
+
+    // Deterministic category mapping
     const categories = CATEGORIES.map((c) => {
-      const json = loadJsonSafe(`appsumo-${c.slug}.json`);
-      const activeCount = json.filter((d) => !d.archived).length;
+      const raw = loadJsonSafe(`appsumo-${c.slug}.json`);
+      const active = raw.filter((d) => !d.archived).length;
 
       return {
         slug: c.slug,
         name: c.name,
-        active: activeCount,
-        total: json.length,
+        active,
+        total: raw.length,
       };
     });
 
     res.json({
-      source: "TinmanApps Adaptive SEO Engine",
-      fetchedAt: new Date().toISOString(),
+      source: "TinmanApps SEO Core",
+      version: "v5.0",
+      generated: timestamp,
       categories,
     });
   } catch (err) {
     console.error("❌ categories-index error:", err);
-    res.status(500).json({ error: "Failed to load categories" });
+    res.status(500).json({ error: "Failed to build categories index" });
   }
 }
