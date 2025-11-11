@@ -1,13 +1,13 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v4.4 “Archive-Safe Deterministic”
+ * TinmanApps Master Cron v4.5 “Regeneration-Safe • Archive-Deterministic”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ Always runs scripts/updateFeed.js FIRST (absolute path, Render-safe)
+ * ✅ Runs scripts/updateFeed.js FIRST (absolute path, Render-safe)
  * ✅ Never deletes category files (appsumo-*.json)
  * ✅ Optional purge ONLY deletes feed-cache.json (never categories)
  * ✅ Clean aggregation from appsumo-*.json → feed-cache.json
- * ✅ normalizeFeed() → cleanseFeed() → enrichDeals() → ensureSeoIntegrity()
- * ✅ Merges SEO history (cta, subtitle, keywords, clickbait, lastVerifiedAt)
+ * ✅ normalizeFeed() → cleanseFeed() → REGEN (CTA+subtitle) → ensureSeoIntegrity()
+ * ✅ Merges SEO history BUT NEVER restores CTA/subtitle during a regen pass
  * ✅ CTA Evolver + Insight refresh at the end
  * ✅ Guaranteed non-empty feed under failure conditions
  */
@@ -19,12 +19,14 @@ import crypto from "crypto";
 import { execSync } from "child_process";
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
-import { evolveCTAs } from "../lib/ctaEvolver.js";
-import { enrichDeals } from "../lib/ctaEngine.js";
+import { createCtaEngine } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
+
+// ─────────────────────────────────────────── Constants ───────────────────────────────────────────
+const CTA_ENGINE_VERSION = "6.2"; // bump this when CTA/subtitle logic changes
 
 // ─────────────────────────────────────────── Paths ───────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
@@ -32,6 +34,7 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
+const VERSION_FILE = path.join(DATA_DIR, "seo-version.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function smartTitle(slug = "") {
@@ -48,13 +51,29 @@ function ensureIntegrity(items) {
     const title = d.title?.trim?.().length > 2 ? d.title : smartTitle(d.slug);
     const cta = d.seo?.cta?.trim?.() ? d.seo.cta : "Discover this offer →";
     const subtitle =
-      d.seo?.subtitle?.trim?.() ? d.seo.subtitle : "Explore a fresh deal designed to streamline your workflow.";
+      d.seo?.subtitle?.trim?.()
+        ? d.seo.subtitle
+        : "Explore a fresh deal designed to streamline your workflow.";
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
+function readVersion() {
+  try {
+    return JSON.parse(fs.readFileSync(VERSION_FILE, "utf8"));
+  } catch {
+    return { lastAppliedVersion: null, lastAppliedAt: null };
+  }
+}
+function writeVersion(v) {
+  ensureDir(DATA_DIR);
+  fs.writeFileSync(
+    VERSION_FILE,
+    JSON.stringify({ lastAppliedVersion: v, lastAppliedAt: new Date().toISOString() }, null, 2)
+  );
+}
 
 // ───────────────────────────────────────── Merge with History ──────────────────────────────────────
-function mergeWithHistory(newFeed) {
+function mergeWithHistory(newFeed, { preserveCTA = true, preserveSubtitle = true } = {}) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
 
   const oldFeed = JSON.parse(fs.readFileSync(FEED_PATH, "utf8"));
@@ -72,14 +91,14 @@ function mergeWithHistory(newFeed) {
     const oldSeo = prev?.seo || {};
 
     const finalSeo = {
-      cta: item.seo?.cta || oldSeo.cta || null,
-      subtitle: item.seo?.subtitle || oldSeo.subtitle || null,
+      cta: preserveCTA ? item.seo?.cta || oldSeo.cta || null : item.seo?.cta || null,
+      subtitle: preserveSubtitle ? item.seo?.subtitle || oldSeo.subtitle || null : item.seo?.subtitle || null,
       clickbait: item.seo?.clickbait || oldSeo.clickbait || null,
       keywords: item.seo?.keywords || oldSeo.keywords || [],
       lastVerifiedAt: item.seo?.lastVerifiedAt || oldSeo.lastVerifiedAt || null,
     };
 
-    if (item.seo?.cta) updated++;
+    if (item.seo?.cta || item.seo?.subtitle) updated++;
     else reused++;
 
     return { ...item, seo: finalSeo, archived: false };
@@ -124,6 +143,33 @@ function aggregateCategoryFeeds() {
 
   fs.writeFileSync(FEED_PATH, JSON.stringify(aggregated, null, 2));
   return aggregated;
+}
+
+// ───────────────────────────────────────── Regeneration (Option A) ────────────────────────────────
+function regenerateSeo(allDeals) {
+  const engine = createCtaEngine();
+
+  const regenerated = allDeals.map((d) => {
+    const category = (d.category || "software").toLowerCase();
+    const title = d.title?.trim?.() || smartTitle(d.slug);
+    const slug = d.slug || sha1(title);
+
+    // hard overwrite CTA + subtitle only
+    const cta = engine.generate({ title, cat: category, slug });
+    const subtitle = engine.generateSubtitle({ title, category, slug });
+
+    const prevSeo = d.seo || {};
+    return {
+      ...d,
+      seo: {
+        ...prevSeo,
+        cta,
+        subtitle,
+      },
+    };
+  });
+
+  return regenerated;
 }
 
 // ───────────────────────────────────────── Handler ─────────────────────────────────────────
@@ -176,30 +222,49 @@ export default async function handler(req, res) {
     const cleansed = cleanseFeed(deduped);
     console.log(`🛡️  Cleansed (archive-aware): ${cleansed.length}`);
 
-    // ✅ 8) Enrich (CTA + subtitle) then ensure baseline integrity
-    let enriched = enrichDeals(cleansed, "feed");
-    enriched = ensureIntegrity(enriched);
-    console.log(`✨ Enriched: ${enriched.length}`);
+    // ✅ 8) Decide on regeneration
+    const ver = readVersion();
+    const shouldRegen = force || ver.lastAppliedVersion !== CTA_ENGINE_VERSION;
 
-    // ✅ 9) SEO integrity (clickbait, keywords, entropy)
+    // ✅ 9) Regenerate CTA + subtitle for ALL deals (Option A)
+    let enriched = shouldRegen ? regenerateSeo(cleansed) : ensureIntegrity(cleansed);
+    if (shouldRegen) {
+      console.log(`✨ Regenerated CTA + subtitle for ${enriched.length} deals (engine v${CTA_ENGINE_VERSION})`);
+    } else {
+      console.log(`✨ Skipped regeneration (already at engine v${CTA_ENGINE_VERSION}); ensured integrity only`);
+    }
+
+    // ✅ 10) SEO integrity (clickbait, keywords, entropy)
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity OK: ${verified.length}`);
 
-    // ✅ 10) Merge with SEO history
-    const merged = mergeWithHistory(verified);
+    // ✅ 11) Merge with SEO history
+    // During regeneration, DO NOT restore old CTA/subtitle from history.
+    const merged = mergeWithHistory(verified, {
+      preserveCTA: !shouldRegen,
+      preserveSubtitle: !shouldRegen,
+    });
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged: ${merged.length}`);
 
-    // ✅ 11) Silent Insight refresh
+    // ✅ 12) Persist engine version if we just regenerated
+    if (shouldRegen) {
+      writeVersion(CTA_ENGINE_VERSION);
+      console.log(`🧾 Recorded CTA engine version v${CTA_ENGINE_VERSION}`);
+    }
+
+    // ✅ 13) Silent Insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("🧠 Insight updated");
 
-    // ✅ 12) CTA evolutionary engine
-    evolveCTAs();
-    console.log("🎯 CTA evolution complete");
+    // ✅ 14) (Optional) CTA evolution remains; now acts on fresh fields
+    // No import for evolveCTAs here to avoid accidental overwrite loop;
+    // if you prefer to keep it, re-enable after verifying fresh outputs.
+    // evolveCTAs();
+    // console.log("🎯 CTA evolution complete");
 
     const duration = Date.now() - start;
 
@@ -215,13 +280,15 @@ export default async function handler(req, res) {
         "category-aggregate",
         "normalize",
         "dedupe",
-        "cleanse",          // ← NEW: archive-aware merge pre-enrichment
-        "enrich",
+        "cleanse",
+        shouldRegen ? "regenerate-seo(v6.2)" : "ensure-integrity",
         "seo-integrity",
-        "merge-history",
+        shouldRegen ? "merge-history(no-cta-subtitle-restore)" : "merge-history",
         "insight",
-        "cta-evolver",
+        // "cta-evolver",
       ],
+      engineVersion: CTA_ENGINE_VERSION,
+      regenerated: !!shouldRegen,
     });
   } catch (err) {
     console.error("❌ [Cron Error]:", err);
