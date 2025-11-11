@@ -1,16 +1,17 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v5.0
- * “Absolute Regeneration • Deterministic Integrity • Referral-Safe Pipeline”
+ * TinmanApps Master Cron v6.0
+ * “Absolute Regeneration • Sanitised • Deterministic • CTA Engine v6.5”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ ALWAYS regenerates CTA + subtitle using CTA Engine v6.3
- * ✅ NEVER restores CTA/subtitle from history (0% resurrection)
- * ✅ updateFeed.js (v7.8) always runs first
- * ✅ Aggregate → normalizeFeed v3 → cleanseFeed v3.4 → regenerate → seoIntegrity v4.2
- * ✅ Archive logic preserved — no category file ever deleted
+ * ✅ ALWAYS regenerates CTA + subtitle using CTA Engine v6.5 (never reuses)
+ * ✅ updateFeed.js (v8.1) ALWAYS runs first
+ * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
+ * ✅ SEO Integrity v4.3 (clean keywords, no fragments, no hyphens)
  * ✅ feed-cache.json only purged on ?force=1
- * ✅ Insight Pulse v4.1 runs silently at end
- * ✅ 100% Render-safe, category-pure, deterministic in every step
+ * ✅ Insight Pulse v4.2 runs silently after merge
+ * ✅ ZERO restoration from history (CTA/subtitle NEVER resurrected)
+ * ✅ Archive logic preserved cleanly
+ * ✅ 100% Render-safe; deterministic and stable
  */
 
 import fs from "fs";
@@ -20,14 +21,14 @@ import crypto from "crypto";
 import { execSync } from "child_process";
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
-import { createCtaEngine } from "../lib/ctaEngine.js";
+import { createCtaEngine, sanitizeText } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
 // ─────────────────────────────────────────── Info / Paths ─────────────────────────────────────────
-const CTA_ENGINE_VERSION = "6.3";
+const CTA_ENGINE_VERSION = "6.5";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -38,26 +39,44 @@ const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 function smartTitle(slug = "") {
   return slug
     .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim();
 }
+
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
+
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
 
-// Minimal fallback integrity pass (CTA/Subtitle always exists)
+// Ensures every item ALWAYS has CTA + subtitle after regen
 function ensureMinimalSeo(items) {
   return items.map((d) => {
-    const title = d.title?.trim?.() || smartTitle(d.slug);
-    const cta = d.seo?.cta?.trim?.() || "Discover this offer →";
+    const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
+    const cta = sanitizeText(d.seo?.cta) || "Discover this deal →";
     const subtitle =
-      d.seo?.subtitle?.trim?.() ||
-      "Explore a fresh deal designed to streamline your workflow.";
+      sanitizeText(d.seo?.subtitle) ||
+      "A clean, fast overview to help you evaluate this offer.";
 
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
+  });
+}
+
+// Final emergency sanitiser (removes hyphen bleed, fragments, overlong subtitles)
+function finalSanitize(items) {
+  return items.map((d) => {
+    return {
+      ...d,
+      title: sanitizeText(d.title),
+      seo: {
+        ...d.seo,
+        cta: sanitizeText(d.seo?.cta),
+        subtitle: sanitizeText(d.seo?.subtitle),
+      },
+    };
   });
 }
 
@@ -81,17 +100,17 @@ function mergeWithHistory(newFeed) {
     return {
       ...item,
       seo: {
-        cta: item.seo?.cta || null,           // NEVER restore
-        subtitle: item.seo?.subtitle || null, // NEVER restore
-        clickbait: item.seo?.clickbait || oldSeo.clickbait || null,
-        keywords: item.seo?.keywords || oldSeo.keywords || [],
-        lastVerifiedAt: item.seo?.lastVerifiedAt || oldSeo.lastVerifiedAt || null,
+        cta: item.seo?.cta || null,           // regenerated → NEVER restored
+        subtitle: item.seo?.subtitle || null, // regenerated → NEVER restored
+        clickbait: oldSeo.clickbait || null,
+        keywords: oldSeo.keywords || [],
+        lastVerifiedAt: now,
       },
       archived: false,
     };
   });
 
-  // Add archived entries (only retained for 30 days)
+  // Add archived entries (only retained 30 days)
   for (const old of prev) {
     if (!merged.find((x) => x.slug === old.slug)) {
       archived++;
@@ -147,11 +166,13 @@ function regenerateSeo(allDeals) {
 
   return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
-    const title = d.title?.trim?.() || smartTitle(d.slug);
+    const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
     const slug = d.slug || sha1(title);
 
-    const cta = engine.generate({ title, cat: category, slug });
-    const subtitle = engine.generateSubtitle({ title, category, slug });
+    const cta = sanitizeText(engine.generate({ title, cat: category, slug }));
+    const subtitle = sanitizeText(
+      engine.generateSubtitle({ title, category, slug })
+    );
 
     return {
       ...d,
@@ -172,7 +193,7 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting deterministic refresh:", new Date().toISOString());
 
-    // 1) run updateFeed.js FIRST
+    // 1) Run updateFeed.js FIRST
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     console.log("⚙️ updateFeed.js running…");
     try {
@@ -182,25 +203,25 @@ export default async function handler(req, res) {
       console.warn("⚠️ updateFeed.js error:", e.message);
     }
 
-    // 2) optional force purge (feed-cache.json ONLY)
+    // 2) Optional purge
     if (force && fs.existsSync(FEED_PATH)) {
       fs.unlinkSync(FEED_PATH);
       console.log("🧹 feed-cache.json purged (force=1)");
     }
 
-    // 3) backgroundRefresh (proxy cache hydrating)
+    // 3) Proxy cache refresh (integrity)
     await backgroundRefresh();
     console.log("✅ backgroundRefresh OK");
 
-    // 4) aggregate category files
+    // 4) Aggregate all category silos
     const raw = aggregateCategoryFeeds();
     console.log(`📦 Raw aggregated: ${raw.length}`);
 
-    // 5) normalize (preserve category)
+    // 5) Normalize
     const normalized = normalizeFeed(raw);
     console.log(`🧼 Normalized: ${normalized.length}`);
 
-    // 6) dedupe
+    // 6) Dedupe
     const seen = new Set();
     const deduped = normalized.filter((d) => {
       const key = sha1(d.slug || d.title);
@@ -210,7 +231,7 @@ export default async function handler(req, res) {
     });
     console.log(`📑 Deduped: ${deduped.length}`);
 
-    // 7) cleanse (archive-aware)
+    // 7) Cleanse (archive-aware)
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
@@ -221,21 +242,23 @@ export default async function handler(req, res) {
     // 9) ensure minimal SEO
     enriched = ensureMinimalSeo(enriched);
 
-    // 10) SEO Integrity (deterministic clickbait/keywords)
+    // 10) SEO Integrity
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity checked: ${verified.length}`);
 
-    // 11) merge with history (NEVER restore CTA/subtitle)
-    const merged = mergeWithHistory(verified);
+    // 11) FINAL emergency sanitiser
+    const sanitized = finalSanitize(verified);
+
+    // 12) History merge (NO restoration)
+    const merged = mergeWithHistory(sanitized);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
 
-    // 12) Insight Pulse v4.1 (silent)
+    // 13) Insight Pulse v4.2
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
-    console.log("🧠 Insight Pulse v4.1 updated");
 
     const duration = Date.now() - start;
 
@@ -254,6 +277,7 @@ export default async function handler(req, res) {
         "cleanse",
         `regenerate-seo(v${CTA_ENGINE_VERSION})`,
         "seo-integrity",
+        "final-sanitise",
         "merge-history",
         "insight",
       ],
