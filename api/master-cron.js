@@ -1,16 +1,15 @@
+// /api/master-cron.js
 /**
- * /api/master-cron.js
- * TinmanApps Master Cron v6.0
- * “Absolute Regeneration • Sanitised • Deterministic • CTA Engine v6.5”
+ * TinmanApps Master Cron v7.0
+ * “Absolute Regeneration • Sanitised • Deterministic • CTA Engine v7.0”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ ALWAYS regenerates CTA + subtitle using CTA Engine v6.5 (never reuses)
- * ✅ updateFeed.js (v8.1) ALWAYS runs first
+ * ✅ ALWAYS regenerates CTA + subtitle using CTA Engine v7.0 (never reuses)
+ * ✅ scripts/updateFeed.js ALWAYS runs first
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
- * ✅ SEO Integrity v4.3 (clean keywords, no fragments, no hyphens)
- * ✅ feed-cache.json only purged on ?force=1
- * ✅ Insight Pulse v4.2 runs silently after merge
+ * ✅ SEO Integrity v4.3 (clean keywords, no fragments)
+ * ✅ feed-cache.json purged only when ?force=1
+ * ✅ Insight Pulse runs silently after merge
  * ✅ ZERO restoration from history (CTA/subtitle NEVER resurrected)
- * ✅ Archive logic preserved cleanly
  * ✅ 100% Render-safe; deterministic and stable
  */
 
@@ -21,14 +20,14 @@ import crypto from "crypto";
 import { execSync } from "child_process";
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
-import { createCtaEngine, sanitizeText } from "../lib/ctaEngine.js";
+import { createCtaEngine } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
 // ─────────────────────────────────────────── Info / Paths ─────────────────────────────────────────
-const CTA_ENGINE_VERSION = "6.5";
+const CTA_ENGINE_VERSION = "7.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -37,7 +36,7 @@ const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function smartTitle(slug = "") {
-  return slug
+  return String(slug)
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
@@ -52,6 +51,21 @@ function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
 
+// Local sanitiser (master-cron scoped)
+function sanitizeText(input = "") {
+  const s = String(input ?? "")
+    .replace(/\u2013|\u2014/g, "-")         // en/em dashes → hyphen
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[•·]/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .replace(/\(undefined\)/gi, "")
+    .trim();
+  return s;
+}
+
 // Ensures every item ALWAYS has CTA + subtitle after regen
 function ensureMinimalSeo(items) {
   return items.map((d) => {
@@ -60,24 +74,21 @@ function ensureMinimalSeo(items) {
     const subtitle =
       sanitizeText(d.seo?.subtitle) ||
       "A clean, fast overview to help you evaluate this offer.";
-
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
 
-// Final emergency sanitiser (removes hyphen bleed, fragments, overlong subtitles)
+// Final emergency sanitiser (removes fragments / tidies punctuation)
 function finalSanitize(items) {
-  return items.map((d) => {
-    return {
-      ...d,
-      title: sanitizeText(d.title),
-      seo: {
-        ...d.seo,
-        cta: sanitizeText(d.seo?.cta),
-        subtitle: sanitizeText(d.seo?.subtitle),
-      },
-    };
-  });
+  return items.map((d) => ({
+    ...d,
+    title: sanitizeText(d.title),
+    seo: {
+      ...d.seo,
+      cta: sanitizeText(d.seo?.cta),
+      subtitle: sanitizeText(d.seo?.subtitle),
+    },
+  }));
 }
 
 // ───────────────────────────────────────── Merge with History (NO CTA RESTORE) ───────────────────
@@ -96,7 +107,6 @@ function mergeWithHistory(newFeed) {
   const merged = newFeed.map((item) => {
     const old = prevBySlug.get(item.slug);
     const oldSeo = old?.seo || {};
-
     return {
       ...item,
       seo: {
@@ -110,7 +120,7 @@ function mergeWithHistory(newFeed) {
     };
   });
 
-  // Add archived entries (only retained 30 days)
+  // Bring forward previously seen items that have disappeared → archived
   for (const old of prev) {
     if (!merged.find((x) => x.slug === old.slug)) {
       archived++;
@@ -129,10 +139,7 @@ function mergeWithHistory(newFeed) {
     return keep;
   });
 
-  console.log(
-    `🧬 [History] archived=${archived}, purged=${purged}, final=${cleaned.length}`
-  );
-
+  console.log(`🧬 [History] archived=${archived}, purged=${purged}, final=${cleaned.length}`);
   return cleaned;
 }
 
@@ -145,7 +152,6 @@ function aggregateCategoryFeeds() {
     .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
 
   let aggregated = [];
-
   for (const file of files) {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
@@ -176,11 +182,7 @@ function regenerateSeo(allDeals) {
 
     return {
       ...d,
-      seo: {
-        ...d.seo,
-        cta,
-        subtitle,
-      },
+      seo: { ...d.seo, cta, subtitle },
     };
   });
 }
@@ -254,7 +256,7 @@ export default async function handler(req, res) {
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
 
-    // 13) Insight Pulse v4.2
+    // 13) Insight Pulse
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
