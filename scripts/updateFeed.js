@@ -1,14 +1,15 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v8.0
+ * TinmanApps Adaptive Feed Engine v8.1
  * “Render-Safe • Deterministic • New-First + Lastmod Priority • No Hidden Deps”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ 100% Render-safe (no headless Chrome)
  * ✅ Discovers products from AppSumo XML sitemaps (captures <lastmod>)
  * ✅ Fetches product pages; extracts OG:title / OG:image / meta:description
  * ✅ Deterministic category classifier (no external semantic module required)
- * ✅ Normalizes (feedNormalizer v3.1) → Enriches (ctaEngine v6.4) per item’s own category
- * ✅ Preserves historical CTAs/subtitles; archives missing
+ * ✅ Normalizes (feedNormalizer v4.1) → Enriches (ctaEngine v6.5) per item’s own category
+ * ✅ Self-healing SEO: post-enrichment sanitiser removes seams/duplication/hyphen-artifacts
+ * ✅ Preserves historical CTAs/subtitles only if they pass quality checks
  * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow archived backlog)
  * ✅ New-first selection (prefer unseen) + lastmod recency priority
  * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt for each deal
@@ -45,7 +46,7 @@ const HTTP_TIMEOUT_MS = 12000;        // per-request guard
 const RETRIES = 2;                    // network retry attempts
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Helpers
+// Helper: FS / JSON
 // ───────────────────────────────────────────────────────────────────────────────
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
@@ -61,6 +62,10 @@ function readJsonSafe(file, fallback = []) {
     return fallback;
   }
 }
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Helper: hashing / picking
+// ───────────────────────────────────────────────────────────────────────────────
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
@@ -77,6 +82,9 @@ function dedupe(items, keyFn) {
   return out;
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Helper: HTTP text fetch with timeout + retries
+// ───────────────────────────────────────────────────────────────────────────────
 async function fetchText(url, tries = RETRIES) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT_MS);
@@ -86,7 +94,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v8.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v8.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -103,6 +111,9 @@ async function fetchText(url, tries = RETRIES) {
   }
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Helper: slug / meta extraction / proxies / trackers
+// ───────────────────────────────────────────────────────────────────────────────
 function toSlug(url) {
   const m =
     url?.match(/\/products\/([^/]+)\/?$/i) ||
@@ -111,7 +122,6 @@ function toSlug(url) {
 }
 
 function extractMeta(html, name) {
-  // supports property= / name=
   const re = new RegExp(
     `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']+)["']`,
     "i"
@@ -350,8 +360,92 @@ async function fetchDetail(entry) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
+// SEO sanitiser (post-enrichment hard guardrails)
+// ───────────────────────────────────────────────────────────────────────────────
+const BAD_SUB_PATTERNS = [
+  /lets?\s+teams?\s+add\s+(ai|where)\s+.*?(moves|impact)/i,
+  /where\s+impact\s+(is\s+)?real/i,
+  /through\s+.*\s+through/i,
+  /—\s*—/i,
+  /\busing\s+(?:.*)\s+\1\b/i, // duplicate "using"
+  /\b(?:undefined|null|neutral)\b/i,
+];
+
+const BAD_CTA_PATTERNS = [
+  /automate your workflows/i,
+  /enhance intelligent systems/i,
+  /optimise automation flows/i,
+  /accelerate workflows/i,
+  /simplify operations/i,
+  /run smarter platforms?/i,
+  /build your workflows/i,
+];
+
+function clamp(str, n) {
+  if (!str) return "";
+  if (str.length <= n) return str;
+  const cut = str.slice(0, n).replace(/\s+\S*$/, "");
+  return (cut || str.slice(0, n)).trim() + "…";
+}
+
+function tidyDashes(s = "") {
+  return s
+    .replace(/(?:\s*[-–—]\s*){2,}/g, " — ")
+    .replace(/^\s*[-–—]\s*/g, "")
+    .replace(/\s*[-–—]\s*$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function sentenceFinish(s = "") {
+  if (!s) return "";
+  const t = s.trim().replace(/\s+([.?!])$/, "$1");
+  return /[.?!…]$/.test(t) ? t : t + ".";
+}
+
+function looksBad(patterns, text = "") {
+  return !text || patterns.some((r) => r.test(text));
+}
+
+function sanitiseCTA(cta = "") {
+  let t = cta.trim();
+  if (looksBad(BAD_CTA_PATTERNS, t)) t = ""; // force regen fallback if needed
+  t = t.replace(/\s{2,}/g, " ").trim();
+  t = clamp(t, 48);
+  return t || "View the details →";
+}
+
+function sanitiseSubtitle(sub = "") {
+  let t = sub.trim();
+
+  // seam cleanups (mirror of engine normaliser + hard guards here)
+  t = t
+    .replace(/\boptimization\b/gi, "optimisation")
+    .replace(/\b(delivers|adds|provides|offers|gives)\s+to\s+(\w+)/gi, "$1 $2")
+    .replace(/\b(using|through|with)\s+([a-z0-9-]+)\s+\1\b/gi, "$1 $2")
+    .replace(/\bat scale(?:\s+at scale)+/gi, "at scale");
+
+  t = tidyDashes(t);
+
+  if (looksBad(BAD_SUB_PATTERNS, t)) {
+    // Nuke obviously broken or generic subs
+    t = "Clear, measurable improvement.";
+  }
+
+  t = sentenceFinish(t);
+  t = clamp(t, 96);
+  return t;
+}
+
+function isGoodSEO(seo = {}) {
+  const ctaOk = seo?.cta && !looksBad(BAD_CTA_PATTERNS, seo.cta);
+  const subOk = seo?.subtitle && !looksBad(BAD_SUB_PATTERNS, seo.subtitle);
+  return Boolean(ctaOk && subOk);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
 // Active-cap merge: NEW-FIRST + LASTMOD priority + history preservation
-// - Preserves SEO (cta/subtitle)
+// - Preserves SEO (cta/subtitle) **only if quality checks pass**
 // - Adds firstSeenAt / lastSeenAt / lastmodAt
 // - Strict cap on ACTIVE items; overflow archived (backlog)
 // ───────────────────────────────────────────────────────────────────────────────
@@ -389,16 +483,25 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   // Update/insert fresh
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
-    const preservedSeo = prev?.seo || {};
     const firstSeenAt = prev?.firstSeenAt || nowISO;
     const lastSeenAt = nowISO;
 
+    // Prefer current enriched SEO; if missing AND previous was good, reuse; always sanitise.
+    const chooseSeo =
+      (item.seo && isGoodSEO(item.seo) ? item.seo : null) ||
+      (prev?.seo && isGoodSEO(prev.seo) ? prev.seo : null) ||
+      { cta: "", subtitle: "" };
+
+    const finalSeo = {
+      cta: sanitiseCTA(chooseSeo.cta || item.seo?.cta || prev?.seo?.cta || ""),
+      subtitle: sanitiseSubtitle(
+        chooseSeo.subtitle || item.seo?.subtitle || prev?.seo?.subtitle || ""
+      ),
+    };
+
     const updated = {
       ...item,
-      seo: {
-        cta: item.seo?.cta || preservedSeo.cta || null,
-        subtitle: item.seo?.subtitle || preservedSeo.subtitle || null,
-      },
+      seo: finalSeo,
       firstSeenAt,
       lastSeenAt,
       lastmodAt: item.lastmodAt || prev?.lastmodAt || null,
@@ -410,8 +513,16 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   // Carry over missing → archived
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
+      const carrySeo = isGoodSEO(prev.seo)
+        ? {
+            cta: sanitiseCTA(prev.seo.cta),
+            subtitle: sanitiseSubtitle(prev.seo.subtitle),
+          }
+        : { cta: "View the details →", subtitle: "Clear, measurable improvement." };
+
       merged.push({
         ...prev,
+        seo: carrySeo,
         archived: true,
         lastSeenAt: prev.lastSeenAt || nowISO,
       });
@@ -437,7 +548,7 @@ async function main() {
   // If discovery fails entirely, do not clobber existing category files
   if (!discovered.length) {
     console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
-    console.log("✨ UpdateFeed v8.0 completed (no-op due to zero discovery).");
+    console.log("✨ UpdateFeed v8.1 completed (no-op due to zero discovery).");
     return;
   }
 
@@ -467,7 +578,7 @@ async function main() {
     else silos.software.push(item);
   }
 
-  // Normalize → enrich (per own category) → NEW-FIRST+LASTMOD active-cap merge → write per category
+  // Normalize → enrich (per own category) → sanitise → NEW-FIRST+LASTMOD active-cap merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -477,10 +588,20 @@ async function main() {
 
     let cleaned = normalizeFeed(arr);
 
-    // Enrich with CTA/subtitle tuned per item’s own category (regen later may overwrite globally)
+    // Enrich with CTA/subtitle tuned per item’s own category
     cleaned = enrichDeals(cleaned);
 
-    // NEW-FIRST + LASTMOD priority active-cap aware merge
+    // Hard sanitiser pass to kill seams/hyphen artifacts and clamp lengths
+    cleaned = cleaned.map((d) => {
+      const seo = d.seo || {};
+      const fixed = {
+        cta: sanitiseCTA(seo.cta || ""),
+        subtitle: sanitiseSubtitle(seo.subtitle || ""),
+      };
+      return { ...d, seo: fixed };
+    });
+
+    // NEW-FIRST + LASTMOD priority active-cap aware merge (with quality-aware SEO carry)
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
@@ -492,7 +613,9 @@ async function main() {
     );
   }
 
-  console.log("\n✨ All silos refreshed (v8.0 Deterministic New-First + Lastmod + First-Seen tracking).");
+  console.log(
+    "\n✨ All silos refreshed (v8.1 Deterministic New-First + Lastmod + First-Seen tracking + SEO sanitiser)."
+  );
 }
 
 // Execute
