@@ -1,15 +1,16 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v4.5 “Regeneration-Safe • Archive-Deterministic”
+ * TinmanApps Master Cron v4.6
+ * “Always-Regenerate • Archive-Deterministic • Category-Pure”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ Runs scripts/updateFeed.js FIRST (absolute path, Render-safe)
  * ✅ Never deletes category files (appsumo-*.json)
  * ✅ Optional purge ONLY deletes feed-cache.json (never categories)
- * ✅ Clean aggregation from appsumo-*.json → feed-cache.json
- * ✅ normalizeFeed() → cleanseFeed() → REGEN (CTA+subtitle) → ensureSeoIntegrity()
- * ✅ Merges SEO history BUT NEVER restores CTA/subtitle during a regen pass
- * ✅ CTA Evolver + Insight refresh at the end
- * ✅ Guaranteed non-empty feed under failure conditions
+ * ✅ Aggregates appsumo-*.json → feed-cache.json (raw)
+ * ✅ normalizeFeed() → cleanseFeed() → REGENERATE (CTA+subtitle) → ensureSeoIntegrity()
+ * ✅ Merge history NEVER restores CTA/subtitle (zero-leak)
+ * ✅ Insight refresh at the end (silent)
+ * ✅ Deterministic, zero-drama ops, referral-integrity aligned
  */
 
 import fs from "fs";
@@ -25,16 +26,13 @@ import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
-// ─────────────────────────────────────────── Constants ───────────────────────────────────────────
-const CTA_ENGINE_VERSION = "6.2"; // bump this when CTA/subtitle logic changes
-
-// ─────────────────────────────────────────── Paths ───────────────────────────────────────────
+// ─────────────────────────────────────────── Info / Paths ─────────────────────────────────────────
+const CTA_ENGINE_VERSION = "6.3"; // informational (engine selection is deterministic)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
-const VERSION_FILE = path.join(DATA_DIR, "seo-version.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function smartTitle(slug = "") {
@@ -57,22 +55,8 @@ function ensureIntegrity(items) {
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
-function readVersion() {
-  try {
-    return JSON.parse(fs.readFileSync(VERSION_FILE, "utf8"));
-  } catch {
-    return { lastAppliedVersion: null, lastAppliedAt: null };
-  }
-}
-function writeVersion(v) {
-  ensureDir(DATA_DIR);
-  fs.writeFileSync(
-    VERSION_FILE,
-    JSON.stringify({ lastAppliedVersion: v, lastAppliedAt: new Date().toISOString() }, null, 2)
-  );
-}
 
-// ───────────────────────────────────────── Merge with History ──────────────────────────────────────
+// ───────────────────────────────────────── Merge with History ─────────────────────────────────────
 function mergeWithHistory(newFeed, { preserveCTA = true, preserveSubtitle = true } = {}) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
 
@@ -95,6 +79,7 @@ function mergeWithHistory(newFeed, { preserveCTA = true, preserveSubtitle = true
       subtitle: preserveSubtitle ? item.seo?.subtitle || oldSeo.subtitle || null : item.seo?.subtitle || null,
       clickbait: item.seo?.clickbait || oldSeo.clickbait || null,
       keywords: item.seo?.keywords || oldSeo.keywords || [],
+      emotionalVerb: item.seo?.emotionalVerb || oldSeo.emotionalVerb || null,
       lastVerifiedAt: item.seo?.lastVerifiedAt || oldSeo.lastVerifiedAt || null,
     };
 
@@ -124,7 +109,7 @@ function mergeWithHistory(newFeed, { preserveCTA = true, preserveSubtitle = true
   return cleaned;
 }
 
-// ───────────────────────────────────────── Aggregator ─────────────────────────────────────────
+// ───────────────────────────────────────── Aggregator ────────────────────────────────────────────
 function aggregateCategoryFeeds() {
   ensureDir(DATA_DIR);
 
@@ -145,16 +130,16 @@ function aggregateCategoryFeeds() {
   return aggregated;
 }
 
-// ───────────────────────────────────────── Regeneration (Option A) ────────────────────────────────
+// ───────────────────────────────────────── Regeneration (Always On) ───────────────────────────────
 function regenerateSeo(allDeals) {
   const engine = createCtaEngine();
 
-  const regenerated = allDeals.map((d) => {
+  return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
     const title = d.title?.trim?.() || smartTitle(d.slug);
     const slug = d.slug || sha1(title);
 
-    // hard overwrite CTA + subtitle only
+    // Deterministic, category-pure generation
     const cta = engine.generate({ title, cat: category, slug });
     const subtitle = engine.generateSubtitle({ title, category, slug });
 
@@ -168,11 +153,9 @@ function regenerateSeo(allDeals) {
       },
     };
   });
-
-  return regenerated;
 }
 
-// ───────────────────────────────────────── Handler ─────────────────────────────────────────
+// ───────────────────────────────────────── Handler ───────────────────────────────────────────────
 export default async function handler(req, res) {
   const force = req.query.force === "1";
   const start = Date.now();
@@ -180,7 +163,11 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting self-healing refresh:", new Date().toISOString());
 
-    // ✅ 1) Always regenerate per-category silos
+    // 🔒 Enforce regeneration semantics globally for this run
+    // (Cleanser v3.4 already forces CTA/subtitle wipe; env flag is for clarity in logs)
+    process.env.REGEN_SEO = "1";
+
+    // 1) Update category source files
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     console.log("⚙️ Running updateFeed.js…");
     try {
@@ -190,25 +177,25 @@ export default async function handler(req, res) {
       console.warn("⚠️ updateFeed.js error:", err.message);
     }
 
-    // ✅ 2) Optional purge of feed-cache.json ONLY
+    // 2) Optional purge of feed-cache.json ONLY
     if (force) {
       if (fs.existsSync(FEED_PATH)) fs.unlinkSync(FEED_PATH);
       console.log("🧹 Purged feed-cache.json (force=1)");
     }
 
-    // ✅ 3) Background builder refresh (GitHub proxy safety net)
+    // 3) Background builder refresh
     await backgroundRefresh();
     console.log("✅ backgroundRefresh() OK");
 
-    // ✅ 4) Aggregate categories → raw feed
+    // 4) Aggregate categories → raw feed
     const raw = aggregateCategoryFeeds();
     console.log(`📦 Aggregated: ${raw.length}`);
 
-    // ✅ 5) Normalize
+    // 5) Normalize
     const normalized = normalizeFeed(raw);
     console.log(`🧹 Normalized: ${normalized.length}`);
 
-    // ✅ 6) Deduplicate (slug/title hash)
+    // 6) Deduplicate (slug/title hash)
     const seen = new Set();
     const deduped = normalized.filter((item) => {
       const key = sha1(item.slug || item.title);
@@ -218,53 +205,33 @@ export default async function handler(req, res) {
     });
     console.log(`📑 Deduped: ${deduped.length}`);
 
-    // ✅ 7) Cleanse vs previous cache (archive guardian) BEFORE enrichment
+    // 7) Cleanse vs previous cache (archive guardian) BEFORE regeneration
     const cleansed = cleanseFeed(deduped);
     console.log(`🛡️  Cleansed (archive-aware): ${cleansed.length}`);
 
-    // ✅ 8) Decide on regeneration
-    const ver = readVersion();
-    const shouldRegen = force || ver.lastAppliedVersion !== CTA_ENGINE_VERSION;
+    // 8) ALWAYS regenerate CTA + subtitle for ALL deals (world-class freshness)
+    let enriched = regenerateSeo(cleansed);
+    console.log(`✨ Regenerated CTA + subtitle for ${enriched.length} deals (engine v${CTA_ENGINE_VERSION})`);
 
-    // ✅ 9) Regenerate CTA + subtitle for ALL deals (Option A)
-    let enriched = shouldRegen ? regenerateSeo(cleansed) : ensureIntegrity(cleansed);
-    if (shouldRegen) {
-      console.log(`✨ Regenerated CTA + subtitle for ${enriched.length} deals (engine v${CTA_ENGINE_VERSION})`);
-    } else {
-      console.log(`✨ Skipped regeneration (already at engine v${CTA_ENGINE_VERSION}); ensured integrity only`);
-    }
-
-    // ✅ 10) SEO integrity (clickbait, keywords, entropy)
+    // 9) SEO integrity (clickbait, keywords, entropy)
+    enriched = ensureIntegrity(enriched);
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity OK: ${verified.length}`);
 
-    // ✅ 11) Merge with SEO history
-    // During regeneration, DO NOT restore old CTA/subtitle from history.
+    // 10) Merge with SEO history — NEVER restore CTA/subtitle
     const merged = mergeWithHistory(verified, {
-      preserveCTA: !shouldRegen,
-      preserveSubtitle: !shouldRegen,
+      preserveCTA: false,
+      preserveSubtitle: false,
     });
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged: ${merged.length}`);
 
-    // ✅ 12) Persist engine version if we just regenerated
-    if (shouldRegen) {
-      writeVersion(CTA_ENGINE_VERSION);
-      console.log(`🧾 Recorded CTA engine version v${CTA_ENGINE_VERSION}`);
-    }
-
-    // ✅ 13) Silent Insight refresh
+    // 11) Silent Insight refresh
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
     console.log("🧠 Insight updated");
-
-    // ✅ 14) (Optional) CTA evolution remains; now acts on fresh fields
-    // No import for evolveCTAs here to avoid accidental overwrite loop;
-    // if you prefer to keep it, re-enable after verifying fresh outputs.
-    // evolveCTAs();
-    // console.log("🎯 CTA evolution complete");
 
     const duration = Date.now() - start;
 
@@ -281,14 +248,13 @@ export default async function handler(req, res) {
         "normalize",
         "dedupe",
         "cleanse",
-        shouldRegen ? "regenerate-seo(v6.2)" : "ensure-integrity",
+        `regenerate-seo(v${CTA_ENGINE_VERSION})`,
         "seo-integrity",
-        shouldRegen ? "merge-history(no-cta-subtitle-restore)" : "merge-history",
+        "merge-history(no-cta-subtitle-restore)",
         "insight",
-        // "cta-evolver",
       ],
       engineVersion: CTA_ENGINE_VERSION,
-      regenerated: !!shouldRegen,
+      regenerated: true,
     });
   } catch (err) {
     console.error("❌ [Cron Error]:", err);
