@@ -1,17 +1,29 @@
 {
   "name": "deals-tinmanapps",
-  "version": "1.0.0",
+  "version": "7.7.0",
+  "description": "TinmanApps — Autonomous AppSumo Deals Engine (SEO • CTR • Self-Learning • Self-Healing Pipeline)",
   "type": "module",
   "main": "server.js",
+
   "scripts": {
     "start": "node server.js",
-    "update-feed": "node scripts/updateFeed.js"
+
+    "update-feed": "node scripts/updateFeed.js",
+    "cron": "node api/master-cron.js",
+    "rebuild": "npm run update-feed && npm run cron",
+
+    "validate": "node scripts/validate.js || true",
+    "rank-test": "node scripts/rank-test.js || true",
+
+    "debug-feed": "node scripts/debug-feed.js || true"
   },
+
   "dependencies": {
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",
     "xml2js": "^0.6.2"
   },
+
   "engines": {
     "node": ">=18.0.0"
   }
