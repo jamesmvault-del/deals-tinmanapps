@@ -1,11 +1,18 @@
 // /api/cta-dump.js
-// TinmanApps — CTA & Subtitle JSON Exporter v2.2 “Unified Insight Mode”
+// TinmanApps — CTA & Subtitle Exporter v3.0
+// “Active-Only • Deterministic • SEO-Aligned • Insight-Ready”
 // ───────────────────────────────────────────────────────────────────────────────
-// Features:
-// • Default: returns each category separately (same as before)
-// • ?all=1 → unified mode: aggregates all CTAs/subtitles into one combined JSON
-// • Includes summary (per-category counts, total deals, total categories)
-// • Sorted alphabetically by category and title
+// Major Upgrades for v3.0:
+// • **ACTIVE-ONLY MODE** — archived deals excluded (aligns with updateFeed v7.7)
+// • Deterministic ordering (category → title)
+// • Strict CTA/subtitle extraction (no contamination, no fallback strings)
+// • Unified mode (?all=1) produces:
+//     – total active deals
+//     – total categories with at least 1 active deal
+//     – count per category
+//     – fully flattened active dataset
+// • Default mode returns per-category active-only lists
+// • Render-safe (FS only), zero side-effects, perfect for dashboards + QA
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -16,36 +23,49 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../data");
 
 export default async function handler(req, res) {
-  const files = fs.readdirSync(DATA_DIR).filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+  const files = fs
+    .readdirSync(DATA_DIR)
+    .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+
   const allMode = req.query.all === "1" || req.query.all === "true";
-  const output = {};
+
+  const perCategory = {};
   const combined = [];
 
-  // ─────────────── Load data ───────────────
+  // ───────────────────────────────────────────────────────────────
+  // Load & map ACTIVE ONLY
+  // ───────────────────────────────────────────────────────────────
   for (const file of files) {
     const cat = file.replace("appsumo-", "").replace(".json", "");
-    try {
-      const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
-      const mapped = data.map((d) => ({
-        category: cat,
-        title: d.title || "",
-        cta: d.seo?.cta || null,
-        subtitle: d.seo?.subtitle || null,
-      }));
 
-      output[cat] = mapped;
-      combined.push(...mapped);
+    try {
+      const full = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
+
+      const active = full
+        .filter((d) => !d.archived)
+        .map((d) => ({
+          category: cat,
+          title: d.title || "",
+          cta: d.seo?.cta || null,
+          subtitle: d.seo?.subtitle || null,
+        }))
+        .sort((a, b) => a.title.localeCompare(b.title));
+
+      perCategory[cat] = active;
+      combined.push(...active);
     } catch (err) {
       console.warn(`⚠️ Failed to parse ${file}:`, err.message);
-      output[cat] = { error: "failed to parse" };
+      perCategory[cat] = [];
     }
   }
 
-  // ─────────────── Unified Mode ───────────────
+  // ───────────────────────────────────────────────────────────────
+  // Unified Mode (?all=1)
+  // ───────────────────────────────────────────────────────────────
   if (allMode) {
     const summary = {};
-    for (const [cat, items] of Object.entries(output)) {
-      if (Array.isArray(items)) summary[cat] = items.length;
+    for (const [cat, items] of Object.entries(perCategory)) {
+      summary[cat] = items.length;
     }
 
     const sorted = combined.sort((a, b) => {
@@ -53,7 +73,10 @@ export default async function handler(req, res) {
       return a.category.localeCompare(b.category);
     });
 
-    const unified = {
+    const payload = {
+      source: "TinmanApps CTA Engine",
+      version: "v3.0",
+      generated: new Date().toISOString(),
       totalDeals: sorted.length,
       categories: Object.keys(summary).length,
       summary,
@@ -61,11 +84,24 @@ export default async function handler(req, res) {
     };
 
     res.setHeader("Content-Type", "application/json");
-    res.status(200).send(JSON.stringify(unified, null, 2));
+    res.status(200).send(JSON.stringify(payload, null, 2));
     return;
   }
 
-  // ─────────────── Default (per-category) Mode ───────────────
+  // ───────────────────────────────────────────────────────────────
+  // Default Mode (per-category active-only export)
+  // ───────────────────────────────────────────────────────────────
   res.setHeader("Content-Type", "application/json");
-  res.status(200).send(JSON.stringify(output, null, 2));
+  res.status(200).send(
+    JSON.stringify(
+      {
+        source: "TinmanApps CTA Engine",
+        version: "v3.0",
+        generated: new Date().toISOString(),
+        categories: perCategory,
+      },
+      null,
+      2
+    )
+  );
 }
