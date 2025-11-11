@@ -31,10 +31,16 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { CACHE } from "../lib/proxyCache.js";
 
-// ───────────────────────────── Paths ─────────────────────────────
-const DATA_DIR = path.resolve("./data");
+// ───────────────────────────── Paths (FIXED & CORRECT) ─────────────────────────────
+// This MUST match updateFeed.js, feedCleanser.js and proxyCache.js
+//
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DATA_DIR = path.join(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 const CTR_PATH = path.join(DATA_DIR, "ctr-insights.json");
 const SNAP_PATH = path.join(DATA_DIR, "insight-latest.json");
@@ -54,7 +60,9 @@ function saveJson(p, obj) {
 }
 function listCategoryFiles() {
   try {
-    return fs.readdirSync(DATA_DIR).filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+    return fs
+      .readdirSync(DATA_DIR)
+      .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
   } catch {
     return [];
   }
@@ -251,7 +259,10 @@ function referralStats(items) {
   for (const d of items) {
     total++;
     const r = d.referralUrl || "";
-    if (!r) { missing++; continue; }
+    if (!r) {
+      missing++;
+      continue;
+    }
     if (r.startsWith("/")) masked++;
     else if (/^https?:\/\//i.test(r)) external++;
     else masked++;
@@ -287,9 +298,10 @@ export default async function handler(req, res) {
   let silos = loadLocalSilos();
   if (!Object.keys(silos).length) {
     const feed = loadJson(FEED_PATH, []);
-    silos = Array.isArray(feed) && feed.length
-      ? aggregateFromFeed(feed)
-      : fallbackSilosFromCache();
+    silos =
+      Array.isArray(feed) && feed.length
+        ? aggregateFromFeed(feed)
+        : fallbackSilosFromCache();
   }
 
   const ctr = loadJson(CTR_PATH, { byDeal: {}, byCategory: {}, recent: [] });
@@ -367,11 +379,9 @@ export default async function handler(req, res) {
       const score = (rarity[w] || 0) * lift * ctrW;
       weighted.push([w, score, lift, cur]);
     }
-    weighted.sort((a, b) =>
-      (b[1] - a[1]) ||
-      (b[2] - a[2]) ||
-      (b[3] - a[3]) ||
-      (a[0] < b[0] ? -1 : 1)
+    weighted.sort(
+      (a, b) =>
+        b[1] - a[1] || b[2] - a[2] || b[3] - a[3] || (a[0] < b[0] ? -1 : 1)
     );
     const topKeywords = weighted.slice(0, 10).map(([w]) => w);
 
@@ -397,7 +407,10 @@ export default async function handler(req, res) {
       if (g.length < 12) continue;
       longTailScores.push([g, scoreGram(g, c)]);
     }
-    longTailScores.sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1));
+    longTailScores.sort(
+      (a, b) =>
+        b[1] - a[1] || (a[0] < b[0] ? -1 : 1)
+    );
     const longTail = longTailScores.slice(0, 20).map(([g]) => g);
 
     // Churn vs previous snapshot
@@ -429,7 +442,7 @@ export default async function handler(req, res) {
       .map((d) => [d, representativenessScore(d, topSet, longTail)])
       .sort(
         (a, b) =>
-          (b[1] - a[1]) ||
+          b[1] - a[1] ||
           (String(a[0].slug) < String(b[0].slug) ? -1 : 1)
       )
       .slice(0, 3)
@@ -458,18 +471,27 @@ export default async function handler(req, res) {
 
   // ───────────────────────────── Global stats ─────────────────────────────
   const globalRising = globalRisers(currentFreqGlobal, prevFreqGlobal);
-  const topGlobalRisers = globalRising.slice(0, 20).map(({ word, lift, cur, prev }) => ({
-    word,
-    lift: +lift.toFixed(3),
-    cur: +cur.toFixed(3),
-    prev: +prev.toFixed(3),
-  }));
+  const topGlobalRisers = globalRising
+    .slice(0, 20)
+    .map(({ word, lift, cur, prev }) => ({
+      word,
+      lift: +lift.toFixed(3),
+      cur: +cur.toFixed(3),
+      prev: +prev.toFixed(3),
+    }));
 
   const topGlobalFrequent = Object.entries(currentFreqGlobal)
     .map(([w, f]) => [w, f])
-    .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1))
+    .sort(
+      (a, b) =>
+        b[1] - a[1] ||
+        (a[0] < b[0] ? -1 : 1)
+    )
     .slice(0, 20)
-    .map(([word, freq]) => ({ word, freq: +Number(freq).toFixed(3) }));
+    .map(([word, freq]) => ({
+      word,
+      freq: +Number(freq).toFixed(3),
+    }));
 
   const allActive = Object.values(silos).flat().filter((d) => !d.archived);
   const globalReferral = referralStats(allActive);
@@ -505,7 +527,6 @@ export default async function handler(req, res) {
     durationMs: Date.now() - t0,
     categories,
     global,
-    // hidden fields
     _freqByCat,
     _slugsByCat,
   };
