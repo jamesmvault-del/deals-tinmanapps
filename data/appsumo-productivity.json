@@ -1,5 +1,23 @@
 [
   {
+    "title": "TaskMagic",
+    "slug": "taskmagicai",
+    "category": "productivity",
+    "url": "https://appsumo.com/products/taskmagicai/",
+    "referralUrl": null,
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-TaskMagic-_16_9_B7kuryo_uuid_20cb007c-4b0f-492f-8fe1-e726fe7848a2.png",
+    "description": "Eliminate manual web tasks by capturing the process once with this AI-powered automation tool. Discover the best deal for TaskMagic on AppSumo today.",
+    "seo": {
+      "cta": "Streamline your workflows →",
+      "subtitle": "removes busywork and boosts clarity — operational with simplified daily ops in your daily…"
+    },
+    "normalizedAt": "2025-11-11T09:49:39.730Z",
+    "firstSeenAt": "2025-11-10T14:56:40.487Z",
+    "lastSeenAt": "2025-11-11T09:49:39.730Z",
+    "lastmodAt": null,
+    "archived": false
+  },
+  {
     "title": "Multimedia5",
     "slug": "multimedia5-2020",
     "category": "productivity",
@@ -15,7 +33,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Timetics",
@@ -33,7 +51,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Trackabi Time Tracker App",
@@ -87,7 +105,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "ACE Meetings",
@@ -105,25 +123,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
-  },
-  {
-    "title": "TaskMagic",
-    "slug": "taskmagicai",
-    "category": "productivity",
-    "link": "https://appsumo.com/products/taskmagicai/",
-    "referralUrl": "https://deals.tinmanapps.com/api/track?deal=taskmagicai&cat=productivity&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Ftaskmagicai%252F",
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-TaskMagic-_16_9_B7kuryo_uuid_20cb007c-4b0f-492f-8fe1-e726fe7848a2.png",
-    "description": "Eliminate manual web tasks by capturing the process once with this AI-powered automation tool. Discover the best deal for TaskMagic on AppSumo today.",
-    "seo": {
-      "cta": "Streamline your workflows →",
-      "subtitle": "removes busywork and boosts clarity — operational with simplified daily ops in your daily…"
-    },
-    "normalizedAt": "2025-11-11T09:12:07.309Z",
-    "firstSeenAt": "2025-11-10T14:56:40.487Z",
-    "lastSeenAt": "2025-11-11T09:12:07.310Z",
-    "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Todoist",
@@ -159,7 +159,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Humanagement",
@@ -177,7 +177,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "TimeTrack By Apploye",
@@ -195,7 +195,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Project.Co",
@@ -213,7 +213,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Mentimeter",
@@ -231,7 +231,7 @@
     "firstSeenAt": "2025-11-10T14:56:40.487Z",
     "lastSeenAt": "2025-11-11T09:12:07.310Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Toggl Track",
