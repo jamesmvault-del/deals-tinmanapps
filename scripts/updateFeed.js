@@ -1,11 +1,12 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v9.1
- * “Render-Safe • Deterministic • New-First + Lastmod Priority • CTA Engine Authority”
+ * TinmanApps Adaptive Feed Engine v10.0
+ * “Render-Safe • Deterministic • Chunked Discovery • New-First Priority”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ Render-safe (no headless Chrome)
  * ✅ Discovers AppSumo product URLs via XML sitemaps (<lastmod> aware)
- * ✅ Fetches OG data → Normalizes → Enriches via ctaEngine v9.0
+ * ✅ Fetches OG data → Normalizes → Enriches via CTA Engine v10
+ * ✅ Chunked discovery + capped crawl size for Starter tier
  * ✅ CTA/subtitle preserved exactly as generated (no re-sanitiser)
  * ✅ History merge: new-first + lastmod priority + archive tracking
  */
@@ -31,10 +32,11 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-const MAX_PER_CATEGORY = 10;
-const DETAIL_CONCURRENCY = 8;
-const PRODUCT_URL_HARD_CAP = 800;
-const HTTP_TIMEOUT_MS = 12000;
+const MAX_PER_CATEGORY = Number(process.env.MAX_PER_CATEGORY || 10);
+const DETAIL_CONCURRENCY = 6;
+const PRODUCT_URL_HARD_CAP = Number(process.env.PRODUCT_URL_HARD_CAP || 300);
+const PRODUCT_DISCOVERY_CHUNK = Number(process.env.PRODUCT_DISCOVERY_CHUNK || 100);
+const HTTP_TIMEOUT_MS = 10000;
 const RETRIES = 2;
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -78,14 +80,14 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v9.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v10.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
     return await res.text();
   } catch (e) {
     if (tries > 0) {
-      await new Promise((r) => setTimeout(r, 400 * (RETRIES - tries + 1)));
+      await new Promise((r) => setTimeout(r, 300 * (RETRIES - tries + 1)));
       return fetchText(url, tries - 1);
     }
     throw e;
@@ -176,21 +178,11 @@ function classify(title, url) {
   if (/\b(crm|invoice|accounting|clients|agency|operations|analytics|finance)\b/i.test(t))
     return "business";
 
-  if (/\/courses?\b|academy|tutorial|training/i.test(u)) return "courses";
-  if (/\/marketing|crm|leads|campaign/i.test(u)) return "marketing";
-  if (/\/productivity|task|kanban|calendar/i.test(u)) return "productivity";
-  if (/\/web|wordpress|landing|builder/i.test(u)) return "web";
-  if (/\/shop|store|checkout|cart|ecommerce/i.test(u)) return "ecommerce";
-  if (/\/creative|design|brand|media|graphic/i.test(u)) return "creative";
-  if (/\/ai|gpt|machine-?learning|ml|nlp/i.test(u)) return "ai";
-  if (/\/agency|client|invoice|accounting|analytics|finance/i.test(u))
-    return "business";
-
   return "software";
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Sitemap discovery (restored)
+// Sitemap discovery (chunked, capped)
 // ───────────────────────────────────────────────────────────────────────────────
 async function discoverProductUrls() {
   const canonicalize = (u) => {
@@ -257,20 +249,11 @@ async function discoverProductUrls() {
       const loc = sm.loc?.[0];
       if (loc && !visited.has(loc)) queue.push(loc);
     }
-  }
 
-  if (seen.size === 0) {
-    try {
-      const html = await fetchText("https://appsumo.com/software/");
-      const matches = Array.from(
-        html.matchAll(/href=["'](https?:\/\/[^"']*\/products\/[^"']*\/?)["']/gi)
-      ).map((m) => canonicalize(m[1]));
-      for (const u of matches) {
-        if (!u) continue;
-        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
-        if (!seen.has(u)) seen.set(u, null);
-      }
-    } catch {}
+    if (seen.size % PRODUCT_DISCOVERY_CHUNK === 0) {
+      console.log(`🪶 Discovery checkpoint: ${seen.size} URLs so far…`);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
   }
 
   const list = Array.from(seen.entries()).map(([url, lastmod]) => ({ url, lastmod }));
@@ -343,7 +326,7 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Main
+// Main (chunk-safe, capped discovery)
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   ensureDir(DATA_DIR);
@@ -357,37 +340,46 @@ async function main() {
     return;
   }
 
-  const details = await Promise.all(
-    discovered.map(async (entry) => {
-      const { url, lastmod } = entry;
-      const slug = toSlug(url);
-      try {
-        const html = await fetchText(url);
-        const og = extractOg(html);
-        const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
-        const cat = classify(titleClean || og.title || "", url);
-        return normalizeEntry({
-          slug,
-          title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
-          url,
-          cat,
-          image: og.image,
-          description: og.description,
-          lastmod,
-        });
-      } catch {
-        return normalizeEntry({
-          slug,
-          title: (slug || "").replace(/[-_]/g, " ") || "Untitled",
-          url,
-          cat: classify(slug || "", url),
-          image: null,
-          description: null,
-          lastmod,
-        });
-      }
-    })
-  );
+  const cappedList = discovered.slice(0, PRODUCT_URL_HARD_CAP);
+  console.log(`🔢 Processing capped subset: ${cappedList.length} URLs (of ${discovered.length})`);
+
+  const details = [];
+  for (let i = 0; i < cappedList.length; i += DETAIL_CONCURRENCY) {
+    const chunk = cappedList.slice(i, i + DETAIL_CONCURRENCY);
+    const chunkResults = await Promise.all(
+      chunk.map(async (entry) => {
+        const { url, lastmod } = entry;
+        const slug = toSlug(url);
+        try {
+          const html = await fetchText(url);
+          const og = extractOg(html);
+          const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
+          const cat = classify(titleClean || og.title || "", url);
+          return normalizeEntry({
+            slug,
+            title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
+            url,
+            cat,
+            image: og.image,
+            description: og.description,
+            lastmod,
+          });
+        } catch {
+          return normalizeEntry({
+            slug,
+            title: (slug || "").replace(/[-_]/g, " ") || "Untitled",
+            url,
+            cat: classify(slug || "", url),
+            image: null,
+            description: null,
+            lastmod,
+          });
+        }
+      })
+    );
+    details.push(...chunkResults);
+    console.log(`🪄 Processed ${details.length}/${cappedList.length} entries…`);
+  }
 
   const unique = dedupe(details, (d) => d.url);
   console.log(`🧩 ${unique.length} unique products resolved`);
@@ -423,13 +415,11 @@ async function main() {
 
     writeJson(`appsumo-${cat}.json`, merged);
     console.log(
-      `🧹 ${cat}: ${merged.filter((x) => !x.archived).length} active / ${
-        merged.length
-      } total`
+      `🧹 ${cat}: ${merged.filter((x) => !x.archived).length} active / ${merged.length} total`
     );
   }
 
-  console.log("\n✨ All silos refreshed (v9.1 deterministic + CTA Engine authority).");
+  console.log("\n✨ All silos refreshed (v10.0 deterministic + CTA Engine authority).");
 }
 
 // Execute
