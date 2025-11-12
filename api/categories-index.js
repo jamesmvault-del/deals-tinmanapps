@@ -1,24 +1,24 @@
 // /api/categories-index.js
-// TinmanApps — Category Index v5.0 “Active-Only • Deterministic • SEO-Core”
+// TinmanApps — Category Index v10.0 “Active-Only • Engine-Synced • Deterministic SEO Core”
 // ───────────────────────────────────────────────────────────────────────────────
-// • Fully aligned with updateFeed v7.7 + categories.js v7.2 + home.js v7+
+// • Fully aligned with updateFeed v10 + categories.js v10 + sitemap v10
 // • Counts ONLY ACTIVE (non-archived) deals
-// • Deterministic output (sorted taxonomy order)
-// • Zero ranking, zero mutation — pure reflector layer
+// • Deterministic taxonomy order (zero ranking, zero mutation)
+// • JSON-LD ready structure for SEO dashboards
+// • Engine version exposed for diagnostic sync
 // • Insight Pulse–ready, Sitemap–ready, Cron–safe
-// • No scraped contamination, no heuristics
-// • Perfect for SEO surfaces & dashboards
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "../data");
 
-// Master taxonomy — MUST match categories.js + sitemap + homepage
+// Master taxonomy — MUST mirror categories.js + sitemap.js + homepage
 const CATEGORIES = [
   { slug: "software",     name: "Software Tools" },
   { slug: "marketing",    name: "Marketing & Sales Tools" },
@@ -42,31 +42,56 @@ function loadJsonSafe(file) {
   }
 }
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Handler
+// ───────────────────────────────────────────────────────────────────────────────
 export default function handler(req, res) {
   try {
     const timestamp = new Date().toISOString();
 
-    // Deterministic category mapping
+    // Deterministic category mapping (ACTIVE-only counts)
     const categories = CATEGORIES.map((c) => {
       const raw = loadJsonSafe(`appsumo-${c.slug}.json`);
-      const active = raw.filter((d) => !d.archived).length;
-
+      const activeItems = raw.filter((d) => !d.archived);
       return {
         slug: c.slug,
         name: c.name,
-        active,
+        active: activeItems.length,
         total: raw.length,
       };
     });
 
-    res.json({
+    // JSON-LD for potential external use (SEO dashboards)
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "TinmanApps Category Index",
+      numberOfItems: categories.length,
+      itemListElement: categories.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        url: `https://deals.tinmanapps.com/categories/${c.slug}`,
+      })),
+    };
+
+    const payload = {
       source: "TinmanApps SEO Core",
-      version: "v5.0",
+      version: "v10.0",
+      engineVersion: CTA_ENGINE_VERSION,
       generated: timestamp,
+      totalCategories: categories.length,
       categories,
-    });
+      structuredData: ld,
+    };
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=120");
+    res.status(200).json(payload);
+
+    console.log(`✅ [CategoryIndex v10] Generated ${categories.length} categories • Engine:${CTA_ENGINE_VERSION}`);
   } catch (err) {
-    console.error("❌ categories-index error:", err);
+    console.error("❌ [CategoryIndex] Error:", err);
     res.status(500).json({ error: "Failed to build categories index" });
   }
 }
