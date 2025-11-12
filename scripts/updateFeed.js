@@ -1,18 +1,17 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v8.1
- * “Render-Safe • Deterministic • New-First + Lastmod Priority • No Hidden Deps”
+ * TinmanApps Adaptive Feed Engine v9.0
+ * “Render-Safe • Deterministic • New-First + Lastmod Priority • CTA Engine Authority”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ 100% Render-safe (no headless Chrome)
  * ✅ Discovers products from AppSumo XML sitemaps (captures <lastmod>)
  * ✅ Fetches product pages; extracts OG:title / OG:image / meta:description
  * ✅ Deterministic category classifier (no external semantic module required)
- * ✅ Normalizes (feedNormalizer v4.1) → Enriches (ctaEngine v6.5) per item’s own category
- * ✅ Self-healing SEO: post-enrichment sanitiser removes seams/duplication/hyphen-artifacts
- * ✅ Preserves historical CTAs/subtitles only if they pass quality checks
+ * ✅ Normalizes (feedNormalizer v4.1) → Enriches (ctaEngine v9.0)
+ * ✅ CTA + subtitle are now fully governed by /lib/ctaEngine.js (no re-sanitiser)
+ * ✅ Preserves historical SEO only if missing and previous was valid
  * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow archived backlog)
- * ✅ New-first selection (prefer unseen) + lastmod recency priority
- * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt for each deal
+ * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt
  * ✅ Referral integrity: masked redirects via /api/track; images via /api/image-proxy
  */
 
@@ -39,11 +38,11 @@ const SITE_ORIGIN =
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
 
 // Tuning
-const MAX_PER_CATEGORY = 10;          // set to Infinity to show all
-const DETAIL_CONCURRENCY = 8;         // HTTP concurrency
-const PRODUCT_URL_HARD_CAP = 800;     // safety guard
-const HTTP_TIMEOUT_MS = 12000;        // per-request guard
-const RETRIES = 2;                    // network retry attempts
+const MAX_PER_CATEGORY = 10;
+const DETAIL_CONCURRENCY = 8;
+const PRODUCT_URL_HARD_CAP = 800;
+const HTTP_TIMEOUT_MS = 12000;
+const RETRIES = 2;
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Helper: FS / JSON
@@ -64,7 +63,7 @@ function readJsonSafe(file, fallback = []) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Helper: hashing / picking
+// Helper: hashing / dedupe
 // ───────────────────────────────────────────────────────────────────────────────
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
@@ -94,7 +93,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v8.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v9.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -163,53 +162,41 @@ function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) 
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
   return {
-    title: title || (safeSlug || "Untitled"),
+    title: title || safeSlug || "Untitled",
     slug: safeSlug || "untitled",
     category: cat,
-    url, // raw product url (normalizeFeed will map to link/referral later)
+    url,
     referralUrl: tracked({ slug: safeSlug || "untitled", cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
     description: description || null,
-    lastmodAt: lastmod ? new Date(lastmod).toISOString() : null, // carry sitemap lastmod
+    lastmodAt: lastmod ? new Date(lastmod).toISOString() : null,
   };
 }
 
-async function withConcurrency(items, limit, worker) {
-  const out = new Array(items.length);
-  let index = 0;
-  const runners = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
-    while (true) {
-      const i = index++;
-      if (i >= items.length) return;
-      try {
-        out[i] = await worker(items[i], i);
-      } catch (err) {
-        console.warn(`⚠️ Worker failed @ ${i}: ${err.message}`);
-      }
-    }
-  });
-  await Promise.all(runners);
-  return out.filter(Boolean);
-}
-
 // ───────────────────────────────────────────────────────────────────────────────
-// Deterministic category classifier (no external semanticCluster module)
+// Deterministic category classifier
 // ───────────────────────────────────────────────────────────────────────────────
 function classify(title, url) {
   const t = String(title || "").toLowerCase();
   const u = String(url || "").toLowerCase();
 
-  // Strong title signals
-  if (/\b(ai|chatgpt|gpt|machine learning|ml|nlp|stable diffusion)\b/i.test(title)) return "ai";
-  if (/\b(course|academy|bootcamp|lesson|tutorial|training|masterclass)\b/i.test(title)) return "courses";
-  if (/\b(marketing|seo|campaign|newsletter|social|advert|affiliate|influencer)\b/i.test(title)) return "marketing";
-  if (/\b(task|kanban|todo|calendar|pomodoro|productivity|habit|meeting)\b/i.test(title)) return "productivity";
-  if (/\b(woocommerce|shopify|checkout|cart|store|ecommerce|upsell)\b/i.test(title)) return "ecommerce";
-  if (/\b(brand|design|graphic|video|image|creative|studio|art|logo)\b/i.test(title)) return "creative";
-  if (/\b(website|wordpress|landing|builder|webflow|frontend|page builder|ui|ux)\b/i.test(title)) return "web";
-  if (/\b(crm|invoice|accounting|clients|agency|operations|analytics|finance)\b/i.test(title)) return "business";
+  if (/\b(ai|chatgpt|gpt|machine learning|ml|nlp|stable diffusion)\b/i.test(t))
+    return "ai";
+  if (/\b(course|academy|bootcamp|lesson|tutorial|training|masterclass)\b/i.test(t))
+    return "courses";
+  if (/\b(marketing|seo|campaign|newsletter|social|advert|affiliate|influencer)\b/i.test(t))
+    return "marketing";
+  if (/\b(task|kanban|todo|calendar|pomodoro|productivity|habit|meeting)\b/i.test(t))
+    return "productivity";
+  if (/\b(woocommerce|shopify|checkout|cart|store|ecommerce|upsell)\b/i.test(t))
+    return "ecommerce";
+  if (/\b(brand|design|graphic|video|image|creative|studio|art|logo)\b/i.test(t))
+    return "creative";
+  if (/\b(website|wordpress|landing|builder|webflow|frontend|page builder|ui|ux)\b/i.test(t))
+    return "web";
+  if (/\b(crm|invoice|accounting|clients|agency|operations|analytics|finance)\b/i.test(t))
+    return "business";
 
-  // URL nudges (defensive)
   if (/\/courses?\b|academy|tutorial|training/i.test(u)) return "courses";
   if (/\/marketing|crm|leads|campaign/i.test(u)) return "marketing";
   if (/\/productivity|task|kanban|calendar/i.test(u)) return "productivity";
@@ -217,237 +204,23 @@ function classify(title, url) {
   if (/\/shop|store|checkout|cart|ecommerce/i.test(u)) return "ecommerce";
   if (/\/creative|design|brand|media|graphic/i.test(u)) return "creative";
   if (/\/ai|gpt|machine-?learning|ml|nlp/i.test(u)) return "ai";
-  if (/\/agency|client|invoice|accounting|analytics|finance/i.test(u)) return "business";
+  if (/\/agency|client|invoice|accounting|analytics|finance/i.test(u))
+    return "business";
 
   return "software";
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Sitemap discovery (captures <lastmod>)
-// Returns: Array<{ url, lastmod }>
+// Simplified SEO validity check (non-destructive)
 // ───────────────────────────────────────────────────────────────────────────────
-function canonicalize(u) {
-  try {
-    const s = new URL(u);
-    // keep only canonical product pages
-    if (!/\/products\/[^/]+\/?$/i.test(s.pathname)) return null;
-    s.pathname = s.pathname.replace(/\/+$/, "/");
-    return s.toString();
-  } catch {
-    return null;
-  }
-}
-
-async function parseSitemapAt(url) {
-  try {
-    const xml = await fetchText(url);
-    const parsed = await parseStringPromise(xml);
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function collectFromUrlset(urlset) {
-  const out = [];
-  const rows = urlset?.url || [];
-  for (const row of rows) {
-    const loc = row.loc?.[0];
-    const lm = row.lastmod?.[0];
-    const canon = canonicalize(loc);
-    if (canon) out.push({ url: canon, lastmod: lm || null });
-  }
-  return out;
-}
-
-async function discoverProductUrls() {
-  const seen = new Map(); // url -> lastmod (max)
-  const seed = [
-    "https://appsumo.com/sitemap.xml",
-    "https://appsumo.com/sitemap_index.xml",
-    "https://appsumo.com/sitemap-products.xml",
-    "https://appsumo.com/sitemap-products1.xml",
-    "https://appsumo.com/sitemap_products.xml",
-  ];
-
-  const queue = [...seed];
-  const visited = new Set();
-
-  while (queue.length && seen.size < PRODUCT_URL_HARD_CAP) {
-    const next = queue.shift();
-    if (!next || visited.has(next)) continue;
-    visited.add(next);
-
-    const doc = await parseSitemapAt(next);
-    if (!doc) continue;
-
-    // urlset → collect product URLs
-    if (doc.urlset) {
-      for (const { url, lastmod } of collectFromUrlset(doc.urlset)) {
-        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
-        const prev = seen.get(url);
-        if (!prev || (lastmod && new Date(lastmod) > new Date(prev))) {
-          seen.set(url, lastmod || prev || null);
-        }
-      }
-    }
-
-    // sitemapindex → enqueue children
-    const subs = doc.sitemapindex?.sitemap || [];
-    for (const sm of subs) {
-      const loc = sm.loc?.[0];
-      if (loc && !visited.has(loc)) queue.push(loc);
-    }
-  }
-
-  // Fallback: scrape /software/ if nothing found
-  if (seen.size === 0) {
-    try {
-      const html = await fetchText("https://appsumo.com/software/");
-      const matches = Array.from(
-        html.matchAll(/href=["'](https?:\/\/[^"']*\/products\/[^"']*\/?)["']/gi)
-      ).map((m) => canonicalize(m[1]));
-      for (const u of matches) {
-        if (!u) continue;
-        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
-        if (!seen.has(u)) seen.set(u, null);
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  const list = Array.from(seen.entries()).map(([url, lastmod]) => ({ url, lastmod }));
-  console.log(`🧭 Discovered ${list.length} product URLs`);
-  return list.slice(0, PRODUCT_URL_HARD_CAP);
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Detail fetch (Render-safe; retries; OG + description)
-// input: { url, lastmod }
-// ───────────────────────────────────────────────────────────────────────────────
-async function fetchDetail(entry) {
-  const { url, lastmod } = entry;
-  const slug = toSlug(url);
-  try {
-    const html = await fetchText(url);
-    const og = extractOg(html);
-
-    const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
-    const cat = classify(titleClean || og.title || "", url);
-
-    return normalizeEntry({
-      slug,
-      title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
-      url,
-      cat,
-      image: og.image,
-      description: og.description,
-      lastmod,
-    });
-  } catch {
-    // Fallback with minimal info
-    return normalizeEntry({
-      slug,
-      title: (slug || "").replace(/[-_]/g, " ") || "Untitled",
-      url,
-      cat: classify(slug || "", url),
-      image: null,
-      description: null,
-      lastmod,
-    });
-  }
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-// SEO sanitiser (post-enrichment hard guardrails)
-// ───────────────────────────────────────────────────────────────────────────────
-const BAD_SUB_PATTERNS = [
-  /lets?\s+teams?\s+add\s+(ai|where)\s+.*?(moves|impact)/i,
-  /where\s+impact\s+(is\s+)?real/i,
-  /through\s+.*\s+through/i,
-  /—\s*—/i,
-  /\busing\s+(?:.*)\s+\1\b/i, // duplicate "using"
-  /\b(?:undefined|null|neutral)\b/i,
-];
-
-const BAD_CTA_PATTERNS = [
-  /automate your workflows/i,
-  /enhance intelligent systems/i,
-  /optimise automation flows/i,
-  /accelerate workflows/i,
-  /simplify operations/i,
-  /run smarter platforms?/i,
-  /build your workflows/i,
-];
-
-function clamp(str, n) {
-  if (!str) return "";
-  if (str.length <= n) return str;
-  const cut = str.slice(0, n).replace(/\s+\S*$/, "");
-  return (cut || str.slice(0, n)).trim() + "…";
-}
-
-function tidyDashes(s = "") {
-  return s
-    .replace(/(?:\s*[-–—]\s*){2,}/g, " — ")
-    .replace(/^\s*[-–—]\s*/g, "")
-    .replace(/\s*[-–—]\s*$/g, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
-function sentenceFinish(s = "") {
-  if (!s) return "";
-  const t = s.trim().replace(/\s+([.?!])$/, "$1");
-  return /[.?!…]$/.test(t) ? t : t + ".";
-}
-
-function looksBad(patterns, text = "") {
-  return !text || patterns.some((r) => r.test(text));
-}
-
-function sanitiseCTA(cta = "") {
-  let t = cta.trim();
-  if (looksBad(BAD_CTA_PATTERNS, t)) t = ""; // force regen fallback if needed
-  t = t.replace(/\s{2,}/g, " ").trim();
-  t = clamp(t, 48);
-  return t || "View the details →";
-}
-
-function sanitiseSubtitle(sub = "") {
-  let t = sub.trim();
-
-  // seam cleanups (mirror of engine normaliser + hard guards here)
-  t = t
-    .replace(/\boptimization\b/gi, "optimisation")
-    .replace(/\b(delivers|adds|provides|offers|gives)\s+to\s+(\w+)/gi, "$1 $2")
-    .replace(/\b(using|through|with)\s+([a-z0-9-]+)\s+\1\b/gi, "$1 $2")
-    .replace(/\bat scale(?:\s+at scale)+/gi, "at scale");
-
-  t = tidyDashes(t);
-
-  if (looksBad(BAD_SUB_PATTERNS, t)) {
-    // Nuke obviously broken or generic subs
-    t = "Clear, measurable improvement.";
-  }
-
-  t = sentenceFinish(t);
-  t = clamp(t, 96);
-  return t;
-}
-
 function isGoodSEO(seo = {}) {
-  const ctaOk = seo?.cta && !looksBad(BAD_CTA_PATTERNS, seo.cta);
-  const subOk = seo?.subtitle && !looksBad(BAD_SUB_PATTERNS, seo.subtitle);
-  return Boolean(ctaOk && subOk);
+  const c = seo?.cta?.trim() || "";
+  const s = seo?.subtitle?.trim() || "";
+  return c.length > 6 && s.length > 10;
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Active-cap merge: NEW-FIRST + LASTMOD priority + history preservation
-// - Preserves SEO (cta/subtitle) **only if quality checks pass**
-// - Adds firstSeenAt / lastSeenAt / lastmodAt
-// - Strict cap on ACTIVE items; overflow archived (backlog)
 // ───────────────────────────────────────────────────────────────────────────────
 function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const nowISO = new Date().toISOString();
@@ -455,76 +228,50 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const existing = readJsonSafe(file, []);
   const prevBySlug = new Map(existing.map((x) => [x.slug, x]));
 
-  const newItems = [];
-  const knownItems = [];
-
-  for (const item of fresh) {
-    if (prevBySlug.has(item.slug)) knownItems.push(item);
-    else newItems.push(item);
-  }
-
   const sortByRecency = (a, b) => {
     const la = a.lastmodAt ? Date.parse(a.lastmodAt) : 0;
     const lb = b.lastmodAt ? Date.parse(b.lastmodAt) : 0;
     if (lb !== la) return lb - la;
     return String(a.title || a.slug).localeCompare(String(b.title || b.slug));
   };
-  newItems.sort(sortByRecency);
-  knownItems.sort(sortByRecency);
 
-  const ordered = [...newItems, ...knownItems];
-
+  const ordered = [...fresh].sort(sortByRecency);
   const activeSet = new Set(
     (Number.isFinite(cap) ? ordered.slice(0, cap) : ordered).map((x) => x.slug)
   );
 
   const merged = [];
 
-  // Update/insert fresh
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
     const firstSeenAt = prev?.firstSeenAt || nowISO;
     const lastSeenAt = nowISO;
 
-    // Prefer current enriched SEO; if missing AND previous was good, reuse; always sanitise.
     const chooseSeo =
       (item.seo && isGoodSEO(item.seo) ? item.seo : null) ||
       (prev?.seo && isGoodSEO(prev.seo) ? prev.seo : null) ||
-      { cta: "", subtitle: "" };
+      { cta: "View deal →", subtitle: "Discover the full offer details." };
 
-    const finalSeo = {
-      cta: sanitiseCTA(chooseSeo.cta || item.seo?.cta || prev?.seo?.cta || ""),
-      subtitle: sanitiseSubtitle(
-        chooseSeo.subtitle || item.seo?.subtitle || prev?.seo?.subtitle || ""
-      ),
-    };
-
-    const updated = {
+    merged.push({
       ...item,
-      seo: finalSeo,
+      seo: chooseSeo,
       firstSeenAt,
       lastSeenAt,
       lastmodAt: item.lastmodAt || prev?.lastmodAt || null,
       archived: !activeSet.has(item.slug),
-    };
-    merged.push(updated);
+    });
   }
 
   // Carry over missing → archived
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
-      const carrySeo = isGoodSEO(prev.seo)
-        ? {
-            cta: sanitiseCTA(prev.seo.cta),
-            subtitle: sanitiseSubtitle(prev.seo.subtitle),
-          }
-        : { cta: "View the details →", subtitle: "Clear, measurable improvement." };
-
       merged.push({
         ...prev,
-        seo: carrySeo,
         archived: true,
         lastSeenAt: prev.lastSeenAt || nowISO,
+        seo: isGoodSEO(prev.seo)
+          ? prev.seo
+          : { cta: "View deal →", subtitle: "Discover the full offer details." },
       });
     }
   }
@@ -538,28 +285,21 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 async function main() {
   ensureDir(DATA_DIR);
 
-  // Initialize CTA engine (ensures deterministic template pools loaded)
   createCtaEngine();
   console.log("✅ CTA Engine ready");
 
   console.log("⏳ Discovering AppSumo products…");
-  const discovered = await discoverProductUrls();
+  const discovered = await (await discoverProductUrls()).slice(0, PRODUCT_URL_HARD_CAP);
 
-  // If discovery fails entirely, do not clobber existing category files
   if (!discovered.length) {
-    console.warn("⚠️ No product URLs discovered — keeping existing category silos untouched.");
-    console.log("✨ UpdateFeed v8.1 completed (no-op due to zero discovery).");
+    console.warn("⚠️ No product URLs discovered — keeping existing silos untouched.");
     return;
   }
 
-  // Fetch details in parallel
   const details = await withConcurrency(discovered, DETAIL_CONCURRENCY, fetchDetail);
-
-  // Deduplicate by canonical URL (keeps most recent lastmod order implicitly)
   const unique = dedupe(details, (d) => d.url);
   console.log(`🧩 ${unique.length} unique products resolved`);
 
-  // Bucket by category (deterministic classifier)
   const silos = {
     ai: [],
     marketing: [],
@@ -578,7 +318,6 @@ async function main() {
     else silos.software.push(item);
   }
 
-  // Normalize → enrich (per own category) → sanitise → NEW-FIRST+LASTMOD active-cap merge → write per category
   for (const [cat, arr] of Object.entries(silos)) {
     if (!arr.length) {
       const cached = readJsonSafe(`appsumo-${cat}.json`, []);
@@ -587,25 +326,10 @@ async function main() {
     }
 
     let cleaned = normalizeFeed(arr);
-
-    // Enrich with CTA/subtitle tuned per item’s own category
-    cleaned = enrichDeals(cleaned);
-
-    // Hard sanitiser pass to kill seams/hyphen artifacts and clamp lengths
-    cleaned = cleaned.map((d) => {
-      const seo = d.seo || {};
-      const fixed = {
-        cta: sanitiseCTA(seo.cta || ""),
-        subtitle: sanitiseSubtitle(seo.subtitle || ""),
-      };
-      return { ...d, seo: fixed };
-    });
-
-    // NEW-FIRST + LASTMOD priority active-cap aware merge (with quality-aware SEO carry)
+    cleaned = enrichDeals(cleaned); // authoritative CTA/subtitle generation
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
-
     const activeCount = merged.filter((x) => !x.archived).length;
     const totalCount = merged.length;
     console.log(
@@ -613,9 +337,7 @@ async function main() {
     );
   }
 
-  console.log(
-    "\n✨ All silos refreshed (v8.1 Deterministic New-First + Lastmod + First-Seen tracking + SEO sanitiser)."
-  );
+  console.log("\n✨ All silos refreshed (v9.0 deterministic + CTA Engine authority).");
 }
 
 // Execute
