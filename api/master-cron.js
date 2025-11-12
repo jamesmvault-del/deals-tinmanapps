@@ -1,9 +1,13 @@
-// /api/master-cron.js
 /**
- * TinmanApps Master Cron v10.0
- * “Absolute Regeneration • Deterministic • Entropy/duplication telemetry • One-write merge”
+ * /api/master-cron.js
+ * TinmanApps Master Cron v10.1
+ * “Absolute Regeneration • Deterministic • Light-Mode Safe • Entropy Telemetry”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ Runs scripts/updateFeed.js FIRST (blocking) for fresh silos
+ * ✅ NEW: Light Mode for Starter tier — skip heavy regeneration unless forced
+ *    - Use ?mode=light  (or set env CRON_LIGHT_DEFAULT=1)
+ *    - Heavy path still available with ?force=1  (always runs full pipeline)
+ * ✅ Runs scripts/updateFeed.js FIRST (blocking) for fresh silos (heavy path)
+ *    - Child process uses memory cap: node --max-old-space-size=256 (env override)
  * ✅ Absolute regeneration of CTA + subtitle using CTA Engine v10
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
  * ✅ SEO Integrity v4.3 (clean keywords, no fragments)
@@ -11,7 +15,7 @@
  * ✅ feed-cache.json purged only when ?force=1
  * ✅ Insight Pulse runs silently after merge
  * ✅ ZERO CTA/subtitle restoration from history
- * ✅ Deterministic + 100% Render-safe
+ * ✅ Deterministic + Render-safe
  */
 
 import fs from "fs";
@@ -204,16 +208,41 @@ function regenerateSeo(allDeals) {
 // ───────────────────────────────────────── HANDLER ───────────────────────────────────────────────
 export default async function handler(req, res) {
   const force = req.query.force === "1";
+  const modeParam = String(req.query.mode || "").toLowerCase();
+  const lightDefault = process.env.CRON_LIGHT_DEFAULT === "1";
+  const light = !force && (modeParam === "light" || lightDefault);
   const start = Date.now();
 
   try {
-    console.log("🔁 [Cron] Starting deterministic refresh:", new Date().toISOString());
+    console.log(
+      `🔁 [Cron] ${new Date().toISOString()} | mode=${light ? "LIGHT" : "HEAVY"} | force=${force}`
+    );
 
-    // 1) Run updateFeed.js FIRST (blocking, absolute regeneration of silos)
+    // ── LIGHT MODE: Starter-tier safe (integrity only) ─────────────────────────
+    if (light) {
+      const bg = await backgroundRefresh();
+      const duration = Date.now() - start;
+      return res.json({
+        message: "Light cron run (integrity only)",
+        duration,
+        total: bg?.totalEntries ?? 0,
+        steps: ["background-refresh(light)"],
+        engineVersion: CTA_ENGINE_VERSION,
+        regenerated: false,
+        mode: "light",
+      });
+    }
+
+    // ── HEAVY MODE: full pipeline (absolute regeneration) ─────────────────────
+    // 1) Run updateFeed.js FIRST (blocking, with memory cap)
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
-    console.log("⚙️ updateFeed.js running…");
+    const maxOld = Number(process.env.NODE_MAX_OLD_SPACE || 256);
+    console.log(`⚙️ updateFeed.js running with --max-old-space-size=${maxOld}…`);
     try {
-      execSync(`node "${updateFeedPath}"`, { stdio: "inherit" });
+      execSync(`node --max-old-space-size=${maxOld} "${updateFeedPath}"`, {
+        stdio: "inherit",
+        env: { ...process.env, NODE_OPTIONS: `--max-old-space-size=${maxOld}` },
+      });
       console.log("✅ updateFeed.js complete");
     } catch (e) {
       console.warn("⚠️ updateFeed.js error:", e.message);
@@ -286,7 +315,7 @@ export default async function handler(req, res) {
       total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
-        "updateFeed(blocking)",
+        `updateFeed(blocking: --max-old-space-size=${maxOld})`,
         "purge(feed-cache-only)",
         "background-refresh",
         "aggregate",
@@ -301,6 +330,7 @@ export default async function handler(req, res) {
       ],
       engineVersion: CTA_ENGINE_VERSION,
       regenerated: true,
+      mode: "heavy",
     });
   } catch (err) {
     console.error("❌ [Cron Fatal]:", err);
