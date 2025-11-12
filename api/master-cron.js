@@ -1,23 +1,23 @@
 // /api/master-cron.js
 /**
- * TinmanApps Master Cron v7.0
- * “Absolute Regeneration • Sanitised • Deterministic • CTA Engine v7.0”
+ * TinmanApps Master Cron v9.1
+ * “Render-Safe • Deterministic • Non-Blocking • CTA Engine Authority”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ ALWAYS regenerates CTA + subtitle using CTA Engine v7.0 (never reuses)
- * ✅ scripts/updateFeed.js ALWAYS runs first
+ * ✅ Runs scripts/updateFeed.js inside the same server (no Render restart)
+ * ✅ Absolute regeneration of CTA + subtitle using CTA Engine v9+
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
  * ✅ SEO Integrity v4.3 (clean keywords, no fragments)
  * ✅ feed-cache.json purged only when ?force=1
  * ✅ Insight Pulse runs silently after merge
- * ✅ ZERO restoration from history (CTA/subtitle NEVER resurrected)
- * ✅ 100% Render-safe; deterministic and stable
+ * ✅ ZERO CTA/subtitle restoration
+ * ✅ Deterministic + 100 % Render-safe
  */
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
-import { execSync } from "child_process";
+import { spawn } from "child_process";
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
 import { createCtaEngine } from "../lib/ctaEngine.js";
@@ -27,10 +27,9 @@ import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
 // ─────────────────────────────────────────── Info / Paths ─────────────────────────────────────────
-const CTA_ENGINE_VERSION = "7.0";
+const CTA_ENGINE_VERSION = "9.1";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 
@@ -42,19 +41,15 @@ function smartTitle(slug = "") {
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim();
 }
-
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
-
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
-
-// Local sanitiser (master-cron scoped)
 function sanitizeText(input = "") {
-  const s = String(input ?? "")
-    .replace(/\u2013|\u2014/g, "-")         // en/em dashes → hyphen
+  return String(input ?? "")
+    .replace(/\u2013|\u2014/g, "-")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/[•·]/g, " ")
@@ -63,10 +58,7 @@ function sanitizeText(input = "") {
     .replace(/\s+([.,;:!?])/g, "$1")
     .replace(/\(undefined\)/gi, "")
     .trim();
-  return s;
 }
-
-// Ensures every item ALWAYS has CTA + subtitle after regen
 function ensureMinimalSeo(items) {
   return items.map((d) => {
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
@@ -77,8 +69,6 @@ function ensureMinimalSeo(items) {
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
-
-// Final emergency sanitiser (removes fragments / tidies punctuation)
 function finalSanitize(items) {
   return items.map((d) => ({
     ...d,
@@ -94,13 +84,10 @@ function finalSanitize(items) {
 // ───────────────────────────────────────── Merge with History (NO CTA RESTORE) ───────────────────
 function mergeWithHistory(newFeed) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
-
   const prev = JSON.parse(fs.readFileSync(FEED_PATH, "utf8"));
   const prevBySlug = new Map(prev.map((x) => [x.slug, x]));
-
   const now = new Date().toISOString();
   const DAY_MS = 24 * 60 * 60 * 1000;
-
   let archived = 0;
   let purged = 0;
 
@@ -110,8 +97,8 @@ function mergeWithHistory(newFeed) {
     return {
       ...item,
       seo: {
-        cta: item.seo?.cta || null,           // regenerated → NEVER restored
-        subtitle: item.seo?.subtitle || null, // regenerated → NEVER restored
+        cta: item.seo?.cta || null,
+        subtitle: item.seo?.subtitle || null,
         clickbait: oldSeo.clickbait || null,
         keywords: oldSeo.keywords || [],
         lastVerifiedAt: now,
@@ -120,7 +107,6 @@ function mergeWithHistory(newFeed) {
     };
   });
 
-  // Bring forward previously seen items that have disappeared → archived
   for (const old of prev) {
     if (!merged.find((x) => x.slug === old.slug)) {
       archived++;
@@ -146,7 +132,6 @@ function mergeWithHistory(newFeed) {
 // ───────────────────────────────────────── Aggregator ────────────────────────────────────────────
 function aggregateCategoryFeeds() {
   ensureDir(DATA_DIR);
-
   const files = fs
     .readdirSync(DATA_DIR)
     .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
@@ -169,21 +154,15 @@ function aggregateCategoryFeeds() {
 // ───────────────────────────────────────── Regeneration (ALWAYS) ───────────────────────────────
 function regenerateSeo(allDeals) {
   const engine = createCtaEngine();
-
   return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
     const slug = d.slug || sha1(title);
-
     const cta = sanitizeText(engine.generate({ title, cat: category, slug }));
     const subtitle = sanitizeText(
       engine.generateSubtitle({ title, category, slug })
     );
-
-    return {
-      ...d,
-      seo: { ...d.seo, cta, subtitle },
-    };
+    return { ...d, seo: { ...d.seo, cta, subtitle } };
   });
 }
 
@@ -195,15 +174,17 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting deterministic refresh:", new Date().toISOString());
 
-    // 1) Run updateFeed.js FIRST
+    // 1) Run updateFeed.js asynchronously (non-blocking)
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
-    console.log("⚙️ updateFeed.js running…");
-    try {
-      execSync(`node "${updateFeedPath}"`, { stdio: "inherit" });
-      console.log("✅ updateFeed.js complete");
-    } catch (e) {
-      console.warn("⚠️ updateFeed.js error:", e.message);
-    }
+    console.log("⚙️ updateFeed.js spawning…");
+    const child = spawn("node", [updateFeedPath], { stdio: "inherit" });
+
+    child.on("close", (code) => {
+      console.log(`✅ updateFeed.js completed with code ${code}`);
+    });
+
+    // Continue main cron work after short delay so updateFeed runs first
+    await new Promise((r) => setTimeout(r, 1000));
 
     // 2) Optional purge
     if (force && fs.existsSync(FEED_PATH)) {
@@ -211,11 +192,11 @@ export default async function handler(req, res) {
       console.log("🧹 feed-cache.json purged (force=1)");
     }
 
-    // 3) Proxy cache refresh (integrity)
+    // 3) Proxy cache refresh
     await backgroundRefresh();
     console.log("✅ backgroundRefresh OK");
 
-    // 4) Aggregate all category silos
+    // 4) Aggregate silos
     const raw = aggregateCategoryFeeds();
     console.log(`📦 Raw aggregated: ${raw.length}`);
 
@@ -233,44 +214,43 @@ export default async function handler(req, res) {
     });
     console.log(`📑 Deduped: ${deduped.length}`);
 
-    // 7) Cleanse (archive-aware)
+    // 7) Cleanse
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    // 8) ALWAYS regenerate CTA + subtitle
+    // 8) Regenerate CTA + subtitle
     let enriched = regenerateSeo(cleansed);
     console.log(`✨ Regenerated CTA + subtitle (${enriched.length})`);
 
-    // 9) ensure minimal SEO
+    // 9) Minimal SEO guard
     enriched = ensureMinimalSeo(enriched);
 
-    // 10) SEO Integrity
+    // 10) SEO integrity
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity checked: ${verified.length}`);
 
-    // 11) FINAL emergency sanitiser
+    // 11) Final sanitize
     const sanitized = finalSanitize(verified);
 
-    // 12) History merge (NO restoration)
+    // 12) Merge history (no CTA restore)
     const merged = mergeWithHistory(sanitized);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
 
-    // 13) Insight Pulse
+    // 13) Insight pulse
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
 
     const duration = Date.now() - start;
-
     return res.json({
       message: "Self-healing refresh complete",
       duration,
       total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
-        "updateFeed",
+        "updateFeed(spawned)",
         "purge(feed-cache-only)",
         "background-refresh",
         "aggregate",
