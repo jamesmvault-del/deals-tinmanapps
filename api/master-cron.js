@@ -1,17 +1,17 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v10.2
- * “Absolute Regeneration • Deterministic • Context-Aware • Entropy Telemetry”
+ * TinmanApps Master Cron v11.0
+ * “Absolute Regeneration • Deterministic • Context-Aware • Validation-Safe”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ Light Mode — skips regeneration unless forced (?mode=light or CRON_LIGHT_DEFAULT=1)
- * ✅ Heavy Mode — full regeneration using CTA Engine v10.1 (context-aware)
- * ✅ Calls scripts/updateFeed.js (blocking) to rebuild silos FIRST
- * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
- * ✅ SEO Integrity v4.4 — validates contextual CTA/subtitle integrity
- * ✅ Entropy & duplication telemetry (CTAs/Subtitles)
+ * ✅ Light Mode — integrity-only (no regeneration) unless forced (?mode=light or CRON_LIGHT_DEFAULT=1)
+ * ✅ Heavy Mode — full regeneration using CTA Engine v11.0 (human-tuned, grammar-safe)
+ * ✅ Runs updateFeed.js (blocking) to rebuild silos first
+ * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO (context-aware)
+ * ✅ SEO Integrity v5.0 — validation-only, no mutation
+ * ✅ Deterministic entropy + duplication telemetry
  * ✅ feed-cache.json purged only when ?force=1
- * ✅ Single authoritative CTA/subtitle source — no inline generation elsewhere
- * ✅ Deterministic, Render-safe, and context-aligned with Feed + Engine
+ * ✅ Strict sequence enforcement: CTA Engine first → Integrity second → Telemetry third
+ * ✅ Render-safe, stable, self-healing
  */
 
 import fs from "fs";
@@ -34,13 +34,6 @@ const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
-function smartTitle(slug = "") {
-  return String(slug)
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
-}
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
@@ -65,6 +58,13 @@ function clamp(str, n) {
   const cut = str.slice(0, n).replace(/\s+\S*$/, "");
   return (cut || str.slice(0, n)).trim() + "…";
 }
+function smartTitle(slug = "") {
+  return String(slug)
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
 function ensureMinimalSeo(items) {
   return items.map((d) => {
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
@@ -77,7 +77,7 @@ function ensureMinimalSeo(items) {
 }
 function finalSanitize(items) {
   return items.map((d) => {
-    const cta = clamp(sanitizeText(d.seo?.cta || ""), 48);
+    const cta = clamp(sanitizeText(d.seo?.cta || ""), 64);
     const subtitle = clamp(sanitizeText(d.seo?.subtitle || ""), 160);
     return {
       ...d,
@@ -132,7 +132,7 @@ function mergeWithHistory(newFeed) {
     return {
       ...item,
       seo: {
-        cta: item.seo?.cta || null, // regenerated only
+        cta: item.seo?.cta || null,
         subtitle: item.seo?.subtitle || null,
         clickbait: oldSeo.clickbait || null,
         keywords: oldSeo.keywords || [],
@@ -186,22 +186,19 @@ function aggregateCategoryFeeds() {
   return aggregated;
 }
 
-// ───────────────────────────────────────── Regeneration (Context-Aware) ──────────────────────────
+// ───────────────────────────────────────── Regeneration (CTA Engine v11) ─────────────────────────
 function regenerateSeo(allDeals) {
   const engine = createCtaEngine();
+  const runSalt = Date.now().toString();
+
   return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
-    const description = sanitizeText(d.description || ""); // provide context
+    const description = sanitizeText(d.description || "");
     const slug = d.slug || sha1(title);
 
-    // Contextual seed — title + description combined for more relevance
-    const contextSeed = `${title}::${description.slice(0, 160)}`;
-
-    const cta = sanitizeText(engine.generate({ title: contextSeed, cat: category, slug }));
-    const subtitle = sanitizeText(
-      engine.generateSubtitle({ title: contextSeed, category, slug })
-    );
+    const cta = sanitizeText(engine.generate({ title, category, slug, runSalt }));
+    const subtitle = sanitizeText(engine.generateSubtitle({ title, category, slug, runSalt }));
     return { ...d, seo: { ...d.seo, cta, subtitle } };
   });
 }
@@ -224,7 +221,7 @@ export default async function handler(req, res) {
       const bg = await backgroundRefresh();
       const duration = Date.now() - start;
       return res.json({
-        message: "Light cron run (integrity only)",
+        message: "Light cron run (validation-only)",
         duration,
         total: bg?.totalEntries ?? 0,
         steps: ["background-refresh(light)"],
@@ -274,16 +271,16 @@ export default async function handler(req, res) {
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    // Context-aware regeneration
-    let enriched = regenerateSeo(cleansed);
-    console.log(`✨ Regenerated CTA + subtitle (context-aware, ${enriched.length})`);
+    // Regenerate with CTA Engine v11.0 before validation
+    let regenerated = regenerateSeo(cleansed);
+    console.log(`✨ Regenerated CTA + subtitle (v${CTA_ENGINE_VERSION}, ${regenerated.length})`);
 
-    enriched = ensureMinimalSeo(enriched);
+    regenerated = ensureMinimalSeo(regenerated);
 
-    const verified = ensureSeoIntegrity(enriched);
-    console.log(`🔎 SEO Integrity checked: ${verified.length}`);
+    const validated = ensureSeoIntegrity(regenerated);
+    console.log(`🔎 SEO Integrity validated (no mutation): ${validated.length}`);
 
-    const sanitized = finalSanitize(verified);
+    const sanitized = finalSanitize(validated);
     logSeoStats(`Entropy v${CTA_ENGINE_VERSION}`, sanitized);
 
     const merged = mergeWithHistory(sanitized);
@@ -297,7 +294,7 @@ export default async function handler(req, res) {
 
     const duration = Date.now() - start;
     return res.json({
-      message: "Self-healing refresh complete",
+      message: "Full regeneration complete",
       duration,
       total: merged.length,
       previousRun: new Date().toISOString(),
@@ -310,7 +307,7 @@ export default async function handler(req, res) {
         "dedupe",
         "cleanse",
         `regenerate-seo(v${CTA_ENGINE_VERSION})`,
-        "seo-integrity",
+        "seo-integrity(validate-only)",
         "final-sanitise",
         "merge-history",
         "insight",
