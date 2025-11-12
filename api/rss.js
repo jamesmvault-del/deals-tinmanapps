@@ -1,18 +1,14 @@
 // /api/rss.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Universal RSS Feed v3.0 “Crawler Heartbeat”
+// TinmanApps — Universal RSS Feed v4.0 “Active-Only • Referral-Safe • Clean Clamp Edition”
 //
-// What it does
-// • Exposes a clean, standards-compliant RSS 2.0 feed for *all* categories or a
-//   single category (?cat=ai|marketing|productivity|software|courses|business|web).
-// • Orders items via the Smart Ranking Engine for maximum CTR + SEO impact.
-// • Emits tracked affiliate links, preserves CTA/subtitle, and falls back safely.
-// • 100% Render-safe, zero headless browser dependencies.
-//
-// Why it matters
-// • RSS is the *heartbeat* crawlers use to detect fresh content rapidly.
-// • Enables Google/Bing/AI crawlers to discover new/changed deals in minutes.
-// • Completes the self-learning SEO loop (freshness → crawl → clicks → learning).
+// WHAT’S NEW (vs v3.0)
+// • Only ACTIVE (non-archived) deals are emitted
+// • Updated generator: TinmanApps RSS v4.0
+// • Refined description HTML clamp + sanitized CTA/subtitle
+// • Zero raw external links — always referral-safe via track endpoint
+// • Deterministic category/title ordering + 100% Render-safe
+// • 160-char safe clamps to improve crawler previews
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -93,23 +89,29 @@ function proxied(src) {
 }
 
 function trackedLink({ slug, cat, url }) {
-  const masked = REF_PREFIX + encodeURIComponent(url);
+  const masked = REF_PREFIX + encodeURIComponent(url || "");
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
 
 function rfc822(dateLike) {
-  // RSS 2.0 pubDate uses RFC-822 (UTC string is fine).
   const d = dateLike ? new Date(dateLike) : new Date();
   return d.toUTCString();
 }
 
-// Build a compact HTML description block suitable for RSS <description>
+function clampText(t = "", n = 160) {
+  if (!t) return "";
+  if (t.length <= n) return t.trim();
+  const cut = t.lastIndexOf(" ", n);
+  return (cut > 40 ? t.slice(0, cut) : t.slice(0, n)).trim() + "…";
+}
+
+// Build compact HTML description block for RSS <description>
 function buildDescription({ title, subtitle, cta, imageUrl }) {
   const safeTitle = escapeXml(title || "");
-  const sub = escapeXml(subtitle || "");
-  const c = escapeXml(cta || "Discover deal →");
+  const sub = escapeXml(clampText(subtitle || ""));
+  const c = escapeXml(clampText(cta || "Discover deal →", 64));
   const img = escapeXml(imageUrl);
   const html = `
 <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#111">
@@ -119,7 +121,6 @@ function buildDescription({ title, subtitle, cta, imageUrl }) {
   ${sub ? `<p style="margin:6px 0 10px;color:#444">${sub}</p>` : ``}
   <p style="margin:0;color:#1d4fe6;font-weight:600">${c}</p>
 </div>`.trim();
-  // Wrap HTML in CDATA to keep validators happy
   return `<![CDATA[${html}]]>`;
 }
 
@@ -130,7 +131,7 @@ export default async function handler(req, res) {
   try {
     const catParam = String(req.query.cat || "all").toLowerCase();
 
-    // Determine which category files to include
+    // Determine categories to include
     const catKeys =
       catParam === "all"
         ? ["software", "marketing", "productivity", "ai", "courses", "business", "web"]
@@ -139,22 +140,14 @@ export default async function handler(req, res) {
     // Load deals
     let deals = [];
     for (const c of catKeys) {
-      const file = path.join(DATA_DIR, `appsumo-${c}.json`);
-      const rows = loadJsonSafe(`appsumo-${c}.json`, []);
-      // Rank within category, then keep the order when flattening
+      const rows = loadJsonSafe(`appsumo-${c}.json`, []).filter((d) => !d.archived);
       const ranked = rankDeals(rows, c);
-      // Annotate category on items if missing
       const withCat = ranked.map((d) => ({ ...d, category: d.category || c }));
       deals = deals.concat(withCat);
     }
 
-    // If "all", do a cross-category resort by implying a neutral category
-    if (catParam === "all") {
-      // mild re-sort: preserve earlier per-category ranking but prefer fresher titles first
-      deals = deals.slice(0, 100);
-    } else {
-      deals = deals.slice(0, 100);
-    }
+    // Keep top 100 per run for RSS performance
+    deals = deals.slice(0, 100);
 
     // Feed metadata
     const channelTitle = TITLES[catParam] || TITLES.all;
@@ -164,7 +157,6 @@ export default async function handler(req, res) {
         ? `${SITE_ORIGIN}/categories`
         : `${SITE_ORIGIN}/categories/${encodeURIComponent(catParam)}`;
 
-    // lastBuildDate = newest category file mtime
     const mtimes = catKeys
       .map((c) => fileMtimeISO(path.join(DATA_DIR, `appsumo-${c}.json`)))
       .filter(Boolean)
@@ -172,17 +164,17 @@ export default async function handler(req, res) {
       .reverse();
     const lastBuildDate = rfc822(mtimes[0] || new Date());
 
-    // Build <item>s
+    // Build items
     const itemsXml = deals
       .map((d) => {
         const slug = toSlug(d);
         const title = d.title || slug;
         const url = d.url || `${SITE_ORIGIN}/categories/${encodeURIComponent(d.category || "software")}`;
         const link = trackedLink({ slug, cat: d.category || "software", url });
-        const guid = escapeXml(url); // stable external URL as GUID
+        const guid = escapeXml(url);
         const pubDate = rfc822(d.seo?.lastVerifiedAt || mtimes[0] || new Date());
-
         const imageUrl = proxied(d.image);
+
         const desc = buildDescription({
           title,
           subtitle: d.seo?.subtitle || "",
@@ -207,7 +199,7 @@ export default async function handler(req, res) {
       })
       .join("\n");
 
-    // Full RSS
+    // Compose RSS XML
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -217,7 +209,7 @@ export default async function handler(req, res) {
     <language>en</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <ttl>30</ttl>
-    <generator>TinmanApps RSS v3.0</generator>
+    <generator>TinmanApps RSS v4.0</generator>
 ${itemsXml}
   </channel>
 </rss>`.trim();
