@@ -1,23 +1,21 @@
 // /api/cta-dump.js
-// TinmanApps — CTA & Subtitle Exporter v3.0
+// TinmanApps — CTA & Subtitle Exporter v9.0
 // “Active-Only • Deterministic • SEO-Aligned • Insight-Ready”
 // ───────────────────────────────────────────────────────────────────────────────
-// Major Upgrades for v3.0:
-// • **ACTIVE-ONLY MODE** — archived deals excluded (aligns with updateFeed v7.7)
-// • Deterministic ordering (category → title)
-// • Strict CTA/subtitle extraction (no contamination, no fallback strings)
-// • Unified mode (?all=1) produces:
-//     – total active deals
-//     – total categories with at least 1 active deal
-//     – count per category
-//     – fully flattened active dataset
-// • Default mode returns per-category active-only lists
-// • Render-safe (FS only), zero side-effects, perfect for dashboards + QA
+// Upgrades for v9.0:
+// • Reflects CTA Engine v9.0 dynamically
+// • Fully deterministic ordering (category → title)
+// • Active-only output (archived excluded)
+// • Dynamic header (source, version, timestamp)
+// • Unified ?all=1 mode → flattened active dataset summary
+// • Default mode → per-category active-only export
+// • Render-safe, FS-only; zero side-effects
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import url from "url";
+import { CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../data");
@@ -45,9 +43,9 @@ export default async function handler(req, res) {
         .filter((d) => !d.archived)
         .map((d) => ({
           category: cat,
-          title: d.title || "",
-          cta: d.seo?.cta || null,
-          subtitle: d.seo?.subtitle || null,
+          title: d.title?.trim?.() || "",
+          cta: d.seo?.cta?.trim?.() || "",
+          subtitle: d.seo?.subtitle?.trim?.() || "",
         }))
         .sort((a, b) => a.title.localeCompare(b.title));
 
@@ -75,7 +73,7 @@ export default async function handler(req, res) {
 
     const payload = {
       source: "TinmanApps CTA Engine",
-      version: "v3.0",
+      version: CTA_ENGINE_VERSION || "v9.0",
       generated: new Date().toISOString(),
       totalDeals: sorted.length,
       categories: Object.keys(summary).length,
@@ -96,7 +94,7 @@ export default async function handler(req, res) {
     JSON.stringify(
       {
         source: "TinmanApps CTA Engine",
-        version: "v3.0",
+        version: CTA_ENGINE_VERSION || "v9.0",
         generated: new Date().toISOString(),
         categories: perCategory,
       },
