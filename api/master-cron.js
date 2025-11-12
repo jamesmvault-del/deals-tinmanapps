@@ -1,33 +1,33 @@
 // /api/master-cron.js
 /**
- * TinmanApps Master Cron v9.1
- * “Render-Safe • Deterministic • Non-Blocking • CTA Engine Authority”
+ * TinmanApps Master Cron v10.0
+ * “Absolute Regeneration • Deterministic • Entropy/duplication telemetry • One-write merge”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ Runs scripts/updateFeed.js inside the same server (no Render restart)
- * ✅ Absolute regeneration of CTA + subtitle using CTA Engine v9+
+ * ✅ Runs scripts/updateFeed.js FIRST (blocking) for fresh silos
+ * ✅ Absolute regeneration of CTA + subtitle using CTA Engine v10
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
  * ✅ SEO Integrity v4.3 (clean keywords, no fragments)
+ * ✅ Entropy & duplication stats (CTAs/Subtitles) logged every run
  * ✅ feed-cache.json purged only when ?force=1
  * ✅ Insight Pulse runs silently after merge
- * ✅ ZERO CTA/subtitle restoration
- * ✅ Deterministic + 100 % Render-safe
+ * ✅ ZERO CTA/subtitle restoration from history
+ * ✅ Deterministic + 100% Render-safe
  */
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
-import { spawn } from "child_process";
+import { execSync } from "child_process";
 
 import { backgroundRefresh } from "../lib/proxyCache.js";
-import { createCtaEngine } from "../lib/ctaEngine.js";
+import { createCtaEngine, CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 import { ensureSeoIntegrity } from "../lib/seoIntegrity.js";
 import { cleanseFeed } from "../lib/feedCleanser.js";
 import insightHandler from "./insight.js";
 
 // ─────────────────────────────────────────── Info / Paths ─────────────────────────────────────────
-const CTA_ENGINE_VERSION = "9.1";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, "../data");
@@ -59,6 +59,12 @@ function sanitizeText(input = "") {
     .replace(/\(undefined\)/gi, "")
     .trim();
 }
+function clamp(str, n) {
+  if (!str) return "";
+  if (str.length <= n) return str;
+  const cut = str.slice(0, n).replace(/\s+\S*$/, "");
+  return (cut || str.slice(0, n)).trim() + "…";
+}
 function ensureMinimalSeo(items) {
   return items.map((d) => {
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
@@ -70,15 +76,44 @@ function ensureMinimalSeo(items) {
   });
 }
 function finalSanitize(items) {
-  return items.map((d) => ({
-    ...d,
-    title: sanitizeText(d.title),
-    seo: {
-      ...d.seo,
-      cta: sanitizeText(d.seo?.cta),
-      subtitle: sanitizeText(d.seo?.subtitle),
-    },
-  }));
+  return items.map((d) => {
+    const cta = clamp(sanitizeText(d.seo?.cta || ""), 48);
+    const subtitle = clamp(sanitizeText(d.seo?.subtitle || ""), 160);
+    return {
+      ...d,
+      title: sanitizeText(d.title),
+      seo: { ...d.seo, cta, subtitle },
+    };
+  });
+}
+
+// ───────────────────────────────────────── Telemetry: duplication & entropy ─────────────────────
+function uniqueCount(arr) {
+  return new Set(arr.filter(Boolean)).size;
+}
+function shannonEntropy(arr) {
+  const total = arr.length || 1;
+  const counts = {};
+  for (const x of arr) counts[x] = (counts[x] || 0) + 1;
+  let H = 0;
+  for (const k in counts) {
+    const p = counts[k] / total;
+    H += -p * Math.log2(p);
+  }
+  return Number.isFinite(H) ? H : 0;
+}
+function logSeoStats(label, deals) {
+  const ctas = deals.map((d) => d.seo?.cta || "");
+  const subs = deals.map((d) => d.seo?.subtitle || "");
+  const uniqCTA = uniqueCount(ctas);
+  const uniqSUB = uniqueCount(subs);
+  const entCTA = shannonEntropy(ctas).toFixed(2);
+  const entSUB = shannonEntropy(subs).toFixed(2);
+  const dupCTA = (1 - uniqCTA / (ctas.length || 1)).toFixed(2);
+  const dupSUB = (1 - uniqSUB / (subs.length || 1)).toFixed(2);
+  console.log(
+    `📊 [${label}] CTA uniq=${uniqCTA}/${ctas.length} dup=${dupCTA} H=${entCTA} | SUB uniq=${uniqSUB}/${subs.length} dup=${dupSUB} H=${entSUB}`
+  );
 }
 
 // ───────────────────────────────────────── Merge with History (NO CTA RESTORE) ───────────────────
@@ -97,7 +132,7 @@ function mergeWithHistory(newFeed) {
     return {
       ...item,
       seo: {
-        cta: item.seo?.cta || null,
+        cta: item.seo?.cta || null,       // regenerated → NEVER restored
         subtitle: item.seo?.subtitle || null,
         clickbait: oldSeo.clickbait || null,
         keywords: oldSeo.keywords || [],
@@ -153,7 +188,7 @@ function aggregateCategoryFeeds() {
 
 // ───────────────────────────────────────── Regeneration (ALWAYS) ───────────────────────────────
 function regenerateSeo(allDeals) {
-  const engine = createCtaEngine();
+  const engine = createCtaEngine(); // v10 engine
   return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
@@ -174,17 +209,15 @@ export default async function handler(req, res) {
   try {
     console.log("🔁 [Cron] Starting deterministic refresh:", new Date().toISOString());
 
-    // 1) Run updateFeed.js asynchronously (non-blocking)
+    // 1) Run updateFeed.js FIRST (blocking, absolute regeneration of silos)
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
-    console.log("⚙️ updateFeed.js spawning…");
-    const child = spawn("node", [updateFeedPath], { stdio: "inherit" });
-
-    child.on("close", (code) => {
-      console.log(`✅ updateFeed.js completed with code ${code}`);
-    });
-
-    // Continue main cron work after short delay so updateFeed runs first
-    await new Promise((r) => setTimeout(r, 1000));
+    console.log("⚙️ updateFeed.js running…");
+    try {
+      execSync(`node "${updateFeedPath}"`, { stdio: "inherit" });
+      console.log("✅ updateFeed.js complete");
+    } catch (e) {
+      console.warn("⚠️ updateFeed.js error:", e.message);
+    }
 
     // 2) Optional purge
     if (force && fs.existsSync(FEED_PATH)) {
@@ -218,7 +251,7 @@ export default async function handler(req, res) {
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    // 8) Regenerate CTA + subtitle
+    // 8) Regenerate CTA + subtitle (v10)
     let enriched = regenerateSeo(cleansed);
     console.log(`✨ Regenerated CTA + subtitle (${enriched.length})`);
 
@@ -229,10 +262,13 @@ export default async function handler(req, res) {
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity checked: ${verified.length}`);
 
-    // 11) Final sanitize
+    // 11) Final sanitize + enforce clamps (CTA 48, subtitle 160)
     const sanitized = finalSanitize(verified);
 
-    // 12) Merge history (no CTA restore)
+    // Telemetry (post-final)
+    logSeoStats(`Entropy v${CTA_ENGINE_VERSION}`, sanitized);
+
+    // 12) Merge history (NO CTA restore)
     const merged = mergeWithHistory(sanitized);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
@@ -250,7 +286,7 @@ export default async function handler(req, res) {
       total: merged.length,
       previousRun: new Date().toISOString(),
       steps: [
-        "updateFeed(spawned)",
+        "updateFeed(blocking)",
         "purge(feed-cache-only)",
         "background-refresh",
         "aggregate",
