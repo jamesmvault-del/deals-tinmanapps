@@ -8,12 +8,12 @@
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-AntlerLaunchAcademy.jpg",
     "description": "Get the resources you need to go from idea to startup on one open access platform. Discover the best deal for Antler Launch Academy on AppSumo today.",
     "seo": {
-      "cta": "Finish what you start →",
-      "subtitle": "Keeps study momentum high. Focuses on structured mastery paths for measurable gains."
+      "cta": "Learn faster with structure →",
+      "subtitle": "Simplifies path-to-skill building. Uses tutor-guided progress to expose growth gaps early."
     },
-    "normalizedAt": "2025-11-12T03:08:21.124Z",
+    "normalizedAt": "2025-11-12T03:14:11.620Z",
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
-    "lastSeenAt": "2025-11-12T03:08:21.124Z",
+    "lastSeenAt": "2025-11-12T03:14:11.620Z",
     "lastmodAt": null,
     "archived": false
   },
@@ -33,7 +33,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Google Ads Beginner To Advanced Masterclass",
@@ -51,7 +51,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Facebook Ads Masterclass",
@@ -69,6 +69,6 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   }
 ]

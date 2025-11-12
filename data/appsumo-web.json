@@ -1,5 +1,59 @@
 [
   {
+    "title": "Chatbot Builder",
+    "slug": "chatbot-builder",
+    "category": "web",
+    "url": "https://appsumo.com/products/chatbot-builder/",
+    "referralUrl": null,
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FNone-main-image_uuid_1e186dae-255f-4066-ab74-bc4ce434f352.png",
+    "description": "Build AI chatbots to help you close sales, capture leads, and hit specific business goals. Discover the best deal for Chatbot Builder on AppSumo today.",
+    "seo": {
+      "cta": "Ship cleaner web builds →",
+      "subtitle": "Makes deployments cleaner. Focuses on deploy-ready assets for measurable gains."
+    },
+    "normalizedAt": "2025-11-12T03:14:11.621Z",
+    "firstSeenAt": "2025-11-11T10:40:10.749Z",
+    "lastSeenAt": "2025-11-12T03:14:11.621Z",
+    "lastmodAt": null,
+    "archived": false
+  },
+  {
+    "title": "BackupGuard WordPress Plugin",
+    "slug": "backupguard-wordpress-plugin-2021",
+    "category": "web",
+    "url": "https://appsumo.com/products/backupguard-wordpress-plugin-2021/",
+    "referralUrl": null,
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-_BackupGuard2x.jpg",
+    "description": "Back up, restore, and migrate your WordPress website for optimal safety without the fuss. Discover the best deal for BackupGuard WordPress Plugin on AppSumo today.",
+    "seo": {
+      "cta": "Polish your UI flow →",
+      "subtitle": "Improves web-build reliability. Focuses on build-to-launch clarity for measurable gains."
+    },
+    "normalizedAt": "2025-11-12T03:14:11.621Z",
+    "firstSeenAt": "2025-11-11T10:40:10.749Z",
+    "lastSeenAt": "2025-11-12T03:14:11.621Z",
+    "lastmodAt": null,
+    "archived": false
+  },
+  {
+    "title": "My Website Is Online",
+    "slug": "my-website-is-online",
+    "category": "web",
+    "url": "https://appsumo.com/products/my-website-is-online/",
+    "referralUrl": null,
+    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fab037a19-15dd-45b8-a6f5-031a85e75f40.png",
+    "description": "Uptime monitoring service for web artisans: what matters most is a reliable website.. Discover the best deal for My Website is Online on AppSumo today.",
+    "seo": {
+      "cta": "Simplify maintenance →",
+      "subtitle": "Makes deployments cleaner. Uses component-driven velocity to expose growth gaps early."
+    },
+    "normalizedAt": "2025-11-12T03:14:11.621Z",
+    "firstSeenAt": "2025-11-11T10:40:10.749Z",
+    "lastSeenAt": "2025-11-12T03:14:11.621Z",
+    "lastmodAt": null,
+    "archived": false
+  },
+  {
     "title": "WebDiff",
     "slug": "webdiff",
     "category": "web",
@@ -15,25 +69,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
-  },
-  {
-    "title": "Chatbot Builder",
-    "slug": "chatbot-builder",
-    "category": "web",
-    "url": "https://appsumo.com/products/chatbot-builder/",
-    "referralUrl": null,
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2FNone-main-image_uuid_1e186dae-255f-4066-ab74-bc4ce434f352.png",
-    "description": "Build AI chatbots to help you close sales, capture leads, and hit specific business goals. Discover the best deal for Chatbot Builder on AppSumo today.",
-    "seo": {
-      "cta": "Make deploys predictable →",
-      "subtitle": "Keeps site updates predictable. Uses component-driven velocity to expose growth gaps early."
-    },
-    "normalizedAt": "2025-11-12T03:08:21.126Z",
-    "firstSeenAt": "2025-11-11T10:40:10.749Z",
-    "lastSeenAt": "2025-11-12T03:08:21.127Z",
-    "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "WebMOBI",
@@ -51,7 +87,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Webstudio",
@@ -69,43 +105,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
-  },
-  {
-    "title": "BackupGuard WordPress Plugin",
-    "slug": "backupguard-wordpress-plugin-2021",
-    "category": "web",
-    "url": "https://appsumo.com/products/backupguard-wordpress-plugin-2021/",
-    "referralUrl": null,
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-_BackupGuard2x.jpg",
-    "description": "Back up, restore, and migrate your WordPress website for optimal safety without the fuss. Discover the best deal for BackupGuard WordPress Plugin on AppSumo today.",
-    "seo": {
-      "cta": "Speed component work →",
-      "subtitle": "Makes deployments cleaner. Focuses on component-driven velocity for measurable gains."
-    },
-    "normalizedAt": "2025-11-12T03:08:21.126Z",
-    "firstSeenAt": "2025-11-11T10:40:10.749Z",
-    "lastSeenAt": "2025-11-12T03:08:21.127Z",
-    "lastmodAt": null,
-    "archived": false
-  },
-  {
-    "title": "My Website Is Online",
-    "slug": "my-website-is-online",
-    "category": "web",
-    "url": "https://appsumo.com/products/my-website-is-online/",
-    "referralUrl": null,
-    "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2Fab037a19-15dd-45b8-a6f5-031a85e75f40.png",
-    "description": "Uptime monitoring service for web artisans: what matters most is a reliable website.. Discover the best deal for My Website is Online on AppSumo today.",
-    "seo": {
-      "cta": "Ship cleaner builds →",
-      "subtitle": "Makes deployments cleaner. Uses build-to-launch clarity to expose growth gaps early."
-    },
-    "normalizedAt": "2025-11-12T03:08:21.126Z",
-    "firstSeenAt": "2025-11-11T10:40:10.749Z",
-    "lastSeenAt": "2025-11-12T03:08:21.127Z",
-    "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Zion Builder",
@@ -123,7 +123,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "SupaPass Premium Website Builder",
@@ -141,7 +141,7 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   },
   {
     "title": "Marcom Robot (Landing Page Builder)",
@@ -159,6 +159,6 @@
     "firstSeenAt": "2025-11-11T10:40:10.749Z",
     "lastSeenAt": "2025-11-12T03:08:21.127Z",
     "lastmodAt": null,
-    "archived": false
+    "archived": true
   }
 ]
