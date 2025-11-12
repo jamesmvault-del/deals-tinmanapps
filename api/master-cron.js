@@ -1,21 +1,17 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v10.1
- * “Absolute Regeneration • Deterministic • Light-Mode Safe • Entropy Telemetry”
+ * TinmanApps Master Cron v10.2
+ * “Absolute Regeneration • Deterministic • Context-Aware • Entropy Telemetry”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ NEW: Light Mode for Starter tier — skip heavy regeneration unless forced
- *    - Use ?mode=light  (or set env CRON_LIGHT_DEFAULT=1)
- *    - Heavy path still available with ?force=1  (always runs full pipeline)
- * ✅ Runs scripts/updateFeed.js FIRST (blocking) for fresh silos (heavy path)
- *    - Child process uses memory cap: node --max-old-space-size=256 (env override)
- * ✅ Absolute regeneration of CTA + subtitle using CTA Engine v10
+ * ✅ Light Mode — skips regeneration unless forced (?mode=light or CRON_LIGHT_DEFAULT=1)
+ * ✅ Heavy Mode — full regeneration using CTA Engine v10.1 (context-aware)
+ * ✅ Calls scripts/updateFeed.js (blocking) to rebuild silos FIRST
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO → finalSanitize
- * ✅ SEO Integrity v4.3 (clean keywords, no fragments)
- * ✅ Entropy & duplication stats (CTAs/Subtitles) logged every run
+ * ✅ SEO Integrity v4.4 — validates contextual CTA/subtitle integrity
+ * ✅ Entropy & duplication telemetry (CTAs/Subtitles)
  * ✅ feed-cache.json purged only when ?force=1
- * ✅ Insight Pulse runs silently after merge
- * ✅ ZERO CTA/subtitle restoration from history
- * ✅ Deterministic + Render-safe
+ * ✅ Single authoritative CTA/subtitle source — no inline generation elsewhere
+ * ✅ Deterministic, Render-safe, and context-aligned with Feed + Engine
  */
 
 import fs from "fs";
@@ -136,7 +132,7 @@ function mergeWithHistory(newFeed) {
     return {
       ...item,
       seo: {
-        cta: item.seo?.cta || null,       // regenerated → NEVER restored
+        cta: item.seo?.cta || null, // regenerated only
         subtitle: item.seo?.subtitle || null,
         clickbait: oldSeo.clickbait || null,
         keywords: oldSeo.keywords || [],
@@ -190,16 +186,21 @@ function aggregateCategoryFeeds() {
   return aggregated;
 }
 
-// ───────────────────────────────────────── Regeneration (ALWAYS) ───────────────────────────────
+// ───────────────────────────────────────── Regeneration (Context-Aware) ──────────────────────────
 function regenerateSeo(allDeals) {
-  const engine = createCtaEngine(); // v10 engine
+  const engine = createCtaEngine();
   return allDeals.map((d) => {
     const category = (d.category || "software").toLowerCase();
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
+    const description = sanitizeText(d.description || ""); // provide context
     const slug = d.slug || sha1(title);
-    const cta = sanitizeText(engine.generate({ title, cat: category, slug }));
+
+    // Contextual seed — title + description combined for more relevance
+    const contextSeed = `${title}::${description.slice(0, 160)}`;
+
+    const cta = sanitizeText(engine.generate({ title: contextSeed, cat: category, slug }));
     const subtitle = sanitizeText(
-      engine.generateSubtitle({ title, category, slug })
+      engine.generateSubtitle({ title: contextSeed, category, slug })
     );
     return { ...d, seo: { ...d.seo, cta, subtitle } };
   });
@@ -218,7 +219,7 @@ export default async function handler(req, res) {
       `🔁 [Cron] ${new Date().toISOString()} | mode=${light ? "LIGHT" : "HEAVY"} | force=${force}`
     );
 
-    // ── LIGHT MODE: Starter-tier safe (integrity only) ─────────────────────────
+    // ── LIGHT MODE: integrity only ─────────────────────────────────────────────
     if (light) {
       const bg = await backgroundRefresh();
       const duration = Date.now() - start;
@@ -233,8 +234,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── HEAVY MODE: full pipeline (absolute regeneration) ─────────────────────
-    // 1) Run updateFeed.js FIRST (blocking, with memory cap)
+    // ── HEAVY MODE: full regeneration ─────────────────────────────────────────
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     const maxOld = Number(process.env.NODE_MAX_OLD_SPACE || 256);
     console.log(`⚙️ updateFeed.js running with --max-old-space-size=${maxOld}…`);
@@ -248,25 +248,20 @@ export default async function handler(req, res) {
       console.warn("⚠️ updateFeed.js error:", e.message);
     }
 
-    // 2) Optional purge
     if (force && fs.existsSync(FEED_PATH)) {
       fs.unlinkSync(FEED_PATH);
       console.log("🧹 feed-cache.json purged (force=1)");
     }
 
-    // 3) Proxy cache refresh
     await backgroundRefresh();
     console.log("✅ backgroundRefresh OK");
 
-    // 4) Aggregate silos
     const raw = aggregateCategoryFeeds();
     console.log(`📦 Raw aggregated: ${raw.length}`);
 
-    // 5) Normalize
     const normalized = normalizeFeed(raw);
     console.log(`🧼 Normalized: ${normalized.length}`);
 
-    // 6) Dedupe
     const seen = new Set();
     const deduped = normalized.filter((d) => {
       const key = sha1(d.slug || d.title);
@@ -276,33 +271,25 @@ export default async function handler(req, res) {
     });
     console.log(`📑 Deduped: ${deduped.length}`);
 
-    // 7) Cleanse
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    // 8) Regenerate CTA + subtitle (v10)
+    // Context-aware regeneration
     let enriched = regenerateSeo(cleansed);
-    console.log(`✨ Regenerated CTA + subtitle (${enriched.length})`);
+    console.log(`✨ Regenerated CTA + subtitle (context-aware, ${enriched.length})`);
 
-    // 9) Minimal SEO guard
     enriched = ensureMinimalSeo(enriched);
 
-    // 10) SEO integrity
     const verified = ensureSeoIntegrity(enriched);
     console.log(`🔎 SEO Integrity checked: ${verified.length}`);
 
-    // 11) Final sanitize + enforce clamps (CTA 48, subtitle 160)
     const sanitized = finalSanitize(verified);
-
-    // Telemetry (post-final)
     logSeoStats(`Entropy v${CTA_ENGINE_VERSION}`, sanitized);
 
-    // 12) Merge history (NO CTA restore)
     const merged = mergeWithHistory(sanitized);
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
 
-    // 13) Insight pulse
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
