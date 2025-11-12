@@ -1,18 +1,13 @@
 /**
  * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v9.0
+ * TinmanApps Adaptive Feed Engine v9.1
  * “Render-Safe • Deterministic • New-First + Lastmod Priority • CTA Engine Authority”
  * ───────────────────────────────────────────────────────────────────────────────
- * ✅ 100% Render-safe (no headless Chrome)
- * ✅ Discovers products from AppSumo XML sitemaps (captures <lastmod>)
- * ✅ Fetches product pages; extracts OG:title / OG:image / meta:description
- * ✅ Deterministic category classifier (no external semantic module required)
- * ✅ Normalizes (feedNormalizer v4.1) → Enriches (ctaEngine v9.0)
- * ✅ CTA + subtitle are now fully governed by /lib/ctaEngine.js (no re-sanitiser)
- * ✅ Preserves historical SEO only if missing and previous was valid
- * ✅ Strict MAX_PER_CATEGORY on ACTIVE items (overflow archived backlog)
- * ✅ Tracks firstSeenAt / lastSeenAt / lastmodAt
- * ✅ Referral integrity: masked redirects via /api/track; images via /api/image-proxy
+ * ✅ Render-safe (no headless Chrome)
+ * ✅ Discovers AppSumo product URLs via XML sitemaps (<lastmod> aware)
+ * ✅ Fetches OG data → Normalizes → Enriches via ctaEngine v9.0
+ * ✅ CTA/subtitle preserved exactly as generated (no re-sanitiser)
+ * ✅ History merge: new-first + lastmod priority + archive tracking
  */
 
 import fs from "fs";
@@ -34,10 +29,8 @@ const DATA_DIR = path.join(__dirname, "..", "data");
 
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
+const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
-const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
-
-// Tuning
 const MAX_PER_CATEGORY = 10;
 const DETAIL_CONCURRENCY = 8;
 const PRODUCT_URL_HARD_CAP = 800;
@@ -45,7 +38,7 @@ const HTTP_TIMEOUT_MS = 12000;
 const RETRIES = 2;
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Helper: FS / JSON
+// Helpers: FS / JSON / crypto / fetch
 // ───────────────────────────────────────────────────────────────────────────────
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
@@ -61,10 +54,6 @@ function readJsonSafe(file, fallback = []) {
     return fallback;
   }
 }
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Helper: hashing / dedupe
-// ───────────────────────────────────────────────────────────────────────────────
 function sha1(s) {
   return crypto.createHash("sha1").update(String(s)).digest("hex");
 }
@@ -80,10 +69,6 @@ function dedupe(items, keyFn) {
   }
   return out;
 }
-
-// ───────────────────────────────────────────────────────────────────────────────
-// Helper: HTTP text fetch with timeout + retries
-// ───────────────────────────────────────────────────────────────────────────────
 async function fetchText(url, tries = RETRIES) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT_MS);
@@ -93,8 +78,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v9.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
-        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "TinmanApps/UpdateFeed v9.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
@@ -111,7 +95,7 @@ async function fetchText(url, tries = RETRIES) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Helper: slug / meta extraction / proxies / trackers
+// URL / meta helpers
 // ───────────────────────────────────────────────────────────────────────────────
 function toSlug(url) {
   const m =
@@ -119,7 +103,6 @@ function toSlug(url) {
     url?.match(/\/products\/([^/]+)\//i);
   return m ? m[1] : null;
 }
-
 function extractMeta(html, name) {
   const re = new RegExp(
     `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']+)["']`,
@@ -127,7 +110,6 @@ function extractMeta(html, name) {
   );
   return html.match(re)?.[1] || null;
 }
-
 function extractOg(html) {
   const title =
     extractMeta(html, "og:title") ||
@@ -141,18 +123,15 @@ function extractOg(html) {
     null;
   return { title, image, description: desc };
 }
-
 function proxied(src) {
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(src)}`;
 }
-
 function tracked({ slug, cat, url }) {
   const masked = REF_PREFIX + encodeURIComponent(url);
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
     slug
   )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
 }
-
 function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) {
   const safeSlug =
     slug ||
@@ -174,7 +153,7 @@ function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) 
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Deterministic category classifier
+// Category classifier
 // ───────────────────────────────────────────────────────────────────────────────
 function classify(title, url) {
   const t = String(title || "").toLowerCase();
@@ -211,7 +190,96 @@ function classify(title, url) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Simplified SEO validity check (non-destructive)
+// Sitemap discovery (restored)
+// ───────────────────────────────────────────────────────────────────────────────
+async function discoverProductUrls() {
+  const canonicalize = (u) => {
+    try {
+      const s = new URL(u);
+      if (!/\/products\/[^/]+\/?$/i.test(s.pathname)) return null;
+      s.pathname = s.pathname.replace(/\/+$/, "/");
+      return s.toString();
+    } catch {
+      return null;
+    }
+  };
+  const collectFromUrlset = (urlset) => {
+    const out = [];
+    const rows = urlset?.url || [];
+    for (const row of rows) {
+      const loc = row.loc?.[0];
+      const lm = row.lastmod?.[0];
+      const canon = canonicalize(loc);
+      if (canon) out.push({ url: canon, lastmod: lm || null });
+    }
+    return out;
+  };
+  const parseSitemapAt = async (url) => {
+    try {
+      const xml = await fetchText(url);
+      return await parseStringPromise(xml);
+    } catch {
+      return null;
+    }
+  };
+
+  const seen = new Map();
+  const seed = [
+    "https://appsumo.com/sitemap.xml",
+    "https://appsumo.com/sitemap_index.xml",
+    "https://appsumo.com/sitemap-products.xml",
+    "https://appsumo.com/sitemap-products1.xml",
+    "https://appsumo.com/sitemap_products.xml",
+  ];
+  const queue = [...seed];
+  const visited = new Set();
+
+  while (queue.length && seen.size < PRODUCT_URL_HARD_CAP) {
+    const next = queue.shift();
+    if (!next || visited.has(next)) continue;
+    visited.add(next);
+
+    const doc = await parseSitemapAt(next);
+    if (!doc) continue;
+
+    if (doc.urlset) {
+      for (const { url, lastmod } of collectFromUrlset(doc.urlset)) {
+        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
+        const prev = seen.get(url);
+        if (!prev || (lastmod && new Date(lastmod) > new Date(prev))) {
+          seen.set(url, lastmod || prev || null);
+        }
+      }
+    }
+
+    const subs = doc.sitemapindex?.sitemap || [];
+    for (const sm of subs) {
+      const loc = sm.loc?.[0];
+      if (loc && !visited.has(loc)) queue.push(loc);
+    }
+  }
+
+  if (seen.size === 0) {
+    try {
+      const html = await fetchText("https://appsumo.com/software/");
+      const matches = Array.from(
+        html.matchAll(/href=["'](https?:\/\/[^"']*\/products\/[^"']*\/?)["']/gi)
+      ).map((m) => canonicalize(m[1]));
+      for (const u of matches) {
+        if (!u) continue;
+        if (seen.size >= PRODUCT_URL_HARD_CAP) break;
+        if (!seen.has(u)) seen.set(u, null);
+      }
+    } catch {}
+  }
+
+  const list = Array.from(seen.entries()).map(([url, lastmod]) => ({ url, lastmod }));
+  console.log(`🧭 Discovered ${list.length} product URLs`);
+  return list.slice(0, PRODUCT_URL_HARD_CAP);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Simplified SEO validity
 // ───────────────────────────────────────────────────────────────────────────────
 function isGoodSEO(seo = {}) {
   const c = seo?.cta?.trim() || "";
@@ -220,7 +288,7 @@ function isGoodSEO(seo = {}) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Active-cap merge: NEW-FIRST + LASTMOD priority + history preservation
+// Active-cap merge
 // ───────────────────────────────────────────────────────────────────────────────
 function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const nowISO = new Date().toISOString();
@@ -241,12 +309,8 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   );
 
   const merged = [];
-
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
-    const firstSeenAt = prev?.firstSeenAt || nowISO;
-    const lastSeenAt = nowISO;
-
     const chooseSeo =
       (item.seo && isGoodSEO(item.seo) ? item.seo : null) ||
       (prev?.seo && isGoodSEO(prev.seo) ? prev.seo : null) ||
@@ -255,14 +319,13 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
     merged.push({
       ...item,
       seo: chooseSeo,
-      firstSeenAt,
-      lastSeenAt,
+      firstSeenAt: prev?.firstSeenAt || nowISO,
+      lastSeenAt: nowISO,
       lastmodAt: item.lastmodAt || prev?.lastmodAt || null,
       archived: !activeSet.has(item.slug),
     });
   }
 
-  // Carry over missing → archived
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
       merged.push({
@@ -284,19 +347,48 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   ensureDir(DATA_DIR);
-
   createCtaEngine();
   console.log("✅ CTA Engine ready");
 
   console.log("⏳ Discovering AppSumo products…");
-  const discovered = await (await discoverProductUrls()).slice(0, PRODUCT_URL_HARD_CAP);
-
+  const discovered = await discoverProductUrls();
   if (!discovered.length) {
     console.warn("⚠️ No product URLs discovered — keeping existing silos untouched.");
     return;
   }
 
-  const details = await withConcurrency(discovered, DETAIL_CONCURRENCY, fetchDetail);
+  const details = await Promise.all(
+    discovered.map(async (entry) => {
+      const { url, lastmod } = entry;
+      const slug = toSlug(url);
+      try {
+        const html = await fetchText(url);
+        const og = extractOg(html);
+        const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
+        const cat = classify(titleClean || og.title || "", url);
+        return normalizeEntry({
+          slug,
+          title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
+          url,
+          cat,
+          image: og.image,
+          description: og.description,
+          lastmod,
+        });
+      } catch {
+        return normalizeEntry({
+          slug,
+          title: (slug || "").replace(/[-_]/g, " ") || "Untitled",
+          url,
+          cat: classify(slug || "", url),
+          image: null,
+          description: null,
+          lastmod,
+        });
+      }
+    })
+  );
+
   const unique = dedupe(details, (d) => d.url);
   console.log(`🧩 ${unique.length} unique products resolved`);
 
@@ -326,18 +418,18 @@ async function main() {
     }
 
     let cleaned = normalizeFeed(arr);
-    cleaned = enrichDeals(cleaned); // authoritative CTA/subtitle generation
+    cleaned = enrichDeals(cleaned);
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
-    const activeCount = merged.filter((x) => !x.archived).length;
-    const totalCount = merged.length;
     console.log(
-      `🧹 ${cat}: ${activeCount} active / ${totalCount} total (normalized + merged)`
+      `🧹 ${cat}: ${merged.filter((x) => !x.archived).length} active / ${
+        merged.length
+      } total`
     );
   }
 
-  console.log("\n✨ All silos refreshed (v9.0 deterministic + CTA Engine authority).");
+  console.log("\n✨ All silos refreshed (v9.1 deterministic + CTA Engine authority).");
 }
 
 // Execute
