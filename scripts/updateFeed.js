@@ -1,13 +1,13 @@
+// /scripts/updateFeed.js
 /**
- * /scripts/updateFeed.js
- * TinmanApps Adaptive Feed Engine v10.0
+ * TinmanApps Adaptive Feed Engine v10.1
  * “Render-Safe • Deterministic • Chunked Discovery • New-First Priority”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ Render-safe (no headless Chrome)
  * ✅ Discovers AppSumo product URLs via XML sitemaps (<lastmod> aware)
- * ✅ Fetches OG data → Normalizes → Enriches via CTA Engine v10
+ * ✅ Fetches OG data → Normalizes → Enriches via CTA Engine v10.1 (context-aware)
  * ✅ Chunked discovery + capped crawl size for Starter tier
- * ✅ CTA/subtitle preserved exactly as generated (no re-sanitiser)
+ * ✅ CTA/subtitle generated ONLY inside ctaEngine.enrichDeals (no inline gen)
  * ✅ History merge: new-first + lastmod priority + archive tracking
  */
 
@@ -80,7 +80,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v10.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v10.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
@@ -149,7 +149,7 @@ function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) 
     url,
     referralUrl: tracked({ slug: safeSlug || "untitled", cat, url }),
     image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
-    description: description || null,
+    description: description || null, // ⬅️ keep description for context-aware enrichment
     lastmodAt: lastmod ? new Date(lastmod).toISOString() : null,
   };
 }
@@ -330,6 +330,8 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   ensureDir(DATA_DIR);
+
+  // Initialise engine (no inline CTA/subtitle generation here)
   createCtaEngine();
   console.log("✅ CTA Engine ready");
 
@@ -355,6 +357,8 @@ async function main() {
           const og = extractOg(html);
           const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
           const cat = classify(titleClean || og.title || "", url);
+
+          // Keep BOTH title + description so ctaEngine.enrichDeals can be context-aware
           return normalizeEntry({
             slug,
             title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
@@ -409,8 +413,9 @@ async function main() {
       continue;
     }
 
-    let cleaned = normalizeFeed(arr);
-    cleaned = enrichDeals(cleaned);
+    // Normalise → Enrich (context-aware) → Merge
+    let cleaned = normalizeFeed(arr);                 // preserves title + description
+    cleaned = enrichDeals(cleaned);                   // ⬅️ CTA/subtitle generated ONLY here
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
@@ -419,7 +424,7 @@ async function main() {
     );
   }
 
-  console.log("\n✨ All silos refreshed (v10.0 deterministic + CTA Engine authority).");
+  console.log("\n✨ All silos refreshed (v10.1 deterministic + CTA Engine context-aware enrichment).");
 }
 
 // Execute
