@@ -1,14 +1,14 @@
 // /api/cta-dump.js
-// TinmanApps — CTA & Subtitle Exporter v4.0
-// “Active-Only • Deterministic • SEO-Aligned • Diagnostic-Ready”
+// TinmanApps — CTA & Subtitle Exporter v4.1
+// “Active-Only • Deterministic • Context-Aware • Diagnostic-Ready”
 // ───────────────────────────────────────────────────────────────────────────────
-// Upgrades for v4.0:
-// • Reflects CTA Engine v10 dynamically
-// • Active-only dataset only (archived excluded)
+// Alignment for v10.1 CTA Engine (Context-Aware):
+// • Reflects CTA Engine v10.1 dynamically
+// • Active-only dataset (archived excluded)
 // • Deterministic ordering (category → title)
-// • Category-level diagnostics (count, CTA/subtitle duplication, entropy)
-// • Unified ?all=1 mode → flattened dataset + global summary + diagnostics
-// • Default mode → per-category structured export
+// • Category-level diagnostics (duplication + entropy metrics)
+// • Unified ?all=1 → flattened dataset + global summary + diagnostics
+// • Context-safe text sanitisation for export (no HTML fragments)
 // • Render-safe (FS-only), no side-effects
 // ───────────────────────────────────────────────────────────────────────────────
 
@@ -21,13 +21,21 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../data");
 
 // ───────────────────────────────────────────────────────────────
-// Helper: compute duplication + entropy metrics
+// Helpers
 // ───────────────────────────────────────────────────────────────
+function sanitize(t = "") {
+  return String(t || "")
+    .replace(/<\/?[^>]+>/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .trim();
+}
+
 function computeDiagnostics(items = []) {
   if (!items.length) return { total: 0, dupCTAs: 0, dupSubs: 0, entropyCTA: 0, entropySub: 0 };
   const total = items.length;
-  const uniqueCTAs = new Set(items.map((i) => i.cta || "")).size;
-  const uniqueSubs = new Set(items.map((i) => i.subtitle || "")).size;
+  const uniqueCTAs = new Set(items.map((i) => sanitize(i.cta))).size;
+  const uniqueSubs = new Set(items.map((i) => sanitize(i.subtitle))).size;
   const dupCTAs = total - uniqueCTAs;
   const dupSubs = total - uniqueSubs;
   const entropyCTA = +(uniqueCTAs / total).toFixed(2);
@@ -50,7 +58,7 @@ export default async function handler(req, res) {
   const diagnostics = {};
 
   // ───────────────────────────────────────────────────────────────
-  // Load & map ACTIVE ONLY
+  // Load ACTIVE ONLY per category
   // ───────────────────────────────────────────────────────────────
   for (const file of files) {
     const cat = file.replace("appsumo-", "").replace(".json", "");
@@ -60,9 +68,9 @@ export default async function handler(req, res) {
         .filter((d) => !d.archived)
         .map((d) => ({
           category: cat,
-          title: d.title?.trim?.() || "",
-          cta: d.seo?.cta?.trim?.() || "",
-          subtitle: d.seo?.subtitle?.trim?.() || "",
+          title: sanitize(d.title?.trim?.() || ""),
+          cta: sanitize(d.seo?.cta?.trim?.() || ""),
+          subtitle: sanitize(d.seo?.subtitle?.trim?.() || ""),
         }))
         .sort((a, b) => a.title.localeCompare(b.title));
 
@@ -77,13 +85,11 @@ export default async function handler(req, res) {
   }
 
   // ───────────────────────────────────────────────────────────────
-  // Unified Mode (?all=1)
+  // Unified Mode (?all=1) → flattened global export
   // ───────────────────────────────────────────────────────────────
   if (allMode) {
     const summary = {};
-    for (const [cat, items] of Object.entries(perCategory)) {
-      summary[cat] = items.length;
-    }
+    for (const [cat, items] of Object.entries(perCategory)) summary[cat] = items.length;
 
     const sorted = combined.sort((a, b) => {
       if (a.category === b.category) return a.title.localeCompare(b.title);
@@ -91,9 +97,10 @@ export default async function handler(req, res) {
     });
 
     const globalDiag = computeDiagnostics(sorted);
+
     const payload = {
       source: "TinmanApps CTA Engine",
-      version: CTA_ENGINE_VERSION || "v10.0",
+      version: CTA_ENGINE_VERSION || "v10.1",
       generated: new Date().toISOString(),
       totalDeals: sorted.length,
       categories: Object.keys(summary).length,
@@ -108,14 +115,14 @@ export default async function handler(req, res) {
   }
 
   // ───────────────────────────────────────────────────────────────
-  // Default Mode (per-category active-only export + diagnostics)
+  // Default Mode (per-category structured export)
   // ───────────────────────────────────────────────────────────────
   res.setHeader("Content-Type", "application/json");
   res.status(200).send(
     JSON.stringify(
       {
         source: "TinmanApps CTA Engine",
-        version: CTA_ENGINE_VERSION || "v10.0",
+        version: CTA_ENGINE_VERSION || "v10.1",
         generated: new Date().toISOString(),
         categories: perCategory,
         diagnostics,
