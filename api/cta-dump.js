@@ -1,15 +1,16 @@
 // /api/cta-dump.js
-// TinmanApps — CTA & Subtitle Exporter v4.1
-// “Active-Only • Deterministic • Context-Aware • Diagnostic-Ready”
+// TinmanApps — CTA & Subtitle Exporter v5.0
+// “Active-Only • Deterministic • Human-Tuned • Diagnostic-Ready”
 // ───────────────────────────────────────────────────────────────────────────────
-// Alignment for v10.1 CTA Engine (Context-Aware):
-// • Reflects CTA Engine v10.1 dynamically
+// Alignment for v11.0 CTA Engine (Human-Tuned):
+// • Reflects CTA Engine v11.0 dynamically
 // • Active-only dataset (archived excluded)
 // • Deterministic ordering (category → title)
 // • Category-level diagnostics (duplication + entropy metrics)
 // • Unified ?all=1 → flattened dataset + global summary + diagnostics
 // • Context-safe text sanitisation for export (no HTML fragments)
 // • Render-safe (FS-only), no side-effects
+// • Backward-compatible schema for dashboards expecting v4.x/v10.x fields
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -31,15 +32,42 @@ function sanitize(t = "") {
     .trim();
 }
 
+function shannonEntropy(values = []) {
+  if (!values.length) return 0;
+  const counts = {};
+  for (const v of values) counts[v] = (counts[v] || 0) + 1;
+  const total = values.length;
+  let H = 0;
+  for (const k in counts) {
+    const p = counts[k] / total;
+    H += -p * Math.log2(p);
+  }
+  return Number.isFinite(H) ? +H.toFixed(2) : 0;
+}
+
 function computeDiagnostics(items = []) {
-  if (!items.length) return { total: 0, dupCTAs: 0, dupSubs: 0, entropyCTA: 0, entropySub: 0 };
+  if (!items.length) {
+    return {
+      total: 0,
+      dupCTAs: 0,
+      dupSubs: 0,
+      entropyCTA: 0,
+      entropySub: 0,
+    };
+  }
+
   const total = items.length;
-  const uniqueCTAs = new Set(items.map((i) => sanitize(i.cta))).size;
-  const uniqueSubs = new Set(items.map((i) => sanitize(i.subtitle))).size;
+  const ctas = items.map((i) => sanitize(i.cta));
+  const subs = items.map((i) => sanitize(i.subtitle));
+
+  const uniqueCTAs = new Set(ctas).size;
+  const uniqueSubs = new Set(subs).size;
+
   const dupCTAs = total - uniqueCTAs;
   const dupSubs = total - uniqueSubs;
-  const entropyCTA = +(uniqueCTAs / total).toFixed(2);
-  const entropySub = +(uniqueSubs / total).toFixed(2);
+  const entropyCTA = shannonEntropy(ctas);
+  const entropySub = shannonEntropy(subs);
+
   return { total, dupCTAs, dupSubs, entropyCTA, entropySub };
 }
 
@@ -52,7 +80,6 @@ export default async function handler(req, res) {
     .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
 
   const allMode = req.query.all === "1" || req.query.all === "true";
-
   const perCategory = {};
   const combined = [];
   const diagnostics = {};
@@ -100,12 +127,15 @@ export default async function handler(req, res) {
 
     const payload = {
       source: "TinmanApps CTA Engine",
-      version: CTA_ENGINE_VERSION || "v10.1",
+      version: CTA_ENGINE_VERSION || "v11.0",
       generated: new Date().toISOString(),
       totalDeals: sorted.length,
       categories: Object.keys(summary).length,
       summary,
-      diagnostics: { global: globalDiag, perCategory: diagnostics },
+      diagnostics: {
+        global: globalDiag,
+        perCategory: diagnostics,
+      },
       deals: sorted,
     };
 
@@ -122,7 +152,7 @@ export default async function handler(req, res) {
     JSON.stringify(
       {
         source: "TinmanApps CTA Engine",
-        version: CTA_ENGINE_VERSION || "v10.1",
+        version: CTA_ENGINE_VERSION || "v11.0",
         generated: new Date().toISOString(),
         categories: perCategory,
         diagnostics,
