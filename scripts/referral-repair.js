@@ -1,31 +1,27 @@
 /**
  * /scripts/referral-repair.js
- * TinmanApps — Referral Repair Engine v1.0
- * “Self-Healing • Auto-Normalisation • Referral Continuity Guard”
+ * TinmanApps — Referral Repair Engine v2.0
+ * “Zero Raw URLs • Absolute Referral Purity • Deterministic Self-Healing”
  * ───────────────────────────────────────────────────────────────────────────────
  * PURPOSE
- *   Ensures referral-map.json stays internally correct:
+ *   Enforces TOTAL REFERRAL HYGIENE inside referral-map.json:
  *
  *   Repairs:
- *     • missing slug
- *     • malformed slug (uppercases, spaces, bad chars)
- *     • missing masked URL
- *     • missing or malformed trackPath
- *     • missing category
- *     • missing sourceUrl
- *     • inconsistent archived flags
+ *     • malformed or unsafe slug
+ *     • missing/unsafe/malformed category
+ *     • missing/malformed sourceUrl
+ *     • ANY masked URL not equal to REF_PREFIX + encodeURIComponent(sourceUrl)
+ *     • ANY trackPath not strictly internal (/api/track?... only)
+ *     • forbids ANY external link in trackPath or masked
+ *     • cleans archived → boolean
  *
- *   NEVER calls external URLs — fully offline and deterministic.
+ *   ZERO raw external URLs survive this pass.
+ *   100% offline, deterministic, safe for Render cron.
  *
  * OUTPUT
- *   Writes a repaired map to:
+ *   Writes to:
  *       /data/referral-map.json
- *
- *   And updates previous snapshot at:
  *       /data/referral-map-prev.json
- *
- * HOW TO RUN
- *   node scripts/referral-repair.js
  * ───────────────────────────────────────────────────────────────────────────────
  */
 
@@ -43,8 +39,21 @@ const DATA_DIR = path.join(ROOT, "data");
 const MAP_FILE = path.join(DATA_DIR, "referral-map.json");
 const PREV_FILE = path.join(DATA_DIR, "referral-map-prev.json");
 
-// Referral prefix (static, encoded later)
+// Safe static referral prefix
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
+
+// Allowed categories (deterministic, lower-case)
+const VALID_CATS = new Set([
+  "ai",
+  "marketing",
+  "courses",
+  "productivity",
+  "business",
+  "web",
+  "ecommerce",
+  "creative",
+  "software",
+]);
 
 // Utility
 function loadJsonSafe(p) {
@@ -64,8 +73,10 @@ function normaliseSlug(s) {
   return String(s || "")
     .toLowerCase()
     .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .trim();
 }
 
 function trackPathFor(slug, cat) {
@@ -76,9 +87,22 @@ function maskedUrlFor(url) {
   return REF_PREFIX + encodeURIComponent(url || "");
 }
 
+// Safety checkers
+function isInternalTrackPath(v = "") {
+  return typeof v === "string" && v.startsWith("/api/track");
+}
+
+function isExternal(v = "") {
+  return /^https?:\/\//i.test(v);
+}
+
+function isNonEmptyString(v) {
+  return typeof v === "string" && v.trim() !== "";
+}
+
 (function main() {
   console.log("────────────────────────────────────────────────────────");
-  console.log(" TinmanApps — Referral Repair Engine v1.0");
+  console.log(" TinmanApps — Referral Repair Engine v2.0");
   console.log("────────────────────────────────────────────────────────\n");
 
   const map = loadJsonSafe(MAP_FILE);
@@ -91,44 +115,60 @@ function maskedUrlFor(url) {
   const items = map.items || {};
 
   let repairCount = 0;
-  let itemCount = Object.keys(items).length;
+  const itemCount = Object.keys(items).length;
 
   for (const [rawSlug, entry] of Object.entries(items)) {
     const fixed = { ...entry };
 
-    // 1. Normalise slug
+    // 1. Slug normalisation
     const cleanSlug = normaliseSlug(rawSlug);
-    if (cleanSlug !== rawSlug) {
+    if (cleanSlug !== rawSlug) repairCount++;
+
+    // 2. Category validation
+    let cat = String(fixed.category || "").toLowerCase().trim();
+    if (!VALID_CATS.has(cat)) {
+      cat = "software";
+      fixed.category = cat;
       repairCount++;
+    } else {
+      fixed.category = cat;
     }
 
-    // 2. Ensure category
-    if (!fixed.category) {
-      fixed.category = "software"; // deterministic fallback
-      repairCount++;
-    }
-
-    // 3. Ensure sourceUrl
-    if (!fixed.sourceUrl) {
+    // 3. sourceUrl sanity (raw URL allowed ONLY here)
+    //    If malformed or unsafe, we null it (do not guess)
+    const src = isNonEmptyString(fixed.sourceUrl) ? fixed.sourceUrl.trim() : "";
+    if (!src || !isExternal(src)) {
+      // We accept only real external product URLs as sourceUrl
       fixed.sourceUrl = "";
       repairCount++;
     }
 
-    // 4. Masked URL (always built from sourceUrl)
-    const correctMasked = maskedUrlFor(fixed.sourceUrl);
+    // 4. masked URL (must ALWAYS be correctly generated)
+    const correctMasked = maskedUrlFor(fixed.sourceUrl || "");
     if (fixed.masked !== correctMasked) {
       fixed.masked = correctMasked;
       repairCount++;
     }
 
-    // 5. trackPath
-    const correctTrack = trackPathFor(cleanSlug, fixed.category);
-    if (fixed.trackPath !== correctTrack) {
+    // 5. trackPath (must ALWAYS be internal + correct)
+    const correctTrack = trackPathFor(cleanSlug, cat);
+    if (!isInternalTrackPath(fixed.trackPath) || fixed.trackPath !== correctTrack) {
       fixed.trackPath = correctTrack;
       repairCount++;
     }
 
-    // 6. archived should be boolean
+    // 6. Hard block ANY raw affiliate URLs
+    // (We never store them directly in masked/track inside the map)
+    if (isExternal(fixed.masked) && !fixed.masked.startsWith(REF_PREFIX)) {
+      fixed.masked = correctMasked;
+      repairCount++;
+    }
+    if (isExternal(fixed.trackPath)) {
+      fixed.trackPath = correctTrack;
+      repairCount++;
+    }
+
+    // 7. archived sanity
     if (typeof fixed.archived !== "boolean") {
       fixed.archived = false;
       repairCount++;
@@ -137,15 +177,13 @@ function maskedUrlFor(url) {
     repaired.items[cleanSlug] = fixed;
   }
 
-  // Write repaired map
+  // Save repaired map + snapshot
   saveJson(MAP_FILE, repaired);
-
-  // Update snapshot
   saveJson(PREV_FILE, repaired);
 
-  console.log("✅ Repair completed.");
+  console.log("✅ Referral Repair complete.");
   console.log(`🛠️ Items repaired: ${repairCount}`);
   console.log(`📦 Total items:   ${itemCount}`);
-  console.log("✅ referral-map.json updated.");
-  console.log("✅ referral-map-prev.json updated.\n");
+  console.log("📌 referral-map.json updated.");
+  console.log("📌 referral-map-prev.json updated.\n");
 })();
