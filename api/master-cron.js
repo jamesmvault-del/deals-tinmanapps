@@ -6,12 +6,12 @@
  * ✅ Light Mode — integrity-only (no regeneration) unless forced (?mode=light or CRON_LIGHT_DEFAULT=1)
  * ✅ Heavy Mode — full regeneration using CTA Engine v11.1 (context-validated, grammar-safe)
  * ✅ Runs updateFeed.js (blocking) to rebuild silos first
- * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO (context-aware)
- * ✅ SEO Integrity v5.0 — validation-only, no mutation
+ * ✅ sanitize → normalizeFeed → cleanseFeed → wipeSeo → referralGuard → regenerateSEO (context-aware)
+ * ✅ SEO Integrity v7.0 — validation-only, no mutation (grammar-aware CTA v11 validator)
  * ✅ Deterministic entropy + duplication telemetry
  * ✅ feed-cache.json purged only when ?force=1
- * ✅ Pulse interval tracking — insight snapshot timestamp written to /data/pulse-latest.json
- * ✅ Strict sequence enforcement: CTA Engine first → Integrity second → Telemetry third
+ * ✅ Pulse interval tracking — insight snapshot + referral stats written to /data/pulse-latest.json
+ * ✅ Strict sequence enforcement: CTA Engine first → Integrity second → Telemetry & Pulse third
  * ✅ Render-safe, stable, self-healing
  */
 
@@ -34,6 +34,9 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 const PULSE_PATH = path.join(DATA_DIR, "pulse-latest.json");
+
+// Strict referral mask: only internal track endpoints count as “masked”
+const REF_TRACK_REGEX = /\/api\/track\?deal=/i;
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function sha1(s) {
@@ -67,6 +70,11 @@ function smartTitle(slug = "") {
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim();
 }
+
+/**
+ * Ensure we never “go to render” without at least a minimal CTA/subtitle pair.
+ * This only tops-up missing values; it does not rewrite non-empty strings.
+ */
 function ensureMinimalSeo(items) {
   return items.map((d) => {
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
@@ -77,6 +85,10 @@ function ensureMinimalSeo(items) {
     return { ...d, title, seo: { ...(d.seo || {}), cta, subtitle } };
   });
 }
+
+/**
+ * Final sanitize pass — clamp CTA/subtitle lengths and clean spacing.
+ */
 function finalSanitize(items) {
   return items.map((d) => {
     const cta = clamp(sanitizeText(d.seo?.cta || ""), 64);
@@ -87,6 +99,59 @@ function finalSanitize(items) {
       seo: { ...d.seo, cta, subtitle },
     };
   });
+}
+
+/**
+ * Wipe CTA/subtitle before regeneration so v11.1 always starts from a clean slate.
+ * This guarantees no legacy CTA/subtitle ever survives into a new regeneration cycle.
+ */
+function wipeSeoForRegeneration(items) {
+  return items.map((d) => ({
+    ...d,
+    seo: {
+      ...(d.seo || {}),
+      cta: null,
+      subtitle: null,
+    },
+  }));
+}
+
+/**
+ * Strict referral enforcement (Option A — hard mode).
+ *
+ * Rules:
+ *   • referralUrl MUST be present
+ *   • referralUrl MUST contain "/api/track?deal="
+ *   • If missing or malformed → deal is marked archived=true
+ *
+ * No attempt is made to invent or repair referral URLs here — that is ingestion’s job.
+ * This layer simply refuses to treat invalid referrals as active.
+ */
+function enforceReferralStrict(items) {
+  let ok = 0;
+  let missing = 0;
+  let malformed = 0;
+
+  const guarded = items.map((d) => {
+    const ref = (d.referralUrl || "").trim();
+
+    if (!ref) {
+      missing++;
+      return { ...d, archived: true };
+    }
+    if (!REF_TRACK_REGEX.test(ref)) {
+      malformed++;
+      return { ...d, archived: true };
+    }
+
+    ok++;
+    return d;
+  });
+
+  console.log(
+    `🔐 [ReferralGuard] strict enforcement: ok=${ok}, missing=${missing}, malformed=${malformed}`
+  );
+  return guarded;
 }
 
 // ───────────────────────────────────────── Telemetry: duplication & entropy ─────────────────────
@@ -118,6 +183,46 @@ function logSeoStats(label, deals) {
   );
 }
 
+/**
+ * Compute masked-referral stats for pulse tracking.
+ *   masked   = internal /api/track links
+ *   external = raw AppSumo or Impact prefixes
+ *   missing  = null / empty referralUrl
+ */
+function computeReferralStats(deals) {
+  let total = deals.length;
+  let maskedCount = 0;
+  let externalCount = 0;
+  let missingCount = 0;
+
+  for (const d of deals) {
+    const ref = (d.referralUrl || "").trim();
+    if (!ref) {
+      missingCount++;
+      continue;
+    }
+    if (REF_TRACK_REGEX.test(ref)) {
+      maskedCount++;
+    } else if (/appsumo\.com/i.test(ref) || /appsumo\.8odi\.net/i.test(ref)) {
+      externalCount++;
+    } else {
+      // Unknown pattern — treat as external/misaligned for now
+      externalCount++;
+    }
+  }
+
+  const safeTotal = total || 1;
+  return {
+    total,
+    maskedCount,
+    externalCount,
+    missingCount,
+    maskedPct: maskedCount / safeTotal,
+    externalPct: externalCount / safeTotal,
+    missingPct: missingCount / safeTotal,
+  };
+}
+
 // ───────────────────────────────────────── Merge with History (NO CTA RESTORE) ───────────────────
 function mergeWithHistory(newFeed) {
   if (!fs.existsSync(FEED_PATH)) return newFeed;
@@ -128,9 +233,13 @@ function mergeWithHistory(newFeed) {
   let archived = 0;
   let purged = 0;
 
+  // Preserve any upstream archival decisions (e.g. ReferralGuard) by defaulting
+  // to item.archived when present; otherwise assume active.
   const merged = newFeed.map((item) => {
     const old = prevBySlug.get(item.slug);
     const oldSeo = old?.seo || {};
+    const upstreamArchived = item.archived === true;
+
     return {
       ...item,
       seo: {
@@ -140,10 +249,11 @@ function mergeWithHistory(newFeed) {
         keywords: oldSeo.keywords || [],
         lastVerifiedAt: now,
       },
-      archived: false,
+      archived: upstreamArchived,
     };
   });
 
+  // Bring forward any slugs that disappeared this run → archived
   for (const old of prev) {
     if (!merged.find((x) => x.slug === old.slug)) {
       archived++;
@@ -151,6 +261,7 @@ function mergeWithHistory(newFeed) {
     }
   }
 
+  // Purge long-archived entries (30-day cutoff)
   const cutoff = Date.now() - 30 * DAY_MS;
   const cleaned = merged.filter((x) => {
     if (!x.archived) return true;
@@ -162,7 +273,9 @@ function mergeWithHistory(newFeed) {
     return keep;
   });
 
-  console.log(`🧬 [History] archived=${archived}, purged=${purged}, final=${cleaned.length}`);
+  console.log(
+    `🧬 [History] archived=${archived}, purged=${purged}, final=${cleaned.length}`
+  );
   return cleaned;
 }
 
@@ -176,7 +289,9 @@ function aggregateCategoryFeeds() {
   let aggregated = [];
   for (const file of files) {
     try {
-      const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
+      const data = JSON.parse(
+        fs.readFileSync(path.join(DATA_DIR, file), "utf8")
+      );
       aggregated = aggregated.concat(data);
       console.log(`✅ Loaded ${data.length} → ${file}`);
     } catch (err) {
@@ -188,7 +303,7 @@ function aggregateCategoryFeeds() {
   return aggregated;
 }
 
-// ───────────────────────────────────────── Regeneration (CTA Engine v11.1) ─────────────────────────
+// ───────────────────────────────────────── Regeneration (CTA Engine v11.1) ───────────────────────
 function regenerateSeo(allDeals) {
   const engine = createCtaEngine();
   const runSalt = Date.now().toString();
@@ -197,11 +312,15 @@ function regenerateSeo(allDeals) {
     const category = (d.category || "software").toLowerCase();
     const title = sanitizeText(d.title?.trim?.() || smartTitle(d.slug));
     const description = sanitizeText(d.description || "");
-    const slug = d.slug || sha1(title);
+    const slug = d.slug || sha1(title + "::" + category);
 
-    const cta = sanitizeText(engine.generate({ title, category, slug, runSalt }));
-    const subtitle = sanitizeText(engine.generateSubtitle({ title, category, slug, runSalt }));
-    return { ...d, seo: { ...d.seo, cta, subtitle } };
+    const cta = sanitizeText(
+      engine.generate({ title, category, slug, runSalt })
+    );
+    const subtitle = sanitizeText(
+      engine.generateSubtitle({ title, category, slug, runSalt })
+    );
+    return { ...d, seo: { ...(d.seo || {}), cta, subtitle, description } };
   });
 }
 
@@ -215,7 +334,9 @@ export default async function handler(req, res) {
 
   try {
     console.log(
-      `🔁 [Cron] ${new Date().toISOString()} | mode=${light ? "LIGHT" : "HEAVY"} | force=${force}`
+      `🔁 [Cron] ${new Date().toISOString()} | mode=${
+        light ? "LIGHT" : "HEAVY"
+      } | force=${force}`
     );
 
     // ── LIGHT MODE ─────────────────────────────────────────────────────────────
@@ -273,13 +394,22 @@ export default async function handler(req, res) {
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    let regenerated = regenerateSeo(cleansed);
-    console.log(`✨ Regenerated CTA + subtitle (v${CTA_ENGINE_VERSION}, ${regenerated.length})`);
+    // Strict pipeline before any CTA generation:
+    //   1) wipe CTA/subtitle → 2) enforce referral strictness → 3) regenerate
+    const wiped = wipeSeoForRegeneration(cleansed);
+    const referralSafe = enforceReferralStrict(wiped);
+
+    let regenerated = regenerateSeo(referralSafe);
+    console.log(
+      `✨ Regenerated CTA + subtitle (v${CTA_ENGINE_VERSION}, ${regenerated.length})`
+    );
 
     regenerated = ensureMinimalSeo(regenerated);
 
     const validated = ensureSeoIntegrity(regenerated);
-    console.log(`🔎 SEO Integrity validated (no mutation): ${validated.length}`);
+    console.log(
+      `🔎 SEO Integrity validated (no mutation, v7.0): ${validated.length}`
+    );
 
     const sanitized = finalSanitize(validated);
     logSeoStats(`Entropy v${CTA_ENGINE_VERSION}`, sanitized);
@@ -292,15 +422,23 @@ export default async function handler(req, res) {
     const t0 = Date.now();
     await insightHandler(
       { query: { silent: "1" } },
-      { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
+      {
+        json: () => {},
+        setHeader: () => {},
+        status: () => ({ json: () => {} }),
+      }
     );
     const t1 = Date.now();
+
+    const referralStats = computeReferralStats(merged);
     const pulseSnapshot = {
       lastInsightRun: new Date().toISOString(),
       durationMs: t1 - t0,
       engineVersion: CTA_ENGINE_VERSION,
       dealsAnalysed: merged.length,
+      referralIntegrity: referralStats,
     };
+
     fs.writeFileSync(PULSE_PATH, JSON.stringify(pulseSnapshot, null, 2));
     console.log(`📡 Pulse snapshot updated (${PULSE_PATH})`);
 
@@ -318,8 +456,10 @@ export default async function handler(req, res) {
         "normalize",
         "dedupe",
         "cleanse",
+        "wipe-seo",
+        "referral-guard(strict)",
         `regenerate-seo(v${CTA_ENGINE_VERSION})`,
-        "seo-integrity(validate-only)",
+        "seo-integrity(validate-only v7.0)",
         "final-sanitise",
         "merge-history",
         "insight+pulse",
@@ -327,6 +467,7 @@ export default async function handler(req, res) {
       engineVersion: CTA_ENGINE_VERSION,
       regenerated: true,
       mode: "heavy",
+      referralIntegrity: referralStats,
     });
   } catch (err) {
     console.error("❌ [Cron Fatal]:", err);
