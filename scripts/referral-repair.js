@@ -1,6 +1,6 @@
 /**
  * /scripts/referral-repair.js
- * TinmanApps — Referral Repair Engine v3.0
+ * TinmanApps — Referral Repair Engine v3.1
  * “Canonical Slug • Zero Raw Product URLs • Deterministic Self-Healing”
  * ───────────────────────────────────────────────────────────────────────────────
  * PURPOSE
@@ -14,9 +14,11 @@
  *     • ANY trackPath not strictly internal via SITE_ORIGIN + /api/track
  *       (deal, cat, redirect={masked})
  *     • forbids ANY raw product URLs in masked or trackPath
+ *     • enforces that entries with missing sourceUrl are archived and non-routable
  *     • cleans archived → boolean
  *
  *   ZERO raw product URLs survive this pass outside sourceUrl.
+ *   ZERO invalid masked/trackPath chains survive (fallback chains rebuilt).
  *   100% offline, deterministic, safe for Render cron.
  *
  * OUTPUT
@@ -106,12 +108,17 @@ function isInternalTrackPath(v = "") {
   return false;
 }
 
+// For masked URLs, we ONLY ever allow REF_PREFIX + encodeURIComponent(sourceUrl).
+// If no valid sourceUrl, we return an empty string and let the entry be archived and non-routable.
 function maskedUrlFor(url) {
+  if (!isNonEmptyString(url)) return "";
   return REF_PREFIX + encodeURIComponent(url || "");
 }
 
-// Canonical trackPath builder aligned with referral-map v3.0
+// Canonical trackPath builder aligned with referral-map v3.1.
+// If masked is empty, we do not build a track path at all (non-routable archived entry).
 function trackPathFor(slug, cat, masked) {
+  if (!isNonEmptyString(masked)) return "";
   const s = encodeURIComponent(slug || "");
   const c = encodeURIComponent(cat || "software");
   const redirect = encodeURIComponent(masked || "");
@@ -130,7 +137,7 @@ function isRawProductUrl(v = "") {
 
 (function main() {
   console.log("────────────────────────────────────────────────────────");
-  console.log(" TinmanApps — Referral Repair Engine v3.0");
+  console.log(" TinmanApps — Referral Repair Engine v3.1");
   console.log("────────────────────────────────────────────────────────\n");
 
   const map = loadJsonSafe(MAP_FILE);
@@ -143,37 +150,77 @@ function isRawProductUrl(v = "") {
   const items = map.items || {};
 
   let repairCount = 0;
-  const itemCount = Object.keys(items).length;
+  let slugFixes = 0;
+  let catFixes = 0;
+  let sourceNullified = 0;
+  let maskedRepaired = 0;
+  let trackRepaired = 0;
+  let rawUrlStripped = 0;
+  let archivedFixed = 0;
 
-  for (const [rawSlug, entry] of Object.entries(items)) {
+  const itemEntries = Object.entries(items);
+  const itemCount = itemEntries.length;
+
+  // For recomputing aggregates
+  const catSet = new Set();
+
+  for (const [rawSlug, entry] of itemEntries) {
     const fixed = { ...entry };
 
     // 1. Slug normalisation (canonical global slug)
-    const cleanSlug = canonicalSlug(rawSlug);
-    if (cleanSlug !== rawSlug) repairCount++;
+    const cleanSlug = canonicalSlug(rawSlug || fixed.slug || "");
+    if (cleanSlug !== rawSlug) {
+      slugFixes++;
+      repairCount++;
+    }
 
     // 2. Category validation
     let cat = String(fixed.category || "").toLowerCase().trim();
     if (!VALID_CATS.has(cat)) {
       cat = "software";
+      catFixes++;
       repairCount++;
     }
     fixed.category = cat;
+    catSet.add(cat);
 
     // 3. sourceUrl sanity (raw external product URL allowed ONLY here)
-    //    If malformed, non-external, or clearly not HTTP(S), we null it (no guessing).
+    //    If malformed, non-external, or clearly not HTTP(S), we null it (no guessing),
+    //    and force the entry into archived + non-routable state.
     const rawSrc = isNonEmptyString(fixed.sourceUrl) ? fixed.sourceUrl.trim() : "";
     const srcIsExternal = isExternal(rawSrc);
     const sourceUrl = srcIsExternal ? rawSrc : "";
+
     if (sourceUrl !== fixed.sourceUrl) {
       fixed.sourceUrl = sourceUrl;
+      sourceNullified++;
       repairCount++;
+    }
+
+    // If we *still* have no valid sourceUrl, this entry cannot safely route anywhere.
+    // We hard-archive it and blank masked + trackPath so no broken chains survive.
+    if (!isNonEmptyString(sourceUrl)) {
+      if (fixed.masked || fixed.trackPath) {
+        fixed.masked = "";
+        fixed.trackPath = "";
+        rawUrlStripped++;
+        repairCount++;
+      }
+      if (fixed.archived !== true) {
+        fixed.archived = true;
+        archivedFixed++;
+        repairCount++;
+      }
+
+      repaired.items[cleanSlug] = fixed;
+      continue;
     }
 
     // 4. masked URL (must ALWAYS be REF_PREFIX + encodeURIComponent(sourceUrl))
     const correctMasked = maskedUrlFor(sourceUrl);
     if (fixed.masked !== correctMasked) {
       fixed.masked = correctMasked;
+      maskedRepaired++;
       repairCount++;
     }
 
@@ -181,35 +228,65 @@ function isRawProductUrl(v = "") {
     const correctTrack = trackPathFor(cleanSlug, cat, correctMasked);
     if (!isInternalTrackPath(fixed.trackPath) || fixed.trackPath !== correctTrack) {
       fixed.trackPath = correctTrack;
+      trackRepaired++;
       repairCount++;
     }
 
     // 6. Hard block ANY raw product URLs from masked/trackPath
     if (isRawProductUrl(fixed.masked)) {
       fixed.masked = correctMasked;
+      rawUrlStripped++;
       repairCount++;
     }
     if (isRawProductUrl(fixed.trackPath)) {
       fixed.trackPath = correctTrack;
+      rawUrlStripped++;
       repairCount++;
     }
 
-    // 7. archived sanity
+    // 7. archived sanity (ensure boolean; do not un-archive here)
     if (typeof fixed.archived !== "boolean") {
       fixed.archived = false;
+      archivedFixed++;
       repairCount++;
     }
 
     repaired.items[cleanSlug] = fixed;
   }
 
+  // Recompute top-level aggregates deterministically from repaired.items
+  const repairedItems = repaired.items || {};
+  const repairedSlugs = Object.keys(repairedItems);
+  const total = repairedSlugs.length;
+
+  let archivedCount = 0;
+  for (const slug of repairedSlugs) {
+    const item = repairedItems[slug];
+    if (item.archived === true) archivedCount++;
+    if (item.category) catSet.add(String(item.category).toLowerCase().trim());
+  }
+  const activeCount = total - archivedCount;
+
+  repaired.total = total;
+  repaired.categories = Array.from(catSet).sort((a, b) => a.localeCompare(b));
+  repaired.generatedAt = new Date().toISOString();
+
   // Save repaired map + snapshot
   saveJson(MAP_FILE, repaired);
   saveJson(PREV_FILE, repaired);
 
   console.log("✅ Referral Repair complete.");
-  console.log(`🛠️ Items repaired: ${repairCount}`);
-  console.log(`📦 Total items:   ${itemCount}`);
+  console.log(`🛠️ Items scanned     : ${itemCount}`);
+  console.log(`🛠️ Items total (post) : ${total}`);
+  console.log(`🧱 Slug fixes         : ${slugFixes}`);
+  console.log(`🧱 Category fixes     : ${catFixes}`);
+  console.log(`🧱 Source nullified   : ${sourceNullified} (invalid/missing sourceUrl)`);
+  console.log(`🧱 Masked repaired    : ${maskedRepaired}`);
+  console.log(`🧱 TrackPath repaired : ${trackRepaired}`);
+  console.log(`🧱 Raw URLs stripped  : ${rawUrlStripped} (from masked/trackPath)`);
+  console.log(`🧱 Archived fixed     : ${archivedFixed}`);
+  console.log(`📦 Active deals       : ${activeCount}`);
+  console.log(`📦 Archived deals     : ${archivedCount}`);
   console.log("📌 referral-map.json updated.");
   console.log("📌 referral-map-prev.json updated.\n");
 })();
