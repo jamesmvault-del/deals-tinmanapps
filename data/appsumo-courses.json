@@ -4,6 +4,9 @@
     "slug": "antler-launch-academy",
     "category": "courses",
     "url": "https://appsumo.com/products/antler-launch-academy/",
+    "sourceUrl": "https://appsumo.com/products/antler-launch-academy/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fantler-launch-academy%2F",
+    "trackPath": "/api/track?deal=antler-launch-academy&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fantler-launch-academy%252F",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=antler-launch-academy&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fantler-launch-academy%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fdeals%2Fimages%2Fas-web-AntlerLaunchAcademy.jpg",
     "description": "Get the resources you need to go from idea to startup on one open access platform. Discover the best deal for Antler Launch Academy on AppSumo today.",
@@ -11,9 +14,9 @@
       "cta": "Advance your career with in one place →",
       "subtitle": "simplifies creator education with intuitive approach. Centres on consistency and smart automation for sustained results."
     },
-    "normalizedAt": "2025-11-13T09:07:25.528Z",
+    "normalizedAt": "2025-11-13T10:40:25.437Z",
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
-    "lastSeenAt": "2025-11-13T09:07:25.528Z",
+    "lastSeenAt": "2025-11-13T10:40:25.438Z",
     "lastmodAt": null,
     "archived": false
   },
@@ -33,7 +36,10 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/monthly1k/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fmonthly1k%2F",
+    "trackPath": "/api/track?deal=monthly1k&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmonthly1k%252F"
   },
   {
     "title": "Google Ads Beginner To Advanced Masterclass",
@@ -51,7 +57,10 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/marketplace-google-ads-beginner-to-advanced-masterclass/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fmarketplace-google-ads-beginner-to-advanced-masterclass%2F",
+    "trackPath": "/api/track?deal=marketplace-google-ads-beginner-to-advanced-masterclass&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-google-ads-beginner-to-advanced-masterclass%252F"
   },
   {
     "title": "Facebook Ads Masterclass",
@@ -69,6 +78,9 @@
     "firstSeenAt": "2025-11-11T10:40:10.746Z",
     "lastSeenAt": "2025-11-12T03:08:21.124Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/marketplace-facebook-ads-masterclass/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fmarketplace-facebook-ads-masterclass%2F",
+    "trackPath": "/api/track?deal=marketplace-facebook-ads-masterclass&cat=courses&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fmarketplace-facebook-ads-masterclass%252F"
   }
 ]

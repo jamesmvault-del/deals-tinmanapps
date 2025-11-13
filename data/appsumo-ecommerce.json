@@ -4,6 +4,9 @@
     "slug": "woocommerce",
     "category": "ecommerce",
     "url": "https://appsumo.com/products/woocommerce/",
+    "sourceUrl": "https://appsumo.com/products/woocommerce/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fwoocommerce%2F",
+    "trackPath": "/api/track?deal=woocommerce&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwoocommerce%252F",
     "referralUrl": "https://deals.tinmanapps.com/api/track?deal=woocommerce&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fwoocommerce%252F",
     "image": "https://deals.tinmanapps.com/api/image-proxy?src=https%3A%2F%2Fappsumo2-cdn.appsumo.com%2Fmedia%2Fselfsubmissions%2Fimages%2F46148a70-41df-4ff0-8e1e-539fbabcb50a.png",
     "description": "Turn your site into an online store. Discover the best deal for WooCommerce on AppSumo today.",
@@ -11,9 +14,9 @@
       "cta": "Enhance your store performance with instantly →",
       "subtitle": "improves conversion systems with an intuitive approach. Helps teams save time and reduce friction across workflows."
     },
-    "normalizedAt": "2025-11-13T09:07:25.530Z",
+    "normalizedAt": "2025-11-13T10:40:25.439Z",
     "firstSeenAt": "2025-11-11T10:40:10.750Z",
-    "lastSeenAt": "2025-11-13T09:07:25.530Z",
+    "lastSeenAt": "2025-11-13T10:40:25.439Z",
     "lastmodAt": null,
     "archived": false
   },
@@ -33,7 +36,10 @@
     "firstSeenAt": "2025-11-11T10:40:10.750Z",
     "lastSeenAt": "2025-11-12T03:08:21.128Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/e-commerce-store-package-by-laganoo/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fe-commerce-store-package-by-laganoo%2F",
+    "trackPath": "/api/track?deal=e-commerce-store-package-by-laganoo&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fe-commerce-store-package-by-laganoo%252F"
   },
   {
     "title": "ThriveCart",
@@ -51,7 +57,10 @@
     "firstSeenAt": "2025-11-11T10:40:10.750Z",
     "lastSeenAt": "2025-11-12T03:08:21.128Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/thrivecart/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fthrivecart%2F",
+    "trackPath": "/api/track?deal=thrivecart&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fthrivecart%252F"
   },
   {
     "title": "Storeplum",
@@ -69,7 +78,10 @@
     "firstSeenAt": "2025-11-11T10:40:10.750Z",
     "lastSeenAt": "2025-11-12T03:08:21.128Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/storeplum/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fstoreplum%2F",
+    "trackPath": "/api/track?deal=storeplum&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fstoreplum%252F"
   },
   {
     "title": "Studiocart",
@@ -87,6 +99,9 @@
     "firstSeenAt": "2025-11-11T10:40:10.750Z",
     "lastSeenAt": "2025-11-12T03:08:21.128Z",
     "lastmodAt": null,
-    "archived": true
+    "archived": true,
+    "sourceUrl": "https://appsumo.com/products/studiocart-2020/",
+    "masked": "https://appsumo.8odi.net/9L0P95?u=https%3A%2F%2Fappsumo.com%2Fproducts%2Fstudiocart-2020%2F",
+    "trackPath": "/api/track?deal=studiocart-2020&cat=ecommerce&redirect=https%3A%2F%2Fappsumo.8odi.net%2F9L0P95%3Fu%3Dhttps%253A%252F%252Fappsumo.com%252Fproducts%252Fstudiocart-2020%252F"
   }
 ]
