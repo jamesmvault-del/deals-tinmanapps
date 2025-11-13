@@ -1,15 +1,16 @@
 /**
  * /api/master-cron.js
- * TinmanApps Master Cron v11.0
- * “Absolute Regeneration • Deterministic • Context-Aware • Validation-Safe”
+ * TinmanApps Master Cron v11.1
+ * “Absolute Regeneration • Deterministic • Pulse-Aware • Validation-Safe”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ Light Mode — integrity-only (no regeneration) unless forced (?mode=light or CRON_LIGHT_DEFAULT=1)
- * ✅ Heavy Mode — full regeneration using CTA Engine v11.0 (human-tuned, grammar-safe)
+ * ✅ Heavy Mode — full regeneration using CTA Engine v11.1 (context-validated, grammar-safe)
  * ✅ Runs updateFeed.js (blocking) to rebuild silos first
  * ✅ sanitize → normalizeFeed → cleanseFeed → regenerateSEO (context-aware)
  * ✅ SEO Integrity v5.0 — validation-only, no mutation
  * ✅ Deterministic entropy + duplication telemetry
  * ✅ feed-cache.json purged only when ?force=1
+ * ✅ Pulse interval tracking — insight snapshot timestamp written to /data/pulse-latest.json
  * ✅ Strict sequence enforcement: CTA Engine first → Integrity second → Telemetry third
  * ✅ Render-safe, stable, self-healing
  */
@@ -32,6 +33,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, "../data");
 const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
+const PULSE_PATH = path.join(DATA_DIR, "pulse-latest.json");
 
 // ─────────────────────────────────────────── Helpers ───────────────────────────────────────────
 function sha1(s) {
@@ -186,7 +188,7 @@ function aggregateCategoryFeeds() {
   return aggregated;
 }
 
-// ───────────────────────────────────────── Regeneration (CTA Engine v11) ─────────────────────────
+// ───────────────────────────────────────── Regeneration (CTA Engine v11.1) ─────────────────────────
 function regenerateSeo(allDeals) {
   const engine = createCtaEngine();
   const runSalt = Date.now().toString();
@@ -216,7 +218,7 @@ export default async function handler(req, res) {
       `🔁 [Cron] ${new Date().toISOString()} | mode=${light ? "LIGHT" : "HEAVY"} | force=${force}`
     );
 
-    // ── LIGHT MODE: integrity only ─────────────────────────────────────────────
+    // ── LIGHT MODE ─────────────────────────────────────────────────────────────
     if (light) {
       const bg = await backgroundRefresh();
       const duration = Date.now() - start;
@@ -231,7 +233,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── HEAVY MODE: full regeneration ─────────────────────────────────────────
+    // ── HEAVY MODE ─────────────────────────────────────────────────────────────
     const updateFeedPath = path.join(__dirname, "../scripts/updateFeed.js");
     const maxOld = Number(process.env.NODE_MAX_OLD_SPACE || 256);
     console.log(`⚙️ updateFeed.js running with --max-old-space-size=${maxOld}…`);
@@ -271,7 +273,6 @@ export default async function handler(req, res) {
     const cleansed = cleanseFeed(deduped);
     console.log(`🧹 Cleansed: ${cleansed.length}`);
 
-    // Regenerate with CTA Engine v11.0 before validation
     let regenerated = regenerateSeo(cleansed);
     console.log(`✨ Regenerated CTA + subtitle (v${CTA_ENGINE_VERSION}, ${regenerated.length})`);
 
@@ -287,10 +288,21 @@ export default async function handler(req, res) {
     fs.writeFileSync(FEED_PATH, JSON.stringify(merged, null, 2));
     console.log(`🧬 Final merged feed: ${merged.length}`);
 
+    // ────────────────────────────── INSIGHT + PULSE TRACKING ──────────────────────────────
+    const t0 = Date.now();
     await insightHandler(
       { query: { silent: "1" } },
       { json: () => {}, setHeader: () => {}, status: () => ({ json: () => {} }) }
     );
+    const t1 = Date.now();
+    const pulseSnapshot = {
+      lastInsightRun: new Date().toISOString(),
+      durationMs: t1 - t0,
+      engineVersion: CTA_ENGINE_VERSION,
+      dealsAnalysed: merged.length,
+    };
+    fs.writeFileSync(PULSE_PATH, JSON.stringify(pulseSnapshot, null, 2));
+    console.log(`📡 Pulse snapshot updated (${PULSE_PATH})`);
 
     const duration = Date.now() - start;
     return res.json({
@@ -310,7 +322,7 @@ export default async function handler(req, res) {
         "seo-integrity(validate-only)",
         "final-sanitise",
         "merge-history",
-        "insight",
+        "insight+pulse",
       ],
       engineVersion: CTA_ENGINE_VERSION,
       regenerated: true,
