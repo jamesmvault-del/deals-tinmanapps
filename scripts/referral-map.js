@@ -218,4 +218,49 @@ function buildReferralMap() {
   }
 
   // Deterministic ordering by slug
-  const ordered = Array
+  const ordered = Array.from(items.values()).sort((a, b) =>
+    a.slug.localeCompare(b.slug)
+  );
+
+  const keyed = {};
+  for (const row of ordered) keyed[row.slug] = row;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    site: SITE_ORIGIN,
+    refPrefix: REF_PREFIX,
+    total: ordered.length,
+    categories: Array.from(catSet).sort((a, b) => a.localeCompare(b)),
+    items: keyed,
+  };
+}
+
+// ───────────────────────────────────────────────
+// MAIN
+// ───────────────────────────────────────────────
+(function main() {
+  try {
+    const map = buildReferralMap();
+    fs.writeFileSync(OUT_FILE, JSON.stringify(map, null, 2), "utf8");
+
+    const archived = Object.values(map.items).filter((x) => x.archived).length;
+    const active = map.total - archived;
+
+    console.log("────────────────────────────────────────────────────────");
+    console.log(" Referral Map Builder v3.1 — Global Canonical Slug Standard");
+    console.log("────────────────────────────────────────────────────────");
+    console.log(` Output        : ${OUT_FILE}`);
+    console.log(` SITE_URL      : ${SITE_ORIGIN}`);
+    console.log(` REF_PREFIX    : ${REF_PREFIX}`);
+    console.log(` Silos scanned : ${map.categories.length}`);
+    console.log(` Deals total   : ${map.total}`);
+    console.log(` ├─ active     : ${active}`);
+    console.log(` └─ archived   : ${archived}`);
+    console.log(" Status        : ✅ referral-map.json written (full overwrite)");
+    console.log("────────────────────────────────────────────────────────");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ referral-map failed:", err?.message || err);
+    process.exit(1);
+  }
+})();
