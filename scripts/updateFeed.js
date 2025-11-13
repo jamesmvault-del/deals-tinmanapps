@@ -1,13 +1,14 @@
 // /scripts/updateFeed.js
 /**
- * TinmanApps Adaptive Feed Engine v10.1
- * “Render-Safe • Deterministic • Chunked Discovery • New-First Priority”
+ * TinmanApps Adaptive Feed Engine v11.0
+ * “Render-Safe • Deterministic • Chunked Discovery • Masked Referrals Only”
  * ───────────────────────────────────────────────────────────────────────────────
  * ✅ Render-safe (no headless Chrome)
  * ✅ Discovers AppSumo product URLs via XML sitemaps (<lastmod> aware)
- * ✅ Fetches OG data → Normalizes → Enriches via CTA Engine v10.1 (context-aware)
+ * ✅ Fetches OG data → Normalizes core fields (title, slug, category, description)
+ * ✅ NO CTA/SUBTITLE GENERATION HERE (centralised in /api/master-cron)
+ * ✅ All referral URLs masked through /api/track (no raw AppSumo links cached)
  * ✅ Chunked discovery + capped crawl size for Starter tier
- * ✅ CTA/subtitle generated ONLY inside ctaEngine.enrichDeals (no inline gen)
  * ✅ History merge: new-first + lastmod priority + archive tracking
  */
 
@@ -18,7 +19,6 @@ import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 import crypto from "crypto";
 
-import { createCtaEngine, enrichDeals } from "../lib/ctaEngine.js";
 import { normalizeFeed } from "../lib/feedNormalizer.js";
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -30,6 +30,8 @@ const DATA_DIR = path.join(__dirname, "..", "data");
 
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
+
+// Impact / AppSumo affiliate prefix (raw external target — NEVER exposed directly)
 const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
 
 const MAX_PER_CATEGORY = Number(process.env.MAX_PER_CATEGORY || 10);
@@ -80,7 +82,7 @@ async function fetchText(url, tries = RETRIES) {
       signal: ctrl.signal,
       headers: {
         "user-agent":
-          "TinmanApps/UpdateFeed v10.1 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
+          "TinmanApps/UpdateFeed v11.0 (Render-safe XML crawler; contact: admin@tinmanapps.com)",
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
@@ -125,15 +127,30 @@ function extractOg(html) {
     null;
   return { title, image, description: desc };
 }
+
 function proxied(src) {
+  if (!src) return `${SITE_ORIGIN}/assets/placeholder.webp`;
   return `${SITE_ORIGIN}/api/image-proxy?src=${encodeURIComponent(src)}`;
 }
-function tracked({ slug, cat, url }) {
+
+/**
+ * Build the internal masked referral URL used everywhere in the system.
+ * Publicly visible link is ALWAYS this /api/track URL (no raw AppSumo leakage).
+ */
+function buildTrackedReferral({ slug, cat, url }) {
+  if (!url) return null;
+  const safeSlug = slug || toSlug(url) || "untitled";
+  const safeCat = cat || "software";
+
+  // External affiliate target (never shown directly)
   const masked = REF_PREFIX + encodeURIComponent(url);
+
+  // Public, internal redirector
   return `${SITE_ORIGIN}/api/track?deal=${encodeURIComponent(
-    slug
-  )}&cat=${encodeURIComponent(cat)}&redirect=${encodeURIComponent(masked)}`;
+    safeSlug
+  )}&cat=${encodeURIComponent(safeCat)}&redirect=${encodeURIComponent(masked)}`;
 }
+
 function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) {
   const safeSlug =
     slug ||
@@ -142,14 +159,16 @@ function normalizeEntry({ slug, title, url, cat, image, description, lastmod }) 
       .toLowerCase()
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
+  const slugFinal = safeSlug || "untitled";
+
   return {
-    title: title || safeSlug || "Untitled",
-    slug: safeSlug || "untitled",
+    title: title || slugFinal || "Untitled",
+    slug: slugFinal,
     category: cat,
     url,
-    referralUrl: tracked({ slug: safeSlug || "untitled", cat, url }),
-    image: image ? proxied(image) : `${SITE_ORIGIN}/assets/placeholder.webp`,
-    description: description || null, // ⬅️ keep description for context-aware enrichment
+    referralUrl: buildTrackedReferral({ slug: slugFinal, cat, url }),
+    image: proxied(image),
+    description: description || null, // ⬅️ keep description for context-aware CTA later
     lastmodAt: lastmod ? new Date(lastmod).toISOString() : null,
   };
 }
@@ -262,7 +281,7 @@ async function discoverProductUrls() {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Simplified SEO validity
+// Simplified SEO validity (legacy only — CTA regenerated in master-cron)
 // ───────────────────────────────────────────────────────────────────────────────
 function isGoodSEO(seo = {}) {
   const c = seo?.cta?.trim() || "";
@@ -271,7 +290,7 @@ function isGoodSEO(seo = {}) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Active-cap merge
+// Active-cap merge (now also re-masks referral URLs for ALL entries)
 // ───────────────────────────────────────────────────────────────────────────────
 function mergeWithHistoryActiveCap(cat, fresh, cap) {
   const nowISO = new Date().toISOString();
@@ -292,8 +311,18 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
   );
 
   const merged = [];
+
+  // 1) Fresh + previously known items (active/archive status from new crawl)
   for (const item of fresh) {
     const prev = prevBySlug.get(item.slug);
+
+    const baseUrl = item.url || prev?.url || null;
+    const referralUrl = buildTrackedReferral({
+      slug: item.slug,
+      cat,
+      url: baseUrl,
+    });
+
     const chooseSeo =
       (item.seo && isGoodSEO(item.seo) ? item.seo : null) ||
       (prev?.seo && isGoodSEO(prev.seo) ? prev.seo : null) ||
@@ -301,6 +330,8 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 
     merged.push({
       ...item,
+      url: baseUrl,
+      referralUrl, // ⬅️ always re-masked via /api/track
       seo: chooseSeo,
       firstSeenAt: prev?.firstSeenAt || nowISO,
       lastSeenAt: nowISO,
@@ -309,10 +340,20 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
     });
   }
 
+  // 2) Items that disappeared from fresh crawl → archive them, re-mask referralUrl
   for (const prev of existing) {
     if (!fresh.find((x) => x.slug === prev.slug)) {
+      const baseUrl = prev.url || null;
+      const referralUrl = buildTrackedReferral({
+        slug: prev.slug,
+        cat,
+        url: baseUrl,
+      });
+
       merged.push({
         ...prev,
+        url: baseUrl,
+        referralUrl, // ⬅️ re-masked even for old entries
         archived: true,
         lastSeenAt: prev.lastSeenAt || nowISO,
         seo: isGoodSEO(prev.seo)
@@ -330,10 +371,6 @@ function mergeWithHistoryActiveCap(cat, fresh, cap) {
 // ───────────────────────────────────────────────────────────────────────────────
 async function main() {
   ensureDir(DATA_DIR);
-
-  // Initialise engine (no inline CTA/subtitle generation here)
-  createCtaEngine();
-  console.log("✅ CTA Engine ready");
 
   console.log("⏳ Discovering AppSumo products…");
   const discovered = await discoverProductUrls();
@@ -358,7 +395,7 @@ async function main() {
           const titleClean = (og.title || "").split(/\s*[-–—]\s*/)[0].trim();
           const cat = classify(titleClean || og.title || "", url);
 
-          // Keep BOTH title + description so ctaEngine.enrichDeals can be context-aware
+          // Keep BOTH title + description so CTA Engine (in master-cron) can be context-aware
           return normalizeEntry({
             slug,
             title: titleClean || slug?.replace(/[-_]/g, " ") || "Untitled",
@@ -413,9 +450,20 @@ async function main() {
       continue;
     }
 
-    // Normalise → Enrich (context-aware) → Merge
-    let cleaned = normalizeFeed(arr);                 // preserves title + description
-    cleaned = enrichDeals(cleaned);                   // ⬅️ CTA/subtitle generated ONLY here
+    // Normalise structural fields (title, slug, description, image, url)
+    let cleaned = normalizeFeed(arr);
+
+    // Re-enforce referral mask AFTER normalization so nothing strips our tracking URL
+    cleaned = cleaned.map((d) => ({
+      ...d,
+      referralUrl: buildTrackedReferral({
+        slug: d.slug,
+        cat,
+        url: d.url,
+      }),
+    }));
+
+    // Merge with history + active cap, preserving archive and re-masking legacy referrals
     const merged = mergeWithHistoryActiveCap(cat, cleaned, MAX_PER_CATEGORY);
 
     writeJson(`appsumo-${cat}.json`, merged);
@@ -424,7 +472,9 @@ async function main() {
     );
   }
 
-  console.log("\n✨ All silos refreshed (v10.1 deterministic + CTA Engine context-aware enrichment).");
+  console.log(
+    "\n✨ All silos refreshed (v11.0: masked referrals enforced, CTA generation delegated to master-cron)."
+  );
 }
 
 // Execute
