@@ -1,21 +1,22 @@
 /**
  * /scripts/referral-repair.js
- * TinmanApps — Referral Repair Engine v2.0
- * “Zero Raw URLs • Absolute Referral Purity • Deterministic Self-Healing”
+ * TinmanApps — Referral Repair Engine v3.0
+ * “Canonical Slug • Zero Raw Product URLs • Deterministic Self-Healing”
  * ───────────────────────────────────────────────────────────────────────────────
  * PURPOSE
  *   Enforces TOTAL REFERRAL HYGIENE inside referral-map.json:
  *
  *   Repairs:
- *     • malformed or unsafe slug
+ *     • malformed or unsafe slug (canonical NFKD slug, identical to referral-map.js)
  *     • missing/unsafe/malformed category
- *     • missing/malformed sourceUrl
+ *     • missing/malformed sourceUrl (raw product URL allowed ONLY here)
  *     • ANY masked URL not equal to REF_PREFIX + encodeURIComponent(sourceUrl)
- *     • ANY trackPath not strictly internal (/api/track?... only)
- *     • forbids ANY external link in trackPath or masked
+ *     • ANY trackPath not strictly internal via SITE_ORIGIN + /api/track
+ *       (deal, cat, redirect={masked})
+ *     • forbids ANY raw product URLs in masked or trackPath
  *     • cleans archived → boolean
  *
- *   ZERO raw external URLs survive this pass.
+ *   ZERO raw product URLs survive this pass outside sourceUrl.
  *   100% offline, deterministic, safe for Render cron.
  *
  * OUTPUT
@@ -39,8 +40,13 @@ const DATA_DIR = path.join(ROOT, "data");
 const MAP_FILE = path.join(DATA_DIR, "referral-map.json");
 const PREV_FILE = path.join(DATA_DIR, "referral-map-prev.json");
 
-// Safe static referral prefix
-const REF_PREFIX = "https://appsumo.8odi.net/9L0P95?u=";
+// Env-aligned origins
+const SITE_ORIGIN =
+  process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
+
+// Safe static referral prefix (AppSumo Impact masked base)
+const REF_PREFIX =
+  process.env.REF_PREFIX || "https://appsumo.8odi.net/9L0P95?u=";
 
 // Allowed categories (deterministic, lower-case)
 const VALID_CATS = new Set([
@@ -69,40 +75,62 @@ function saveJson(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2), "utf8");
 }
 
-function normaliseSlug(s) {
+// Canonical slug — MUST MATCH referral-map.js / feedNormalizer.js
+function canonicalSlug(s = "") {
   return String(s || "")
     .toLowerCase()
+    .normalize("NFKD")
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/(^-|-$)/g, "")
     .trim();
-}
-
-function trackPathFor(slug, cat) {
-  return `/api/track?deal=${encodeURIComponent(slug)}&cat=${encodeURIComponent(cat)}`;
-}
-
-function maskedUrlFor(url) {
-  return REF_PREFIX + encodeURIComponent(url || "");
-}
-
-// Safety checkers
-function isInternalTrackPath(v = "") {
-  return typeof v === "string" && v.startsWith("/api/track");
-}
-
-function isExternal(v = "") {
-  return /^https?:\/\//i.test(v);
 }
 
 function isNonEmptyString(v) {
   return typeof v === "string" && v.trim() !== "";
 }
 
+function isExternal(v = "") {
+  return /^https?:\/\//i.test(String(v || ""));
+}
+
+// trackPath is considered “internal” if it is either:
+//   • absolute:  `${SITE_ORIGIN}/api/track?...`
+//   • legacy:    `/api/track?...`
+function isInternalTrackPath(v = "") {
+  if (!isNonEmptyString(v)) return false;
+  const val = String(v).trim();
+  if (val.startsWith("/api/track")) return true;
+  if (val.startsWith(SITE_ORIGIN + "/api/track")) return true;
+  return false;
+}
+
+function maskedUrlFor(url) {
+  return REF_PREFIX + encodeURIComponent(url || "");
+}
+
+// Canonical trackPath builder aligned with referral-map v3.0
+function trackPathFor(slug, cat, masked) {
+  const s = encodeURIComponent(slug || "");
+  const c = encodeURIComponent(cat || "software");
+  const redirect = encodeURIComponent(masked || "");
+  return `${SITE_ORIGIN}/api/track?deal=${s}&cat=${c}&redirect=${redirect}`;
+}
+
+// Hard guard: any URL that is not under REF_PREFIX is treated as “raw product”
+// for the purposes of masked / trackPath fields.
+function isRawProductUrl(v = "") {
+  const val = String(v || "");
+  if (!isExternal(val)) return false;
+  // Allowed affiliate base for masked:
+  if (val.startsWith(REF_PREFIX)) return false;
+  return true;
+}
+
 (function main() {
   console.log("────────────────────────────────────────────────────────");
-  console.log(" TinmanApps — Referral Repair Engine v2.0");
+  console.log(" TinmanApps — Referral Repair Engine v3.0");
   console.log("────────────────────────────────────────────────────────\n");
 
   const map = loadJsonSafe(MAP_FILE);
@@ -111,7 +139,7 @@ function isNonEmptyString(v) {
     process.exit(1);
   }
 
-  const repaired = { items: {} };
+  const repaired = { ...map, items: {} };
   const items = map.items || {};
 
   let repairCount = 0;
@@ -120,50 +148,48 @@ function isNonEmptyString(v) {
   for (const [rawSlug, entry] of Object.entries(items)) {
     const fixed = { ...entry };
 
-    // 1. Slug normalisation
-    const cleanSlug = normaliseSlug(rawSlug);
+    // 1. Slug normalisation (canonical global slug)
+    const cleanSlug = canonicalSlug(rawSlug);
     if (cleanSlug !== rawSlug) repairCount++;
 
     // 2. Category validation
     let cat = String(fixed.category || "").toLowerCase().trim();
     if (!VALID_CATS.has(cat)) {
       cat = "software";
-      fixed.category = cat;
-      repairCount++;
-    } else {
-      fixed.category = cat;
-    }
-
-    // 3. sourceUrl sanity (raw URL allowed ONLY here)
-    //    If malformed or unsafe, we null it (do not guess)
-    const src = isNonEmptyString(fixed.sourceUrl) ? fixed.sourceUrl.trim() : "";
-    if (!src || !isExternal(src)) {
-      // We accept only real external product URLs as sourceUrl
-      fixed.sourceUrl = "";
       repairCount++;
     }
+    fixed.category = cat;
 
-    // 4. masked URL (must ALWAYS be correctly generated)
-    const correctMasked = maskedUrlFor(fixed.sourceUrl || "");
+    // 3. sourceUrl sanity (raw external product URL allowed ONLY here)
+    //    If malformed, non-external, or clearly not HTTP(S), we null it (no guessing).
+    const rawSrc = isNonEmptyString(fixed.sourceUrl) ? fixed.sourceUrl.trim() : "";
+    const srcIsExternal = isExternal(rawSrc);
+    const sourceUrl = srcIsExternal ? rawSrc : "";
+    if (sourceUrl !== fixed.sourceUrl) {
+      fixed.sourceUrl = sourceUrl;
+      repairCount++;
+    }
+
+    // 4. masked URL (must ALWAYS be REF_PREFIX + encodeURIComponent(sourceUrl))
+    const correctMasked = maskedUrlFor(sourceUrl);
     if (fixed.masked !== correctMasked) {
       fixed.masked = correctMasked;
       repairCount++;
     }
 
-    // 5. trackPath (must ALWAYS be internal + correct)
-    const correctTrack = trackPathFor(cleanSlug, cat);
+    // 5. trackPath (must ALWAYS be SITE_ORIGIN/api/track?deal=...&cat=...&redirect={masked})
+    const correctTrack = trackPathFor(cleanSlug, cat, correctMasked);
     if (!isInternalTrackPath(fixed.trackPath) || fixed.trackPath !== correctTrack) {
       fixed.trackPath = correctTrack;
       repairCount++;
     }
 
-    // 6. Hard block ANY raw affiliate URLs
-    // (We never store them directly in masked/track inside the map)
-    if (isExternal(fixed.masked) && !fixed.masked.startsWith(REF_PREFIX)) {
+    // 6. Hard block ANY raw product URLs from masked/trackPath
+    if (isRawProductUrl(fixed.masked)) {
       fixed.masked = correctMasked;
       repairCount++;
     }
-    if (isExternal(fixed.trackPath)) {
+    if (isRawProductUrl(fixed.trackPath)) {
       fixed.trackPath = correctTrack;
       repairCount++;
     }
