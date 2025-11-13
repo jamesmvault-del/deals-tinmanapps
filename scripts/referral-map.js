@@ -1,31 +1,30 @@
 /**
  * /scripts/referral-map.js
- * TinmanApps — Referral Map Builder v2.0
- * “Canonical Slug Authority • Masked Integrity • Zero Raw Leakage”
+ * TinmanApps — Referral Map Builder v3.0
+ * “Global Canonical Slug • Masked Integrity • Zero Raw Leakage”
  * ───────────────────────────────────────────────────────────────────────────────
  * WHAT IT DOES
  * • Scans /data/appsumo-*.json silos (active + archived)
  * • Builds the canonical slug → referral map (sourceUrl → maskedUrl → trackPath)
- * • Enforces strict slug normalisation identical to feedNormalizer.js
+ * • Uses the unified canonicalSlug() (NFKD, ASCII-safe) shared across the system
  * • Ensures masked referral integrity (REF_PREFIX + encodeURIComponent(sourceUrl))
- * • Ensures trackPath uses ONLY canonical slugs
+ * • Ensures trackPath uses ONLY canonical slugs and valid categories
  * • Deterministic ordering + Render-safe
- * 
+ *
  * WHY
  * • 1:1 canonical source for referral resolution used by /api/track
- * • Prevent slug drift between updateFeed → normalizeFeed → referral-map
- * 
+ * • Prevent slug drift between updateFeed → normalizeFeed → referral-map → CTA engine
+ *
  * GUARANTEES
  * • No raw URLs leak into any field except sourceUrl
- * • Slugs are canonical and stable
- * • Deterministic build output
- * • Infallible even with malformed silo data
- * 
+ * • Slugs are canonical and stable across all pipelines
+ * • Deterministic build output even under malformed silo data
+ *
  * HOW TO RUN
  *   node scripts/referral-map.js
- * 
+ *
  * ENV
- *   SITE_URL (optional)  → e.g. https://deals.tinmanapps.com
+ *   SITE_URL  (optional) → e.g. https://deals.tinmanapps.com
  *   REF_PREFIX (optional)
  * ───────────────────────────────────────────────────────────────────────────────
  */
@@ -48,8 +47,7 @@ const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 
 const REF_PREFIX =
-  process.env.REF_PREFIX ||
-  "https://appsumo.8odi.net/9L0P95?u=";
+  process.env.REF_PREFIX || "https://appsumo.8odi.net/9L0P95?u=";
 
 // Allowed canonical categories aligned with whole system
 const VALID_CATS = new Set([
@@ -61,20 +59,21 @@ const VALID_CATS = new Set([
   "web",
   "ecommerce",
   "creative",
-  "software"
+  "software",
 ]);
 
 // ───────────────────────────────────────────────
-// Canonical Slug Normaliser
-// (MUST MATCH normalizeFeed.js EXACTLY)
+// Global Canonical Slug Normaliser
+// (MUST MATCH unified slug logic used in updateFeed + feedNormalizer)
 // ───────────────────────────────────────────────
 function canonicalSlug(t = "") {
   return String(t || "")
     .toLowerCase()
+    .normalize("NFKD") // handle diacritics
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/(^-|-$)/g, "")
     .trim();
 }
 
@@ -86,12 +85,15 @@ function hashStr(s = "") {
   return h >>> 0;
 }
 
-// Extract slug from URL, canonicalise it after
+// Extract slug from URL, then canonicalise it
 function slugFromUrl(u = "", fallback = "") {
   try {
     const m = String(u).match(/\/products\/([^/]+)\/?$/i);
     if (m) return canonicalSlug(m[1]);
-  } catch {}
+  } catch {
+    // ignore and fall through
+  }
+
   const base = fallback || "";
   const s = canonicalSlug(base);
   return s || `deal-${hashStr(u)}`;
@@ -124,6 +126,27 @@ function buildTrackPath({ slug, cat, masked }) {
   return `${SITE_ORIGIN}/api/track?deal=${s}&cat=${c}&redirect=${redirect}`;
 }
 
+// Derive a canonical slug from silo entry + URL using unified rules
+function deriveCanonicalSlug(entry, sourceUrl) {
+  const fromSlug = entry.slug ? canonicalSlug(entry.slug) : "";
+  const fromTitle = entry.title
+    ? canonicalSlug(entry.title)
+    : "";
+
+  // Priority: existing slug → title → URL
+  if (fromSlug) return fromSlug;
+  if (fromTitle) return fromTitle;
+  return slugFromUrl(sourceUrl);
+}
+
+// Canonicalise category against VALID_CATS
+function canonicalCategory(entryCat, fileCat) {
+  let category =
+    (entryCat || fileCat || "software").toString().toLowerCase().trim();
+  if (!VALID_CATS.has(category)) category = "software";
+  return category;
+}
+
 // ───────────────────────────────────────────────
 // MASTER BUILDER
 // ───────────────────────────────────────────────
@@ -139,16 +162,16 @@ function buildReferralMap() {
       total: 0,
       categories: [],
       items: {},
-      notes: "No silos present. Run updateFeed.js first."
+      notes: "No silos present. Run updateFeed.js first.",
     };
   }
 
   const items = new Map();
-  const categories = [];
+  const catSet = new Set();
 
   for (const file of files) {
-    const cat = file.replace("appsumo-", "").replace(".json", "");
-    categories.push(cat);
+    const fileCat = file.replace("appsumo-", "").replace(".json", "");
+    catSet.add(fileCat);
 
     const data = readJsonSafe(path.join(DATA_DIR, file), []);
     if (!Array.isArray(data)) continue;
@@ -157,17 +180,11 @@ function buildReferralMap() {
       const sourceUrl = d.url || d.link || d.product_url || null;
       if (!sourceUrl) continue;
 
-      // Canonical slug ALWAYS wins
-      const slugInput =
-        d.slug ||
-        (d.title ? d.title.toLowerCase().replace(/[^\w\s-]/g, "") : null) ||
-        slugFromUrl(sourceUrl);
-
-      const slug = canonicalSlug(slugInput) || slugFromUrl(sourceUrl);
+      // Canonical slug (global logic)
+      const slug = deriveCanonicalSlug(d, sourceUrl);
 
       // Canonical category
-      let category = (d.category || cat || "software").toLowerCase().trim();
-      if (!VALID_CATS.has(category)) category = "software";
+      const category = canonicalCategory(d.category, fileCat);
 
       const masked = maskedReferral(sourceUrl);
       const trackPath = buildTrackPath({ slug, cat: category, masked });
@@ -181,7 +198,7 @@ function buildReferralMap() {
         archived: !!d.archived,
         firstSeenAt: d.firstSeenAt || null,
         lastSeenAt: d.lastSeenAt || null,
-        lastmodAt: d.lastmodAt || null
+        lastmodAt: d.lastmodAt || null,
       };
 
       // Resolve conflicts → latest lastSeenAt wins
@@ -209,8 +226,8 @@ function buildReferralMap() {
     site: SITE_ORIGIN,
     refPrefix: REF_PREFIX,
     total: ordered.length,
-    categories: categories.sort((a, b) => a.localeCompare(b)),
-    items: keyed
+    categories: Array.from(catSet).sort((a, b) => a.localeCompare(b)),
+    items: keyed,
   };
 }
 
@@ -226,7 +243,7 @@ function buildReferralMap() {
     const active = map.total - archived;
 
     console.log("────────────────────────────────────────────────────────");
-    console.log(" Referral Map Builder v2.0 — Canonical Slug Authority");
+    console.log(" Referral Map Builder v3.0 — Global Canonical Slug Standard");
     console.log("────────────────────────────────────────────────────────");
     console.log(` Output        : ${OUT_FILE}`);
     console.log(` SITE_URL      : ${SITE_ORIGIN}`);
