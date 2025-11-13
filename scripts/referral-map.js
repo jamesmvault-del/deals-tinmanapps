@@ -1,30 +1,32 @@
 /**
  * /scripts/referral-map.js
- * TinmanApps — Referral Map Builder v1.0
- * “Direct Masked Integrity • Deterministic • Render-Safe • Zero Deps”
+ * TinmanApps — Referral Map Builder v2.0
+ * “Canonical Slug Authority • Masked Integrity • Zero Raw Leakage”
  * ───────────────────────────────────────────────────────────────────────────────
  * WHAT IT DOES
- * • Scans /data/appsumo-*.json silos
- * • Builds a single referral map for ALL known deals (active + archived)
- * • For each deal, constructs a masked referral URL using REF_PREFIX
- * • Emits /data/referral-map.json with deterministic structure
- *
+ * • Scans /data/appsumo-*.json silos (active + archived)
+ * • Builds the canonical slug → referral map (sourceUrl → maskedUrl → trackPath)
+ * • Enforces strict slug normalisation identical to feedNormalizer.js
+ * • Ensures masked referral integrity (REF_PREFIX + encodeURIComponent(sourceUrl))
+ * • Ensures trackPath uses ONLY canonical slugs
+ * • Deterministic ordering + Render-safe
+ * 
  * WHY
- * • Central source of truth for masked referral targets
- * • Stable for /api/track, category pages, and any future endpoints
- *
+ * • 1:1 canonical source for referral resolution used by /api/track
+ * • Prevent slug drift between updateFeed → normalizeFeed → referral-map
+ * 
  * GUARANTEES
- * • No network calls, no external deps
- * • Deterministic output ordering
- * • Slug-safe, category-pure, referral-safe
- *
+ * • No raw URLs leak into any field except sourceUrl
+ * • Slugs are canonical and stable
+ * • Deterministic build output
+ * • Infallible even with malformed silo data
+ * 
  * HOW TO RUN
  *   node scripts/referral-map.js
- *
- * ENV (optional)
- *   SITE_URL   → used only to show a ready-to-use /api/track path in the JSON
- *   REF_PREFIX → override masked affiliate base (default: AppSumo Impact code)
- *                Example: https://appsumo.8odi.net/9L0P95?u=
+ * 
+ * ENV
+ *   SITE_URL (optional)  → e.g. https://deals.tinmanapps.com
+ *   REF_PREFIX (optional)
  * ───────────────────────────────────────────────────────────────────────────────
  */
 
@@ -32,32 +34,70 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// ───────────────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────
 // Paths / Env
-// ───────────────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ROOT_DIR = path.resolve(__dirname, "..");
-const DATA_DIR = path.join(ROOT_DIR, "data");
+const ROOT = path.resolve(__dirname, "..");
+const DATA_DIR = path.join(ROOT, "data");
 const OUT_FILE = path.join(DATA_DIR, "referral-map.json");
 
 const SITE_ORIGIN =
   process.env.SITE_URL?.replace(/\/$/, "") || "https://deals.tinmanapps.com";
 
-// Keep this aligned with the rest of the system (categories.js, updateFeed.js).
 const REF_PREFIX =
   process.env.REF_PREFIX ||
-  "https://appsumo.8odi.net/9L0P95?u="; // masked affiliate base
+  "https://appsumo.8odi.net/9L0P95?u=";
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Utilities
-// ───────────────────────────────────────────────────────────────────────────────
-function ensureDir(p) {
-  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+// Allowed canonical categories aligned with whole system
+const VALID_CATS = new Set([
+  "ai",
+  "marketing",
+  "courses",
+  "productivity",
+  "business",
+  "web",
+  "ecommerce",
+  "creative",
+  "software"
+]);
+
+// ───────────────────────────────────────────────
+// Canonical Slug Normaliser
+// (MUST MATCH normalizeFeed.js EXACTLY)
+// ───────────────────────────────────────────────
+function canonicalSlug(t = "") {
+  return String(t || "")
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .trim();
 }
 
-function readJsonSafe(file, fallback = null) {
+// Deterministic fallback hash
+function hashStr(s = "") {
+  let h = 0;
+  const t = String(s);
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+  return h >>> 0;
+}
+
+// Extract slug from URL, canonicalise it after
+function slugFromUrl(u = "", fallback = "") {
+  try {
+    const m = String(u).match(/\/products\/([^/]+)\/?$/i);
+    if (m) return canonicalSlug(m[1]);
+  } catch {}
+  const base = fallback || "";
+  const s = canonicalSlug(base);
+  return s || `deal-${hashStr(u)}`;
+}
+
+function readJsonSafe(file, fallback = []) {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
@@ -73,46 +113,22 @@ function listCategoryFiles() {
     .sort((a, b) => a.localeCompare(b));
 }
 
-function toSlugFromUrl(u = "", fallbackTitle = "") {
-  try {
-    const m = String(u).match(/\/products\/([^/]+)\/?$/i);
-    if (m) return m[1];
-  } catch {}
-  const base =
-    fallbackTitle ||
-    String(u).toLowerCase().replace(/[^\w\s-]/g, "").trim() ||
-    "";
-  return base.replace(/\s+/g, "-") || `deal-${hashStr(u)}`;
-}
-
-function baseUrl(d) {
-  return d?.url || d?.link || d?.product_url || null;
-}
-
-function hashStr(s = "") {
-  let h = 0;
-  const t = String(s);
-  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
-  return h >>> 0;
-}
-
-function maskedReferral(rawUrl) {
-  return REF_PREFIX + encodeURIComponent(rawUrl);
+function maskedReferral(sourceUrl) {
+  return REF_PREFIX + encodeURIComponent(sourceUrl || "");
 }
 
 function buildTrackPath({ slug, cat, masked }) {
-  // Provided as a convenience (clients can also construct this on the fly)
   const redirect = encodeURIComponent(masked);
   const s = encodeURIComponent(slug);
   const c = encodeURIComponent(cat);
   return `${SITE_ORIGIN}/api/track?deal=${s}&cat=${c}&redirect=${redirect}`;
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Core: build map
-// ───────────────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────
+// MASTER BUILDER
+// ───────────────────────────────────────────────
 function buildReferralMap() {
-  ensureDir(DATA_DIR);
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
   const files = listCategoryFiles();
   if (!files.length) {
@@ -121,49 +137,54 @@ function buildReferralMap() {
       site: SITE_ORIGIN,
       refPrefix: REF_PREFIX,
       total: 0,
-      items: {},
       categories: [],
-      notes:
-        "No appsumo-*.json files found. Run scripts/updateFeed.js first to populate silos.",
+      items: {},
+      notes: "No silos present. Run updateFeed.js first."
     };
   }
 
-  // Items keyed by slug; latest lastSeenAt wins for conflicts
   const items = new Map();
   const categories = [];
 
   for (const file of files) {
-    const cat = file.replace(/^appsumo-/, "").replace(/\.json$/, "");
+    const cat = file.replace("appsumo-", "").replace(".json", "");
     categories.push(cat);
 
-    const full = path.join(DATA_DIR, file);
-    const data = readJsonSafe(full, []);
+    const data = readJsonSafe(path.join(DATA_DIR, file), []);
     if (!Array.isArray(data)) continue;
 
     for (const d of data) {
-      const raw = baseUrl(d);
-      if (!raw) continue;
+      const sourceUrl = d.url || d.link || d.product_url || null;
+      if (!sourceUrl) continue;
 
-      const slug =
+      // Canonical slug ALWAYS wins
+      const slugInput =
         d.slug ||
-        toSlugFromUrl(raw, (d.title || "").toLowerCase().replace(/[^\w\s-]/g, ""));
+        (d.title ? d.title.toLowerCase().replace(/[^\w\s-]/g, "") : null) ||
+        slugFromUrl(sourceUrl);
 
-      const masked = maskedReferral(raw);
-      const trackPath = buildTrackPath({ slug, cat, masked });
+      const slug = canonicalSlug(slugInput) || slugFromUrl(sourceUrl);
+
+      // Canonical category
+      let category = (d.category || cat || "software").toLowerCase().trim();
+      if (!VALID_CATS.has(category)) category = "software";
+
+      const masked = maskedReferral(sourceUrl);
+      const trackPath = buildTrackPath({ slug, cat: category, masked });
 
       const entry = {
         slug,
-        category: (d.category || cat || "software").toLowerCase(),
-        sourceUrl: raw,
+        category,
+        sourceUrl,
         masked,
-        trackPath, // convenience path ready to use
+        trackPath,
         archived: !!d.archived,
         firstSeenAt: d.firstSeenAt || null,
         lastSeenAt: d.lastSeenAt || null,
-        lastmodAt: d.lastmodAt || null,
+        lastmodAt: d.lastmodAt || null
       };
 
-      // Conflict resolution: keep the one with the newest lastSeenAt (or newest by file order)
+      // Resolve conflicts → latest lastSeenAt wins
       if (items.has(slug)) {
         const prev = items.get(slug);
         const prevTime = prev.lastSeenAt ? Date.parse(prev.lastSeenAt) : 0;
@@ -180,7 +201,6 @@ function buildReferralMap() {
     a.slug.localeCompare(b.slug)
   );
 
-  // Emit as object keyed by slug for O(1) lookup at runtime
   const keyed = {};
   for (const row of ordered) keyed[row.slug] = row;
 
@@ -190,34 +210,31 @@ function buildReferralMap() {
     refPrefix: REF_PREFIX,
     total: ordered.length,
     categories: categories.sort((a, b) => a.localeCompare(b)),
-    items: keyed,
+    items: keyed
   };
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Main
-// ───────────────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────
+// MAIN
+// ───────────────────────────────────────────────
 (function main() {
   try {
     const map = buildReferralMap();
     fs.writeFileSync(OUT_FILE, JSON.stringify(map, null, 2), "utf8");
 
-    const activeFiles = listCategoryFiles().length;
-    const archivedCount = Object.values(map.items).filter((x) => x.archived)
-      .length;
-    const activeCount = map.total - archivedCount;
+    const archived = Object.values(map.items).filter((x) => x.archived).length;
+    const active = map.total - archived;
 
     console.log("────────────────────────────────────────────────────────");
-    console.log(" Referral Map Builder — Direct Masked Integrity (Option A)");
+    console.log(" Referral Map Builder v2.0 — Canonical Slug Authority");
     console.log("────────────────────────────────────────────────────────");
-    console.log(` Data dir      : ${DATA_DIR}`);
     console.log(` Output        : ${OUT_FILE}`);
     console.log(` SITE_URL      : ${SITE_ORIGIN}`);
     console.log(` REF_PREFIX    : ${REF_PREFIX}`);
-    console.log(` Silos scanned : ${activeFiles}`);
+    console.log(` Silos scanned : ${map.categories.length}`);
     console.log(` Deals total   : ${map.total}`);
-    console.log(` ├─ active     : ${activeCount}`);
-    console.log(` └─ archived   : ${archivedCount}`);
+    console.log(` ├─ active     : ${active}`);
+    console.log(` └─ archived   : ${archived}`);
     console.log(" Status        : ✅ referral-map.json written");
     console.log("────────────────────────────────────────────────────────");
     process.exit(0);
