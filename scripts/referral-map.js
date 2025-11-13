@@ -1,15 +1,15 @@
 /**
  * /scripts/referral-map.js
- * TinmanApps — Referral Map Builder v3.0
+ * TinmanApps — Referral Map Builder v3.1
  * “Global Canonical Slug • Masked Integrity • Zero Raw Leakage”
  * ───────────────────────────────────────────────────────────────────────────────
  * WHAT IT DOES
  * • Scans /data/appsumo-*.json silos (active + archived)
  * • Builds the canonical slug → referral map (sourceUrl → maskedUrl → trackPath)
+ * • ALWAYS regenerates masked + trackPath from sourceUrl using REF_PREFIX + SITE_ORIGIN
  * • Uses the unified canonicalSlug() (NFKD, ASCII-safe) shared across the system
- * • Ensures masked referral integrity (REF_PREFIX + encodeURIComponent(sourceUrl))
  * • Ensures trackPath uses ONLY canonical slugs and valid categories
- * • Deterministic ordering + Render-safe
+ * • Deterministic ordering + Render-safe, idempotent on every run
  *
  * WHY
  * • 1:1 canonical source for referral resolution used by /api/track
@@ -18,14 +18,15 @@
  * GUARANTEES
  * • No raw URLs leak into any field except sourceUrl
  * • Slugs are canonical and stable across all pipelines
+ * • Categories are canonical and constrained to VALID_CATS
  * • Deterministic build output even under malformed silo data
  *
  * HOW TO RUN
  *   node scripts/referral-map.js
  *
  * ENV
- *   SITE_URL  (optional) → e.g. https://deals.tinmanapps.com
- *   REF_PREFIX (optional)
+ *   SITE_URL   (optional) → e.g. https://deals.tinmanapps.com
+ *   REF_PREFIX (optional) → affiliate base, e.g. https://appsumo.8odi.net/9L0P95?u=
  * ───────────────────────────────────────────────────────────────────────────────
  */
 
@@ -64,7 +65,7 @@ const VALID_CATS = new Set([
 
 // ───────────────────────────────────────────────
 // Global Canonical Slug Normaliser
-// (MUST MATCH unified slug logic used in updateFeed + feedNormalizer)
+// (MUST MATCH unified slug logic used in updateFeed + feedNormalizer + referral-repair)
 // ───────────────────────────────────────────────
 function canonicalSlug(t = "") {
   return String(t || "")
@@ -115,10 +116,12 @@ function listCategoryFiles() {
     .sort((a, b) => a.localeCompare(b));
 }
 
+// Only ever build masked URLs from sourceUrl — we NEVER trust existing masked fields
 function maskedReferral(sourceUrl) {
   return REF_PREFIX + encodeURIComponent(sourceUrl || "");
 }
 
+// Only ever build trackPath from canonical slug + category + masked
 function buildTrackPath({ slug, cat, masked }) {
   const redirect = encodeURIComponent(masked);
   const s = encodeURIComponent(slug);
@@ -129,9 +132,7 @@ function buildTrackPath({ slug, cat, masked }) {
 // Derive a canonical slug from silo entry + URL using unified rules
 function deriveCanonicalSlug(entry, sourceUrl) {
   const fromSlug = entry.slug ? canonicalSlug(entry.slug) : "";
-  const fromTitle = entry.title
-    ? canonicalSlug(entry.title)
-    : "";
+  const fromTitle = entry.title ? canonicalSlug(entry.title) : "";
 
   // Priority: existing slug → title → URL
   if (fromSlug) return fromSlug;
@@ -177,6 +178,8 @@ function buildReferralMap() {
     if (!Array.isArray(data)) continue;
 
     for (const d of data) {
+      // We ONLY trust raw product URL fields here; any existing masked/trackPath
+      // in the silo are ignored and rebuilt in this script.
       const sourceUrl = d.url || d.link || d.product_url || null;
       if (!sourceUrl) continue;
 
@@ -186,6 +189,7 @@ function buildReferralMap() {
       // Canonical category
       const category = canonicalCategory(d.category, fileCat);
 
+      // ALWAYS rebuild masked + trackPath from sourceUrl + canonical slug/category
       const masked = maskedReferral(sourceUrl);
       const trackPath = buildTrackPath({ slug, cat: category, masked });
 
@@ -201,7 +205,7 @@ function buildReferralMap() {
         lastmodAt: d.lastmodAt || null,
       };
 
-      // Resolve conflicts → latest lastSeenAt wins
+      // Resolve conflicts → latest lastSeenAt wins (deterministic, time-aware)
       if (items.has(slug)) {
         const prev = items.get(slug);
         const prevTime = prev.lastSeenAt ? Date.parse(prev.lastSeenAt) : 0;
@@ -214,49 +218,4 @@ function buildReferralMap() {
   }
 
   // Deterministic ordering by slug
-  const ordered = Array.from(items.values()).sort((a, b) =>
-    a.slug.localeCompare(b.slug)
-  );
-
-  const keyed = {};
-  for (const row of ordered) keyed[row.slug] = row;
-
-  return {
-    generatedAt: new Date().toISOString(),
-    site: SITE_ORIGIN,
-    refPrefix: REF_PREFIX,
-    total: ordered.length,
-    categories: Array.from(catSet).sort((a, b) => a.localeCompare(b)),
-    items: keyed,
-  };
-}
-
-// ───────────────────────────────────────────────
-// MAIN
-// ───────────────────────────────────────────────
-(function main() {
-  try {
-    const map = buildReferralMap();
-    fs.writeFileSync(OUT_FILE, JSON.stringify(map, null, 2), "utf8");
-
-    const archived = Object.values(map.items).filter((x) => x.archived).length;
-    const active = map.total - archived;
-
-    console.log("────────────────────────────────────────────────────────");
-    console.log(" Referral Map Builder v3.0 — Global Canonical Slug Standard");
-    console.log("────────────────────────────────────────────────────────");
-    console.log(` Output        : ${OUT_FILE}`);
-    console.log(` SITE_URL      : ${SITE_ORIGIN}`);
-    console.log(` REF_PREFIX    : ${REF_PREFIX}`);
-    console.log(` Silos scanned : ${map.categories.length}`);
-    console.log(` Deals total   : ${map.total}`);
-    console.log(` ├─ active     : ${active}`);
-    console.log(` └─ archived   : ${archived}`);
-    console.log(" Status        : ✅ referral-map.json written");
-    console.log("────────────────────────────────────────────────────────");
-    process.exit(0);
-  } catch (err) {
-    console.error("❌ referral-map failed:", err?.message || err);
-    process.exit(1);
-  }
-})();
+  const ordered = Array
