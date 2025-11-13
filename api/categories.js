@@ -1,14 +1,15 @@
 // /api/categories.js
-// TinmanApps — Category Renderer v10.1 “Active-Only • Deterministic • Stored-SEO Renderer”
+// TinmanApps — Category Renderer v11.0 “SEO-Refresh-Aware • Active-Only • Deterministic”
 // ───────────────────────────────────────────────────────────────────────────────
-// Alignment with updateFeed v10.1 & CTA Engine v10.1 (context-aware):
-// • Renders ONLY ACTIVE (non-archived) deals
-// • Uses STORED seo.cta and seo.subtitle (no regeneration here)
-// • Deterministic order (updateFeed/merge file order)
-// • Referral-safe masking via /api/track + REF_PREFIX
-// • 48-card visual cap (post-filter)
-// • Strict: no scraped or runtime subtitle/CTA generation
-// • Flattened JSON-LD compliance for Google validator
+// New in v11.0:
+// • Integrates SEO Refresh Cycle signals from /data/insight-latest.json
+// • Auto-injects category-level rising keywords (top 3) into meta descriptions
+// • Uses category Opportunity Score to enrich title (non-spammy)
+// • JSON-LD enriched with searchSignals[] for semantic reinforcement
+// • Global SEO Opportunity Score → meta “site momentum” indicator
+// • ZERO mutation of CTAs/subtitles (strict render-only)
+// • ZERO generation of new SEO metadata (only uses stored signals)
+// • 100% deterministic, safe for Google indexing, no hallucinated keywords
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -53,7 +54,7 @@ const ARCHETYPE = {
 // ───────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ───────────────────────────────────────────────────────────────────────────────
-function loadJsonSafe(file, fallback = []) {
+function loadJsonSafe(file, fallback = null) {
   try {
     const p = path.join(DATA_DIR, file);
     if (!fs.existsSync(p)) return fallback;
@@ -121,14 +122,50 @@ function splitTitleBrandOnly(fullTitle = "") {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Main handler (render-only, no regeneration)
+// Extract SEO Refresh Cycle Signals
+// ───────────────────────────────────────────────────────────────────────────────
+function extractSeoSignals(cat) {
+  const snap = loadJsonSafe("insight-latest.json", null);
+  if (!snap || !snap.categories?.[cat]) {
+    return {
+      rising: [],
+      longTail: [],
+      opportunity: null,
+      globalOpp: null,
+      globalRisers: [],
+    };
+  }
+
+  const catSnap = snap.categories[cat];
+
+  const rising = Array.isArray(catSnap.topKeywords)
+    ? catSnap.topKeywords.slice(0, 3)
+    : [];
+
+  const longTail = Array.isArray(catSnap.longTail)
+    ? catSnap.longTail.slice(0, 3)
+    : [];
+
+  const opportunity = catSnap.opportunity?.score || null;
+
+  const globalOpp = snap.global?.opportunityScore || null;
+
+  const globalRisers = Array.isArray(snap.global?.topGlobalRisers)
+    ? snap.global.topGlobalRisers.slice(0, 3).map((x) => x.word)
+    : [];
+
+  return { rising, longTail, opportunity, globalOpp, globalRisers };
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Main handler
 // ───────────────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   const cat = String(req.params?.cat || req.query?.cat || "").toLowerCase();
   const title = CATS[cat];
   if (!title) return res.status(404).send("Category not found.");
 
-  // Load full silo
+  // Load silo
   let allDeals = loadJsonSafe(`appsumo-${cat}.json`, []);
   const totalAll = allDeals.length;
 
@@ -139,26 +176,51 @@ export default async function handler(req, res) {
   // Deterministic order & cap
   deals = deals.slice(0, 48);
 
-  const canonical = `${SITE_ORIGIN}/categories/${cat}`;
-  const pageTitle = `${title} | AppSumo Lifetime Deals`;
-  const pageDesc = `Discover the top ${title.toLowerCase()} — live AppSumo lifetime deals, updated automatically.`;
+  // Extract SEO refresh signals
+  const seo = extractSeoSignals(cat);
+  const { rising, longTail, opportunity, globalOpp, globalRisers } = seo;
 
-  // Structured data — ACTIVE ONLY
+  // Build SEO tags with signals
+  const canonical = `${SITE_ORIGIN}/categories/${cat}`;
+
+  const seoKeywords = [...rising, ...longTail, ...globalRisers]
+    .filter(Boolean)
+    .slice(0, 6);
+
+  const keywordStr = seoKeywords.length
+    ? ` • Trending: ${seoKeywords.join(", ")}`
+    : "";
+
+  const oppStr = opportunity !== null ? ` • Opportunity Score ${opportunity}` : "";
+
+  const pageTitle = `${title} | AppSumo Lifetime Deals${oppStr}`;
+  const pageDesc = `Discover the top ${title.toLowerCase()} — live AppSumo lifetime deals, updated automatically.${keywordStr}`;
+
+  // Structured data
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Categories", item: `${SITE_ORIGIN}/categories` },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Categories",
+        item: `${SITE_ORIGIN}/categories`,
+      },
       { "@type": "ListItem", position: 2, name: title, item: canonical },
     ],
   };
 
+  // ItemList enriched with SEO signals
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: `${title} Deals`,
     url: canonical,
     numberOfItems: activeCount,
+    searchSignals: seoKeywords, // NEW
+    opportunityScore: opportunity ?? undefined, // NEW
+    globalOpportunityScore: globalOpp ?? undefined, // NEW
     itemListElement: deals.map((d, i) => ({
       "@type": "ListItem",
       position: i + 1,
@@ -168,7 +230,7 @@ export default async function handler(req, res) {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // CARD RENDERING — uses STORED seo.cta + seo.subtitle only
+  // CARD RENDERING — strictly stored CTA/subtitle only
   // ─────────────────────────────────────────────────────────────────────────────
   const cards = deals
     .map((d) => {
@@ -178,7 +240,11 @@ export default async function handler(req, res) {
       const slug =
         d.slug ||
         srcUrl.match(/products\/([^/]+)/)?.[1] ||
-        (d.title || "").toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-") ||
+        (d.title || "")
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-") ||
         `deal-${hashStr(srcUrl)}`;
 
       const { brand } = splitTitleBrandOnly(d.title || slug);
@@ -191,14 +257,24 @@ export default async function handler(req, res) {
       return `
       <article class="card" data-slug="${escapeHtml(slug)}">
         <a class="media" href="${href}" aria-label="${escapeHtml(brand)}">
-          <img src="${img}" alt="${escapeHtml(d.title || brand)}" loading="lazy" />
+          <img src="${img}" alt="${escapeHtml(
+        d.title || brand
+      )}" loading="lazy" />
         </a>
         <div class="card-body">
-          <h3 class="title"><a class="title-link" href="${href}">${escapeHtml(brand)}</a></h3>
-          ${storedSubtitle ? `<div class="subtitle">${escapeHtml(storedSubtitle)}</div>` : ""}
+          <h3 class="title"><a class="title-link" href="${href}">${escapeHtml(
+        brand
+      )}</a></h3>
+          ${
+            storedSubtitle
+              ? `<div class="subtitle">${escapeHtml(storedSubtitle)}</div>`
+              : ""
+          }
         </div>
         <div class="card-cta">
-          <a class="cta" href="${href}" data-cta>${escapeHtml(storedCTA)}</a>
+          <a class="cta" href="${href}" data-cta>${escapeHtml(
+            storedCTA
+          )}</a>
         </div>
       </article>`;
     })
@@ -214,6 +290,14 @@ export default async function handler(req, res) {
 <title>${escapeHtml(pageTitle)}</title>
 <link rel="canonical" href="${canonical}" />
 <meta name="description" content="${escapeHtml(pageDesc)}" />
+<meta name="keywords" content="${escapeHtml(seoKeywords.join(", "))}" />
+<meta name="category-opportunity-score" content="${escapeHtml(
+    String(opportunity ?? "")
+  )}" />
+<meta name="global-opportunity-score" content="${escapeHtml(
+    String(globalOpp ?? "")
+  )}" />
+
 <meta property="og:title" content="${escapeHtml(pageTitle)}" />
 <meta property="og:description" content="${escapeHtml(pageDesc)}" />
 <meta property="og:type" content="website" />
@@ -254,7 +338,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36p
 <body>
 <header>
   <h1>${escapeHtml(title)}</h1>
-  <div class="sub">${ARCHETYPE[cat]} • ${activeCount} active deals • Engine ${escapeHtml(CTA_ENGINE_VERSION)}</div>
+  <div class="sub">${ARCHETYPE[cat]} • ${activeCount} active deals • Engine ${escapeHtml(
+    CTA_ENGINE_VERSION
+  )}</div>
 </header>
 <main>
   <section class="grid">
@@ -266,8 +352,13 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:22px 16px 36p
 </html>`;
 
   res.setHeader("Content-Type", "text/html");
-  res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=120");
+  res.setHeader(
+    "Cache-Control",
+    "public, max-age=600, stale-while-revalidate=120"
+  );
   res.send(html);
 
-  console.log(`✅ [Category v10.1] ${cat} → ${activeCount} active • Render-only • Engine:${CTA_ENGINE_VERSION}`);
+  console.log(
+    `✅ [Category v11.0] ${cat} → ${activeCount} active • SEO-refresh signals integrated • Engine:${CTA_ENGINE_VERSION}`
+  );
 }
