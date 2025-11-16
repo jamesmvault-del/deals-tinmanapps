@@ -225,8 +225,6 @@ function ngramPoolFromTitles(items) {
   return { grams2, grams3 };
 }
 
-<BLOCK 2/3 START>
-
 function diversity(items, key) {
   const vals = items
     .map((d) => (d.seo && d.seo[key]) || "")
