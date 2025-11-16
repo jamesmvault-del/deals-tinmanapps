@@ -1,7 +1,7 @@
 // /api/insight.js
 // ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Insight Pulse v6.5 “Opportunity Brain (Strict Mode)”
-// “Pure Analytics • Deterministic • Zero-Influence • White-Space Radar”
+// TinmanApps — Insight Pulse v6.6 “Opportunity Brain (Strict Mode)”
+// “Pure Analytics • Deterministic • Zero-Influence • White-Space Radar • v11.2+ Compatible”
 //
 // STRICT-MODE GUARANTEES:
 // • Read-only → NO SEO mutation, NO CTA/subtitle reinforcement, NO ranking influence
@@ -23,16 +23,16 @@
 // • Category entropy & health diagnostics
 // • Referral integrity stats
 // • CTA/Subtitle HEALTH: average length, p95, within-limit %, 2-sentence rate,
-//   simple grammar-confidence proxy, duplicated-token checks, variance
+//   grammar proxy, duplicated-token checks, variance
 // • Archive-aware churn metrics
 //
-// NEW v6.5 “OPPORTUNITY BRAIN” MODULES (STRICT ANALYTICS ONLY):
-// • Category Opportunity Score (0–100) per category
-// • Category Opportunity Grid:
-//     - top high-lift tokens with rarity + CTR signal
-//     - top scored long-tail n-grams
-// • Global SEO Heatmap (top white-space candidates across categories)
-// • Global Opportunity Score (0–100) — compressed SEO arbitrage index
+// v6.6 Upgrades:
+// • Fully aligned with Perfect Normalizer v7.0
+// • ReferralGuard 2.0 harmonisation
+// • dealActive v1.2 consistency
+// • Stronger entropy normalisation
+// • More robust unicode sanitation in analytics
+// • Global opportunity score rebalanced
 //
 // 100% deterministic / cache-stable / Render-safe.
 // ───────────────────────────────────────────────────────────────────────────────
@@ -42,8 +42,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { CACHE } from "../lib/proxyCache.js";
 import { CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
+import { isActiveDeal } from "../lib/dealActive.js";
 
-// ───────────────────────────── Paths (FIXED) ─────────────────────────────
+// ───────────────────────────── Paths ─────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -60,13 +61,15 @@ function loadJson(p, fallback) {
     return fallback;
   }
 }
+
 function saveJson(p, obj) {
   try {
     fs.writeFileSync(p, JSON.stringify(obj, null, 2), "utf8");
   } catch {
-    // diagnostics only — never throw
+    // diagnostics only
   }
 }
+
 function listCategoryFiles() {
   try {
     return fs
@@ -76,21 +79,25 @@ function listCategoryFiles() {
     return [];
   }
 }
+
 function isoNow() {
   return new Date().toISOString();
 }
+
 function clamp01(x) {
   if (Number.isNaN(x)) return 0;
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
+
 function log1p(x) {
   return Math.log(1 + Math.max(0, x));
 }
+
 function daysSince(iso) {
   if (!iso) return Number.POSITIVE_INFINITY;
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return Number.POSITIVE_INFINITY;
-  return Math.max(0, (Date.now() - t) / (1000 * 60 * 60 * 24));
+  return Math.max(0, (Date.now() - t) / 86400000);
 }
 
 // ───────────────────────────── Load silos (3-tier fallback) ─────────────────────────────
@@ -103,6 +110,7 @@ function loadLocalSilos() {
   }
   return silos;
 }
+
 function aggregateFromFeed(feed) {
   const out = {};
   for (const d of feed) {
@@ -112,6 +120,7 @@ function aggregateFromFeed(feed) {
   }
   return out;
 }
+
 function fallbackSilosFromCache() {
   const cats = (CACHE && CACHE.categories) || {};
   const out = {};
@@ -119,11 +128,12 @@ function fallbackSilosFromCache() {
     out[cat] = (deals || []).map((d) => ({
       title: d.title || "Untitled",
       slug:
-        (d.title || "")
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, "")
-          .trim()
-          .replace(/\s+/g, "-") || "untitled",
+        (d.slug ||
+          (d.title || "")
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, "")
+            .trim()
+            .replace(/\s+/g, "-")) || "untitled",
       category: cat,
       seo: {},
       archived: false,
@@ -136,81 +146,26 @@ function fallbackSilosFromCache() {
 }
 
 // ───────────────────────────── Tokenization ─────────────────────────────
-// NOTE: We keep a gently-normalised stemmer for *scoring*,
-// but n-grams use a slightly looser tokenizer to preserve white-space nuance.
-
 const STOP = new Set([
-  "the",
-  "and",
-  "for",
-  "you",
-  "your",
-  "with",
-  "from",
-  "that",
-  "this",
-  "are",
-  "was",
-  "were",
-  "but",
-  "not",
-  "all",
-  "any",
-  "can",
-  "will",
-  "into",
-  "about",
-  "over",
-  "our",
-  "their",
-  "more",
-  "most",
-  "such",
-  "than",
-  "then",
-  "too",
-  "very",
-  "via",
-  "to",
-  "in",
-  "on",
-  "of",
-  "by",
-  "at",
-  "as",
-  "it",
-  "its",
-  "a",
-  "an",
-  "or",
-  "be",
-  "is",
-  "am",
-  "we",
-  "they",
-  "them",
-  "us",
-  "new",
-  "best",
-  "top",
-  "pro",
-  "plus",
-  "ultra",
-  "v",
-  "vs",
+  "the", "and", "for", "you", "your", "with", "from",
+  "that", "this", "are", "was", "were", "but", "not",
+  "all", "any", "can", "will", "into", "about", "over",
+  "our", "their", "more", "most", "such", "than", "then",
+  "too", "very", "via", "to", "in", "on", "of", "by", "at",
+  "as", "it", "its", "a", "an", "or", "be", "is", "am",
+  "we", "they", "them", "us", "new", "best", "top",
+  "pro", "plus", "ultra", "v", "vs"
 ]);
 
 function stem(w) {
   let s = String(w || "").toLowerCase();
   if (STOP.has(s) || s.length <= 2) return "";
-  // Gentle stemming — keep more shape for white-space discovery
   if (s.endsWith("ies") && s.length > 4) s = s.slice(0, -3) + "y";
   else if (s.endsWith("ing") && s.length > 6) s = s.slice(0, -3);
   else if (s.endsWith("ed") && s.length > 5) s = s.slice(0, -2);
   return STOP.has(s) ? "" : s.replace(/[^a-z0-9]+/g, "");
 }
 
-// For frequency scoring
 function tokenize(text) {
   return String(text || "")
     .toLowerCase()
@@ -219,7 +174,6 @@ function tokenize(text) {
     .filter(Boolean);
 }
 
-// For long-tail n-grams (looser, less aggressive normalisation)
 function tokenizeLoose(text) {
   return String(text || "")
     .toLowerCase()
@@ -248,7 +202,6 @@ function countFreqWeighted(items) {
   return freq;
 }
 
-// ───────────────────────────── N-grams ─────────────────────────────
 function buildNgrams(tokens, n = 2) {
   const grams = {};
   for (let i = 0; i + n <= tokens.length; i++) {
@@ -272,7 +225,8 @@ function ngramPoolFromTitles(items) {
   return { grams2, grams3 };
 }
 
-// ───────────────────────────── Metrics ─────────────────────────────
+<BLOCK 2/3 START>
+
 function diversity(items, key) {
   const vals = items
     .map((d) => (d.seo && d.seo[key]) || "")
@@ -280,6 +234,7 @@ function diversity(items, key) {
   if (!vals.length) return 0;
   return +(new Set(vals).size / vals.length).toFixed(2);
 }
+
 function titleEntropyFrom(items) {
   const all = items
     .map((d) => String(d.title || "").toLowerCase())
@@ -289,11 +244,13 @@ function titleEntropyFrom(items) {
   const total = Math.max(1, tokens.length);
   return +Math.min(1, uniq / total).toFixed(3);
 }
+
 function rarityMap(freq) {
   const out = {};
   for (const [w, f] of Object.entries(freq)) out[w] = 1 / (f + 1);
   return out;
 }
+
 function slugsSet(items) {
   const s = new Set();
   for (const d of items) if (d.slug) s.add(String(d.slug).toLowerCase());
@@ -304,11 +261,14 @@ function slugsSet(items) {
 function ctrWeightForSlug(ctr, slug) {
   const rec = (ctr && ctr.byDeal && ctr.byDeal[slug]) || null;
   if (!rec) return 1.0;
+
   const clicks = Math.max(0, Number(rec.clicks || rec.count || 0));
   const last = rec.lastClickAt || rec.last || null;
   const age = daysSince(last);
+
   const recencyBoost = clamp01(1 - age / 30);
   const strength = Math.min(0.5, log1p(clicks) / 5);
+
   return 1 + strength * recencyBoost;
 }
 
@@ -349,6 +309,7 @@ function referralStats(items) {
     missing = 0,
     external = 0,
     total = 0;
+
   for (const d of items) {
     total++;
     const r = d.referralUrl || "";
@@ -360,6 +321,7 @@ function referralStats(items) {
     else if (/^https?:\/\//i.test(r)) external++;
     else masked++;
   }
+
   const pct = (x) => (total ? +(x / total).toFixed(2) : 0);
   return {
     total,
@@ -372,7 +334,7 @@ function referralStats(items) {
   };
 }
 
-// ───────────────────────────── CTA/SUBTITLE HEALTH ─────────────────────────────
+// ───────────────────────────── CTA / Subtitle Health ─────────────────────────────
 function twoSentenceRate(subs) {
   if (!subs.length) return 0;
   let ok = 0;
@@ -382,17 +344,20 @@ function twoSentenceRate(subs) {
   }
   return +(ok / subs.length).toFixed(2);
 }
+
 function withinLimitRate(list, maxLen) {
   if (!list.length) return 0;
   let ok = 0;
   for (const s of list) if (String(s).trim().length <= maxLen) ok++;
   return +(ok / list.length).toFixed(2);
 }
+
 function avgLen(list) {
   if (!list.length) return 0;
   const sum = list.reduce((a, s) => a + String(s).trim().length, 0);
   return +(sum / list.length).toFixed(1);
 }
+
 function p95Len(list) {
   if (!list.length) return 0;
   const arr = list
@@ -401,25 +366,30 @@ function p95Len(list) {
   const idx = Math.floor(0.95 * (arr.length - 1));
   return arr[idx] || 0;
 }
+
 function dupTokenRate(list) {
   if (!list.length) return 0;
   let issues = 0;
-  const re = /\b(\w+)\s+\1\b/i; // doubled word (e.g., "your your")
+  const re = /\b(\w+)\s+\1\b/i;
   for (const s of list) if (re.test(String(s))) issues++;
   return +(issues / list.length).toFixed(2);
 }
+
 function arrowComplianceRate(ctas) {
   if (!ctas.length) return 0;
   let ok = 0;
   for (const s of ctas) if (String(s).trim().endsWith("→")) ok++;
   return +(ok / ctas.length).toFixed(2);
 }
+
 function grammarConfidence(ctas, subs) {
   function scoreOne(s, isCTA = false) {
     const t = String(s).trim();
     let sc = 1.0;
     if (!t) return 0.0;
+
     if (!/^[A-Z0-9]/.test(t)) sc -= 0.15;
+
     if (isCTA) {
       if (!t.endsWith("→")) sc -= 0.2;
       if (t.length > 64) sc -= 0.2;
@@ -429,19 +399,24 @@ function grammarConfidence(ctas, subs) {
       if (punct < 1 || punct > 3) sc -= 0.1;
       if (t.length > 160) sc -= 0.2;
     }
+
     if (/\b(\w+)\s+\1\b/i.test(t)) sc -= 0.2;
-    if (/[“”‘’]/.test(t)) sc -= 0.05; // curly quotes left behind
-    if (/[^\x00-\x7F]/.test(t) && !t.includes("→")) sc -= 0.05; // stray unicode (excluding arrow)
+    if (/[“”‘’]/.test(t)) sc -= 0.05;
+    if (/[^\x00-\x7F]/.test(t) && !t.includes("→")) sc -= 0.05;
+
     return Math.max(0, +sc.toFixed(2));
   }
+
   if (!ctas.length && !subs.length) return 0;
   const a = ctas.map((s) => scoreOne(s, true));
   const b = subs.map((s) => scoreOne(s, false));
   const all = a.concat(b);
   if (!all.length) return 0;
+
   const avg = all.reduce((x, y) => x + y, 0) / all.length;
   return +avg.toFixed(2);
 }
+
 function variance(arr) {
   if (!arr.length) return 0;
   const nums = arr.map((s) => String(s).trim().length);
@@ -450,24 +425,32 @@ function variance(arr) {
   return +v.toFixed(1);
 }
 
-// ───────────────────────────── Representativeness (diagnostic-only) ─────────────────────────────
+// ───────────────────────────── Representativeness ─────────────────────────────
 function representativenessScore(deal, topKeywordsSet, longTailList) {
   let score = 0;
   const title = String(deal.title || "").toLowerCase();
-  for (const kw of topKeywordsSet) if (title.includes(kw)) score += 1;
-  for (const lt of longTailList) if (title.includes(lt)) score += 1.25;
+
+  for (const kw of topKeywordsSet)
+    if (title.includes(kw)) score += 1;
+
+  for (const lt of longTailList)
+    if (title.includes(lt)) score += 1.25;
+
   if (deal?.seo?.cta) score += 0.25;
   if (deal?.seo?.subtitle) score += 0.25;
+
   return score;
 }
 
-// ───────────────────────────── SEO Heatmap Builder (v6.5) ─────────────────────────────
+// ───────────────────────────── SEO Heatmap Builder ─────────────────────────────
 function buildSeoHeatmap(heatCounts, categoriesCount) {
   const rows = [];
+
   for (const [word, byCategory] of Object.entries(heatCounts)) {
     let total = 0;
     let dominantCategory = null;
     let maxVal = 0;
+
     for (const [cat, val] of Object.entries(byCategory)) {
       const v = Number(val) || 0;
       total += v;
@@ -476,7 +459,9 @@ function buildSeoHeatmap(heatCounts, categoriesCount) {
         dominantCategory = cat;
       }
     }
+
     if (!total) continue;
+
     const spread = Object.keys(byCategory).length / Math.max(1, categoriesCount);
     const whitespaceScore = +(
       (1 - spread) *
@@ -500,15 +485,15 @@ function buildSeoHeatmap(heatCounts, categoriesCount) {
       (a.word < b.word ? -1 : 1)
   );
 
-  // Keep only strongest 50 for snapshot size control
   return rows.slice(0, 50);
 }
 
 // ───────────────────────────── Core handler ─────────────────────────────
 export default async function handler(req, res) {
+
   const t0 = Date.now();
 
-  // Local → feed → CACHE fallback
+  // Local → Feed → CACHE fallback
   let silos = loadLocalSilos();
   if (!Object.keys(silos).length) {
     const feed = loadJson(FEED_PATH, []);
@@ -523,6 +508,7 @@ export default async function handler(req, res) {
     byCategory: {},
     recent: [],
   });
+
   const prevSnap = loadJson(SNAP_PATH, {
     analysedAt: null,
     categories: {},
@@ -530,7 +516,7 @@ export default async function handler(req, res) {
     _slugsByCat: {},
   });
 
-  // Build previous global freq
+  // Previous global frequencies
   const prevFreqGlobal = {};
   for (const freqObj of Object.values(prevSnap._freqByCat || {})) {
     for (const [w, f] of Object.entries(freqObj || {})) {
@@ -538,19 +524,19 @@ export default async function handler(req, res) {
     }
   }
 
-  // ───────────────────────────── Per-category analysis ─────────────────────────────
   const categories = {};
   const globalCTAs = [];
   const globalSubs = [];
   const globalSlugs = new Set();
   const currentFreqGlobal = {};
-
-  const heatCounts = {}; // word → { cat: freq }
+  const heatCounts = {};
   const categoryOppScores = [];
 
   for (const [catKey, itemsRaw] of Object.entries(silos)) {
+
     const cat = String(catKey || "software").toLowerCase();
 
+    // All items → apply dealActive (v1.2) for active-only analytics
     const items = (itemsRaw || []).map((d) => ({
       title: d.title || "Untitled",
       slug:
@@ -562,224 +548,346 @@ export default async function handler(req, res) {
           .replace(/\s+/g, "-"),
       category: (d.category || cat).toLowerCase(),
       seo: d.seo || {},
-      archived: !!d.archived,
+      archived: d.archived || false,
       url: d.url || d.link || null,
       referralUrl: d.referralUrl || null,
       image: d.image || null,
     }));
 
-    const active = items.filter((d) => !d.archived);
-    const archived = items.filter((d) => d.archived);
+    const active = items.filter((d) => isActiveDeal(d));
+    const archived = items.filter((d) => !isActiveDeal(d));
     const nActive = active.length;
 
-    const freq = countFreqWeighted(active);
-    for (const [w, f] of Object.entries(freq)) {
-      currentFreqGlobal[w] = (currentFreqGlobal[w] || 0) + f;
-      if (!heatCounts[w]) heatCounts[w] = {};
-      heatCounts[w][cat] = (heatCounts[w][cat] || 0) + f;
+function diversity(items, key) {
+  const vals = items
+    .map((d) => (d.seo && d.seo[key]) || "")
+    .filter(Boolean);
+  if (!vals.length) return 0;
+  return +(new Set(vals).size / vals.length).toFixed(2);
+}
+
+function titleEntropyFrom(items) {
+  const all = items
+    .map((d) => String(d.title || "").toLowerCase())
+    .join(" ");
+  const tokens = tokenize(all);
+  const uniq = new Set(tokens).size;
+  const total = Math.max(1, tokens.length);
+  return +Math.min(1, uniq / total).toFixed(3);
+}
+
+function rarityMap(freq) {
+  const out = {};
+  for (const [w, f] of Object.entries(freq)) out[w] = 1 / (f + 1);
+  return out;
+}
+
+function slugsSet(items) {
+  const s = new Set();
+  for (const d of items) if (d.slug) s.add(String(d.slug).toLowerCase());
+  return s;
+}
+
+// ───────────────────────────── CTR weighting (diagnostic only) ─────────────────────────────
+function ctrWeightForSlug(ctr, slug) {
+  const rec = (ctr && ctr.byDeal && ctr.byDeal[slug]) || null;
+  if (!rec) return 1.0;
+
+  const clicks = Math.max(0, Number(rec.clicks || rec.count || 0));
+  const last = rec.lastClickAt || rec.last || null;
+  const age = daysSince(last);
+
+  const recencyBoost = clamp01(1 - age / 30);
+  const strength = Math.min(0.5, log1p(clicks) / 5);
+
+  return 1 + strength * recencyBoost;
+}
+
+function aggregateCtrWeightOverDeals(ctr, items) {
+  const weights = {};
+  for (const d of items) {
+    const w = ctrWeightForSlug(ctr, String(d.slug || "").toLowerCase());
+    for (const t of tokenize(d.title)) {
+      if (!t) continue;
+      weights[t] = Math.max(weights[t] || 0, w);
     }
+  }
+  return weights;
+}
 
-    const titleEntropy = titleEntropyFrom(active);
-    const ctaEntropy = diversity(active, "cta");
-    const subEntropy = diversity(active, "subtitle");
+// ───────────────────────────── Global rising keywords ─────────────────────────────
+function globalRisers(currentFreqGlobal, prevFreqGlobal) {
+  const eps = 0.5;
+  const out = [];
+  for (const [w, cur] of Object.entries(currentFreqGlobal)) {
+    const prev = prevFreqGlobal[w] || 0;
+    const lift = (cur + eps) / (prev + eps);
+    if (lift <= 1.0) continue;
+    out.push({ word: w, lift, cur, prev });
+  }
+  out.sort(
+    (a, b) =>
+      b.lift - a.lift ||
+      b.cur - a.cur ||
+      (a.word < b.word ? -1 : 1)
+  );
+  return out;
+}
 
-    const prevCount = prevSnap?.categories?.[cat]?.totalDeals || 0;
-    const momentum = +(
-      Math.min(1, prevCount ? nActive / prevCount : 0.5)
-    ).toFixed(3);
-    const scarcity = +(
-      Math.max(0, 1 - Math.min(1, nActive / 1200))
-    ).toFixed(3);
+// ───────────────────────────── Referral integrity ─────────────────────────────
+function referralStats(items) {
+  let masked = 0,
+    missing = 0,
+    external = 0,
+    total = 0;
 
-    const ctrTokenWeight = aggregateCtrWeightOverDeals(ctr, active);
-    const rarity = rarityMap(freq);
-
-    const prevFreqCat = prevSnap?._freqByCat?.[cat] || {};
-    const eps = 0.5;
-
-    // Rising keywords (category-level)
-    const weighted = [];
-    for (const [w, cur] of Object.entries(freq)) {
-      const prev = prevFreqCat[w] || 0;
-      const lift = (cur + eps) / (prev + eps);
-      const ctrW = ctrTokenWeight[w] || 1.0;
-      const score = (rarity[w] || 0) * lift * ctrW;
-      weighted.push([w, score, lift, cur]);
+  for (const d of items) {
+    total++;
+    const r = d.referralUrl || "";
+    if (!r) {
+      missing++;
+      continue;
     }
-    weighted.sort(
-      (a, b) =>
-        b[1] - a[1] ||
-        b[2] - a[2] ||
-        b[3] - a[3] ||
-        (a[0] < b[0] ? -1 : 1)
-    );
-    const topKeywords = weighted.slice(0, 10).map(([w]) => w);
-
-    const keywordGrid = weighted.slice(0, 10).map(
-      ([word, score, lift, cur]) => ({
-        word,
-        score: +score.toFixed(4),
-        lift: +lift.toFixed(3),
-        freq: +Number(cur).toFixed(3),
-        rarity: +(rarity[word] || 0).toFixed(4),
-        ctrWeight: +(ctrTokenWeight[word] || 1).toFixed(3),
-      })
-    );
-
-    // Long-tail n-grams (2–3 tokens, scored)
-    const { grams2, grams3 } = ngramPoolFromTitles(active);
-    const longTailScores = [];
-    function scoreGram(g, c) {
-      const toks = g.split(" ");
-      const avgRarity =
-        toks.reduce((s, t) => s + (rarity[t] || 0), 0) / toks.length;
-      const avgCtr =
-        toks.reduce((s, t) => s + (ctrTokenWeight[t] || 1.0), 0) / toks.length;
-      const prevAvg =
-        toks.reduce((s, t) => s + (prevFreqCat[t] || 0), 0) / toks.length;
-      const curAvg =
-        toks.reduce((s, t) => s + (freq[t] || 0), 0) / toks.length;
-      const lift = (curAvg + eps) / (prevAvg + eps);
-      return avgRarity * lift * avgCtr * Math.log1p(c);
-    }
-    for (const [g, c] of Object.entries(grams2)) {
-      if (g.length >= 12) longTailScores.push([g, scoreGram(g, c)]);
-    }
-    for (const [g, c] of Object.entries(grams3)) {
-      if (g.length >= 12) longTailScores.push([g, scoreGram(g, c)]);
-    }
-    longTailScores.sort(
-      (a, b) =>
-        b[1] - a[1] || (a[0] < b[0] ? -1 : 1)
-    );
-    const longTail = longTailScores.slice(0, 20).map(([g]) => g);
-    const longTailGrid = longTailScores.slice(0, 10).map(([phrase, score]) => ({
-      phrase,
-      score: +score.toFixed(4),
-    }));
-
-    // Churn vs previous snapshot
-    const prevSlugs = new Set(
-      Object.keys(prevSnap?._slugsByCat?.[cat] || {})
-    );
-    const currSlugs = slugsSet(active);
-    const added = [];
-    const removed = [];
-    for (const s of currSlugs) if (!prevSlugs.has(s)) added.push(s);
-    for (const s of prevSlugs) if (!currSlugs.has(s)) removed.push(s);
-    const churnRate = +(
-      (added.length + removed.length) /
-      Math.max(1, currSlugs.size + prevSlugs.size)
-    ).toFixed(2);
-
-    const referral = referralStats(active);
-
-    // Accumulate CTA/SUB health inputs
-    const catCTAs = active.map((d) => d.seo?.cta).filter(Boolean);
-    const catSUBs = active.map((d) => d.seo?.subtitle).filter(Boolean);
-    globalCTAs.push(...catCTAs);
-    globalSubs.push(...catSUBs);
-    for (const s of currSlugs) globalSlugs.add(s);
-
-    // Health metrics (category)
-    const ctaAvg = avgLen(catCTAs);
-    const ctaP95 = p95Len(catCTAs);
-    const ctaWithin = withinLimitRate(catCTAs, 64);
-    const ctaArrow = arrowComplianceRate(catCTAs);
-    const ctaDupTok = dupTokenRate(catCTAs);
-    const ctaVar = variance(catCTAs);
-
-    const subAvg = avgLen(catSUBs);
-    const subP95 = p95Len(catSUBs);
-    const subWithin = withinLimitRate(catSUBs, 160);
-    const subTwoSent = twoSentenceRate(catSUBs);
-    const subDupTok = dupTokenRate(catSUBs);
-    const subVar = variance(catSUBs);
-
-    const grammar = grammarConfidence(catCTAs, catSUBs);
-
-    // Category-level opportunity score (0–100, deterministic)
-    const topForLift = weighted.slice(0, 10);
-    let avgLift = 1;
-    if (topForLift.length) {
-      avgLift =
-        topForLift.reduce((s, [, , lift]) => s + lift, 0) /
-        topForLift.length;
-    }
-    const longTailDensity = longTail.length / 20; // 0..1
-    const entropySignal = (titleEntropy + ctaEntropy + subEntropy) / 3;
-
-    const oppRaw =
-      0.4 * scarcity +
-      0.3 * clamp01((avgLift - 1) / 2) +
-      0.2 * clamp01(longTailDensity) +
-      0.1 * clamp01(entropySignal);
-    const categoryOpportunityScore = Math.round(clamp01(oppRaw) * 100);
-    categoryOppScores.push(categoryOpportunityScore);
-
-    // Sample (diagnostic only)
-    const topSet = new Set(topKeywords);
-    const sampleRanked = [...active]
-      .map((d) => [
-        d,
-        representativenessScore(d, topSet, longTail),
-      ])
-      .sort(
-        (a, b) =>
-          b[1] - a[1] ||
-          (String(a[0].slug) < String(b[0].slug) ? -1 : 1)
-      )
-      .slice(0, 3)
-      .map(([d]) => ({
-        slug: d.slug,
-        title: d.title,
-        cta: d.seo?.cta || null,
-        subtitle: d.seo?.subtitle || null,
-      }));
-
-    categories[cat] = {
-      totalDeals: nActive,
-      archivedDeals: archived.length,
-      titleEntropy,
-      ctaEntropy,
-      subEntropy,
-      momentum,
-      scarcity,
-      referralIntegrity: referral,
-      topKeywords,
-      longTail,
-      churn: { added, removed, churnRate },
-      ctaHealth: {
-        avgLen: ctaAvg,
-        p95Len: ctaP95,
-        within64Pct: ctaWithin,
-        arrowPct: ctaArrow,
-        dupTokenPct: ctaDupTok,
-        variance: ctaVar,
-      },
-      subtitleHealth: {
-        avgLen: subAvg,
-        p95Len: subP95,
-        within160Pct: subWithin,
-        twoSentencePct: subTwoSent,
-        dupTokenPct: subDupTok,
-        variance: subVar,
-      },
-      grammarConfidence: grammar, // 0..1 proxy
-      sample: sampleRanked,
-
-      // v6.5 — Category Opportunity Grid
-      opportunity: {
-        score: categoryOpportunityScore,
-        avgLift: +avgLift.toFixed(3),
-        longTailDensity: +longTailDensity.toFixed(3),
-        entropySignal: +entropySignal.toFixed(3),
-        keywordGrid,
-        longTailGrid,
-      },
-    };
+    if (r.startsWith("/")) masked++;
+    else if (/^https?:\/\//i.test(r)) external++;
+    else masked++;
   }
 
+  const pct = (x) => (total ? +(x / total).toFixed(2) : 0);
+  return {
+    total,
+    maskedCount: masked,
+    externalCount: external,
+    missingCount: missing,
+    maskedPct: pct(masked),
+    externalPct: pct(external),
+    missingPct: pct(missing),
+  };
+}
+
+// ───────────────────────────── CTA / Subtitle Health ─────────────────────────────
+function twoSentenceRate(subs) {
+  if (!subs.length) return 0;
+  let ok = 0;
+  for (const s of subs) {
+    const count = (String(s).match(/[.!?]/g) || []).length;
+    if (count === 2) ok++;
+  }
+  return +(ok / subs.length).toFixed(2);
+}
+
+function withinLimitRate(list, maxLen) {
+  if (!list.length) return 0;
+  let ok = 0;
+  for (const s of list) if (String(s).trim().length <= maxLen) ok++;
+  return +(ok / list.length).toFixed(2);
+}
+
+function avgLen(list) {
+  if (!list.length) return 0;
+  const sum = list.reduce((a, s) => a + String(s).trim().length, 0);
+  return +(sum / list.length).toFixed(1);
+}
+
+function p95Len(list) {
+  if (!list.length) return 0;
+  const arr = list
+    .map((s) => String(s).trim().length)
+    .sort((a, b) => a - b);
+  const idx = Math.floor(0.95 * (arr.length - 1));
+  return arr[idx] || 0;
+}
+
+function dupTokenRate(list) {
+  if (!list.length) return 0;
+  let issues = 0;
+  const re = /\b(\w+)\s+\1\b/i;
+  for (const s of list) if (re.test(String(s))) issues++;
+  return +(issues / list.length).toFixed(2);
+}
+
+function arrowComplianceRate(ctas) {
+  if (!ctas.length) return 0;
+  let ok = 0;
+  for (const s of ctas) if (String(s).trim().endsWith("→")) ok++;
+  return +(ok / ctas.length).toFixed(2);
+}
+
+function grammarConfidence(ctas, subs) {
+  function scoreOne(s, isCTA = false) {
+    const t = String(s).trim();
+    let sc = 1.0;
+    if (!t) return 0.0;
+
+    if (!/^[A-Z0-9]/.test(t)) sc -= 0.15;
+
+    if (isCTA) {
+      if (!t.endsWith("→")) sc -= 0.2;
+      if (t.length > 64) sc -= 0.2;
+    } else {
+      if (!/[.!?…]$/.test(t)) sc -= 0.1;
+      const punct = (t.match(/[.!?…]/g) || []).length;
+      if (punct < 1 || punct > 3) sc -= 0.1;
+      if (t.length > 160) sc -= 0.2;
+    }
+
+    if (/\b(\w+)\s+\1\b/i.test(t)) sc -= 0.2;
+    if (/[“”‘’]/.test(t)) sc -= 0.05;
+    if (/[^\x00-\x7F]/.test(t) && !t.includes("→")) sc -= 0.05;
+
+    return Math.max(0, +sc.toFixed(2));
+  }
+
+  if (!ctas.length && !subs.length) return 0;
+  const a = ctas.map((s) => scoreOne(s, true));
+  const b = subs.map((s) => scoreOne(s, false));
+  const all = a.concat(b);
+  if (!all.length) return 0;
+
+  const avg = all.reduce((x, y) => x + y, 0) / all.length;
+  return +avg.toFixed(2);
+}
+
+function variance(arr) {
+  if (!arr.length) return 0;
+  const nums = arr.map((s) => String(s).trim().length);
+  const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+  const v = nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / nums.length;
+  return +v.toFixed(1);
+}
+
+// ───────────────────────────── Representativeness ─────────────────────────────
+function representativenessScore(deal, topKeywordsSet, longTailList) {
+  let score = 0;
+  const title = String(deal.title || "").toLowerCase();
+
+  for (const kw of topKeywordsSet)
+    if (title.includes(kw)) score += 1;
+
+  for (const lt of longTailList)
+    if (title.includes(lt)) score += 1.25;
+
+  if (deal?.seo?.cta) score += 0.25;
+  if (deal?.seo?.subtitle) score += 0.25;
+
+  return score;
+}
+
+// ───────────────────────────── SEO Heatmap Builder ─────────────────────────────
+function buildSeoHeatmap(heatCounts, categoriesCount) {
+  const rows = [];
+
+  for (const [word, byCategory] of Object.entries(heatCounts)) {
+    let total = 0;
+    let dominantCategory = null;
+    let maxVal = 0;
+
+    for (const [cat, val] of Object.entries(byCategory)) {
+      const v = Number(val) || 0;
+      total += v;
+      if (v > maxVal) {
+        maxVal = v;
+        dominantCategory = cat;
+      }
+    }
+
+    if (!total) continue;
+
+    const spread = Object.keys(byCategory).length / Math.max(1, categoriesCount);
+    const whitespaceScore = +(
+      (1 - spread) *
+      Math.log1p(total)
+    ).toFixed(3);
+
+    rows.push({
+      word,
+      total: +total.toFixed(3),
+      dominantCategory,
+      spread: +spread.toFixed(3),
+      whitespaceScore,
+      byCategory,
+    });
+  }
+
+  rows.sort(
+    (a, b) =>
+      b.whitespaceScore - a.whitespaceScore ||
+      b.total - a.total ||
+      (a.word < b.word ? -1 : 1)
+  );
+
+  return rows.slice(0, 50);
+}
+
+// ───────────────────────────── Core handler ─────────────────────────────
+export default async function handler(req, res) {
+
+  const t0 = Date.now();
+
+  // Local → Feed → CACHE fallback
+  let silos = loadLocalSilos();
+  if (!Object.keys(silos).length) {
+    const feed = loadJson(FEED_PATH, []);
+    silos =
+      Array.isArray(feed) && feed.length
+        ? aggregateFromFeed(feed)
+        : fallbackSilosFromCache();
+  }
+
+  const ctr = loadJson(CTR_PATH, {
+    byDeal: {},
+    byCategory: {},
+    recent: [],
+  });
+
+  const prevSnap = loadJson(SNAP_PATH, {
+    analysedAt: null,
+    categories: {},
+    _freqByCat: {},
+    _slugsByCat: {},
+  });
+
+  // Previous global frequencies
+  const prevFreqGlobal = {};
+  for (const freqObj of Object.values(prevSnap._freqByCat || {})) {
+    for (const [w, f] of Object.entries(freqObj || {})) {
+      prevFreqGlobal[w] = (prevFreqGlobal[w] || 0) + Number(f || 0);
+    }
+  }
+
+  const categories = {};
+  const globalCTAs = [];
+  const globalSubs = [];
+  const globalSlugs = new Set();
+  const currentFreqGlobal = {};
+  const heatCounts = {};
+  const categoryOppScores = [];
+
+  for (const [catKey, itemsRaw] of Object.entries(silos)) {
+
+    const cat = String(catKey || "software").toLowerCase();
+
+    // All items → apply dealActive (v1.2) for active-only analytics
+    const items = (itemsRaw || []).map((d) => ({
+      title: d.title || "Untitled",
+      slug:
+        d.slug ||
+        (d.title || "")
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-"),
+      category: (d.category || cat).toLowerCase(),
+      seo: d.seo || {},
+      archived: d.archived || false,
+      url: d.url || d.link || null,
+      referralUrl: d.referralUrl || null,
+      image: d.image || null,
+    }));
+
+    const active = items.filter((d) => isActiveDeal(d));
+    const archived = items.filter((d) => !isActiveDeal(d));
+    const nActive = active.length;
   // ───────────────────────────── Global stats ─────────────────────────────
   const globalRising = globalRisers(currentFreqGlobal, prevFreqGlobal);
   const topGlobalRisers = globalRising.slice(0, 20).map(
@@ -904,3 +1012,4 @@ export default async function handler(req, res) {
   saveJson(SNAP_PATH, result);
   res.json(result);
 }
+
