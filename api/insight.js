@@ -1,41 +1,11 @@
 // /api/insight.js
-// ───────────────────────────────────────────────────────────────────────────────
-// TinmanApps — Insight Pulse v6.6 “Opportunity Brain (Strict Mode)”
-// “Pure Analytics • Deterministic • Zero-Influence • White-Space Radar • v11.2+ Compatible”
+// TinmanApps — Insight Pulse v6.8 “Strict Opportunity Mode”
+// Fully strict-mode, zero SEO mutation, zero CTA mutation, zero ranking influence.
+// 100% compatible with: CTA Engine v1.6+, categories-index.js v11+, home.js v6+,
+// referralGuard 2.0, Perfect Normalizer, dealActive v3.0.
 //
-// STRICT-MODE GUARANTEES:
-// • Read-only → NO SEO mutation, NO CTA/subtitle reinforcement, NO ranking influence
-// • Zero side effects beyond writing /data/insight-latest.json
-// • Pure analytics of category silos → deterministic insights only
-//
-// INPUT SOURCES (priority order):
-//   1) /data/appsumo-*.json
-//   2) /data/feed-cache.json
-//   3) proxyCache.CACHE (fallback)
-//
-// OUTPUT:
-//   /data/insight-latest.json (diagnostic only)
-//
-// WHAT THIS ANALYSIS PROVIDES:
-// • Category keyword frequencies & long-tail n-grams (2–3 word, scored)
-// • Global rising keywords vs previous snapshot
-// • CTR-assisted weighting (diagnostic only; read-only)
-// • Category entropy & health diagnostics
-// • Referral integrity stats
-// • CTA/Subtitle HEALTH: average length, p95, within-limit %, 2-sentence rate,
-//   grammar proxy, duplicated-token checks, variance
-// • Archive-aware churn metrics
-//
-// v6.6 Upgrades:
-// • Fully aligned with Perfect Normalizer v7.0
-// • ReferralGuard 2.0 harmonisation
-// • dealActive v1.2 consistency
-// • Stronger entropy normalisation
-// • More robust unicode sanitation in analytics
-// • Global opportunity score rebalanced
-//
-// 100% deterministic / cache-stable / Render-safe.
-// ───────────────────────────────────────────────────────────────────────────────
+// Reads: /data/appsumo-*.json, feed-cache.json, ctr-insights.json
+// Writes: /data/insight-latest.json (diagnostic only)
 
 import fs from "fs";
 import path from "path";
@@ -44,7 +14,6 @@ import { CACHE } from "../lib/proxyCache.js";
 import { CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
 import { isActiveDeal } from "../lib/dealActive.js";
 
-// ───────────────────────────── Paths ─────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -53,7 +22,6 @@ const FEED_PATH = path.join(DATA_DIR, "feed-cache.json");
 const CTR_PATH = path.join(DATA_DIR, "ctr-insights.json");
 const SNAP_PATH = path.join(DATA_DIR, "insight-latest.json");
 
-// ───────────────────────────── Helpers ─────────────────────────────
 function loadJson(p, fallback) {
   try {
     return JSON.parse(fs.readFileSync(p, "utf8"));
@@ -65,9 +33,7 @@ function loadJson(p, fallback) {
 function saveJson(p, obj) {
   try {
     fs.writeFileSync(p, JSON.stringify(obj, null, 2), "utf8");
-  } catch {
-    // diagnostics only
-  }
+  } catch {}
 }
 
 function listCategoryFiles() {
@@ -100,7 +66,8 @@ function daysSince(iso) {
   return Math.max(0, (Date.now() - t) / 86400000);
 }
 
-// ───────────────────────────── Load silos (3-tier fallback) ─────────────────────────────
+// ----------------------- SILO LOADERS -----------------------
+
 function loadLocalSilos() {
   const files = listCategoryFiles();
   const silos = {};
@@ -128,12 +95,12 @@ function fallbackSilosFromCache() {
     out[cat] = (deals || []).map((d) => ({
       title: d.title || "Untitled",
       slug:
-        (d.slug ||
-          (d.title || "")
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, "")
-            .trim()
-            .replace(/\s+/g, "-")) || "untitled",
+        d.slug ||
+        (d.title || "")
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-"),
       category: cat,
       seo: {},
       archived: false,
@@ -145,16 +112,14 @@ function fallbackSilosFromCache() {
   return out;
 }
 
-// ───────────────────────────── Tokenization ─────────────────────────────
+// ----------------------- TOKENIZATION -----------------------
+
 const STOP = new Set([
-  "the", "and", "for", "you", "your", "with", "from",
-  "that", "this", "are", "was", "were", "but", "not",
-  "all", "any", "can", "will", "into", "about", "over",
-  "our", "their", "more", "most", "such", "than", "then",
-  "too", "very", "via", "to", "in", "on", "of", "by", "at",
-  "as", "it", "its", "a", "an", "or", "be", "is", "am",
-  "we", "they", "them", "us", "new", "best", "top",
-  "pro", "plus", "ultra", "v", "vs"
+  "the","and","for","you","your","with","from","that","this","are","was","were",
+  "but","not","all","any","can","will","into","about","over","our","their","more",
+  "most","such","than","then","too","very","via","to","in","on","of","by","at","as",
+  "it","its","a","an","or","be","is","am","we","they","them","us","new","best","top",
+  "pro","plus","ultra","v","vs"
 ]);
 
 function stem(w) {
@@ -225,6 +190,8 @@ function ngramPoolFromTitles(items) {
   return { grams2, grams3 };
 }
 
+// ----------------------- ENTROPY / DIVERSITY -----------------------
+
 function diversity(items, key) {
   const vals = items
     .map((d) => (d.seo && d.seo[key]) || "")
@@ -255,7 +222,8 @@ function slugsSet(items) {
   return s;
 }
 
-// ───────────────────────────── CTR weighting (diagnostic only) ─────────────────────────────
+// ----------------------- CTR WEIGHTING (diagnostic only) -----------------------
+
 function ctrWeightForSlug(ctr, slug) {
   const rec = (ctr && ctr.byDeal && ctr.byDeal[slug]) || null;
   if (!rec) return 1.0;
@@ -282,7 +250,8 @@ function aggregateCtrWeightOverDeals(ctr, items) {
   return weights;
 }
 
-// ───────────────────────────── Global rising keywords ─────────────────────────────
+// ----------------------- GLOBAL RISING KEYWORDS -----------------------
+
 function globalRisers(currentFreqGlobal, prevFreqGlobal) {
   const eps = 0.5;
   const out = [];
@@ -301,7 +270,8 @@ function globalRisers(currentFreqGlobal, prevFreqGlobal) {
   return out;
 }
 
-// ───────────────────────────── Referral integrity ─────────────────────────────
+// ----------------------- REFERRAL INTEGRITY -----------------------
+
 function referralStats(items) {
   let masked = 0,
     missing = 0,
@@ -332,7 +302,8 @@ function referralStats(items) {
   };
 }
 
-// ───────────────────────────── CTA / Subtitle Health ─────────────────────────────
+// ----------------------- CTA / SUBTITLE HEALTH -----------------------
+
 function twoSentenceRate(subs) {
   if (!subs.length) return 0;
   let ok = 0;
@@ -423,7 +394,8 @@ function variance(arr) {
   return +v.toFixed(1);
 }
 
-// ───────────────────────────── Representativeness ─────────────────────────────
+// ----------------------- REPRESENTATIVENESS -----------------------
+
 function representativenessScore(deal, topKeywordsSet, longTailList) {
   let score = 0;
   const title = String(deal.title || "").toLowerCase();
@@ -440,7 +412,8 @@ function representativenessScore(deal, topKeywordsSet, longTailList) {
   return score;
 }
 
-// ───────────────────────────── SEO Heatmap Builder ─────────────────────────────
+// ----------------------- HEATMAP (white-space radar) -----------------------
+
 function buildSeoHeatmap(heatCounts, categoriesCount) {
   const rows = [];
 
@@ -486,12 +459,12 @@ function buildSeoHeatmap(heatCounts, categoriesCount) {
   return rows.slice(0, 50);
 }
 
-// ───────────────────────────── Core handler ─────────────────────────────
+// ----------------------- CORE HANDLER -----------------------
+
 export default async function handler(req, res) {
 
   const t0 = Date.now();
 
-  // Local → Feed → CACHE fallback
   let silos = loadLocalSilos();
   if (!Object.keys(silos).length) {
     const feed = loadJson(FEED_PATH, []);
@@ -514,7 +487,6 @@ export default async function handler(req, res) {
     _slugsByCat: {},
   });
 
-  // Previous global frequencies
   const prevFreqGlobal = {};
   for (const freqObj of Object.values(prevSnap._freqByCat || {})) {
     for (const [w, f] of Object.entries(freqObj || {})) {
@@ -534,7 +506,6 @@ export default async function handler(req, res) {
 
     const cat = String(catKey || "software").toLowerCase();
 
-    // All items → apply dealActive (v1.2) for active-only analytics
     const items = (itemsRaw || []).map((d) => ({
       title: d.title || "Untitled",
       slug:
@@ -556,338 +527,112 @@ export default async function handler(req, res) {
     const archived = items.filter((d) => !isActiveDeal(d));
     const nActive = active.length;
 
-function diversity(items, key) {
-  const vals = items
-    .map((d) => (d.seo && d.seo[key]) || "")
-    .filter(Boolean);
-  if (!vals.length) return 0;
-  return +(new Set(vals).size / vals.length).toFixed(2);
-}
+    const freq = countFreqWeighted(active);
+    const rarity = rarityMap(freq);
 
-function titleEntropyFrom(items) {
-  const all = items
-    .map((d) => String(d.title || "").toLowerCase())
-    .join(" ");
-  const tokens = tokenize(all);
-  const uniq = new Set(tokens).size;
-  const total = Math.max(1, tokens.length);
-  return +Math.min(1, uniq / total).toFixed(3);
-}
+    const { grams2, grams3 } = ngramPoolFromTitles(active);
 
-function rarityMap(freq) {
-  const out = {};
-  for (const [w, f] of Object.entries(freq)) out[w] = 1 / (f + 1);
-  return out;
-}
+    const uniqSlugs = slugsSet(active);
+    for (const s of uniqSlugs) globalSlugs.add(s);
 
-function slugsSet(items) {
-  const s = new Set();
-  for (const d of items) if (d.slug) s.add(String(d.slug).toLowerCase());
-  return s;
-}
+    const ctas = active.map((d) => d?.seo?.cta).filter(Boolean);
+    const subs = active.map((d) => d?.seo?.subtitle).filter(Boolean);
 
-// ───────────────────────────── CTR weighting (diagnostic only) ─────────────────────────────
-function ctrWeightForSlug(ctr, slug) {
-  const rec = (ctr && ctr.byDeal && ctr.byDeal[slug]) || null;
-  if (!rec) return 1.0;
+    for (const c of ctas) globalCTAs.push(c);
+    for (const s of subs) globalSubs.push(s);
 
-  const clicks = Math.max(0, Number(rec.clicks || rec.count || 0));
-  const last = rec.lastClickAt || rec.last || null;
-  const age = daysSince(last);
+    const ctaAvg = avgLen(ctas);
+    const subAvg = avgLen(subs);
 
-  const recencyBoost = clamp01(1 - age / 30);
-  const strength = Math.min(0.5, log1p(clicks) / 5);
+    const titleEntropy = titleEntropyFrom(active);
+    const ctaEntropy = diversity(active, "cta");
+    const subEntropy = diversity(active, "subtitle");
 
-  return 1 + strength * recencyBoost;
-}
+    for (const [w, f] of Object.entries(freq)) {
+      currentFreqGlobal[w] = (currentFreqGlobal[w] || 0) + f;
 
-function aggregateCtrWeightOverDeals(ctr, items) {
-  const weights = {};
-  for (const d of items) {
-    const w = ctrWeightForSlug(ctr, String(d.slug || "").toLowerCase());
-    for (const t of tokenize(d.title)) {
-      if (!t) continue;
-      weights[t] = Math.max(weights[t] || 0, w);
-    }
-  }
-  return weights;
-}
-
-// ───────────────────────────── Global rising keywords ─────────────────────────────
-function globalRisers(currentFreqGlobal, prevFreqGlobal) {
-  const eps = 0.5;
-  const out = [];
-  for (const [w, cur] of Object.entries(currentFreqGlobal)) {
-    const prev = prevFreqGlobal[w] || 0;
-    const lift = (cur + eps) / (prev + eps);
-    if (lift <= 1.0) continue;
-    out.push({ word: w, lift, cur, prev });
-  }
-  out.sort(
-    (a, b) =>
-      b.lift - a.lift ||
-      b.cur - a.cur ||
-      (a.word < b.word ? -1 : 1)
-  );
-  return out;
-}
-
-// ───────────────────────────── Referral integrity ─────────────────────────────
-function referralStats(items) {
-  let masked = 0,
-    missing = 0,
-    external = 0,
-    total = 0;
-
-  for (const d of items) {
-    total++;
-    const r = d.referralUrl || "";
-    if (!r) {
-      missing++;
-      continue;
-    }
-    if (r.startsWith("/")) masked++;
-    else if (/^https?:\/\//i.test(r)) external++;
-    else masked++;
-  }
-
-  const pct = (x) => (total ? +(x / total).toFixed(2) : 0);
-  return {
-    total,
-    maskedCount: masked,
-    externalCount: external,
-    missingCount: missing,
-    maskedPct: pct(masked),
-    externalPct: pct(external),
-    missingPct: pct(missing),
-  };
-}
-
-// ───────────────────────────── CTA / Subtitle Health ─────────────────────────────
-function twoSentenceRate(subs) {
-  if (!subs.length) return 0;
-  let ok = 0;
-  for (const s of subs) {
-    const count = (String(s).match(/[.!?]/g) || []).length;
-    if (count === 2) ok++;
-  }
-  return +(ok / subs.length).toFixed(2);
-}
-
-function withinLimitRate(list, maxLen) {
-  if (!list.length) return 0;
-  let ok = 0;
-  for (const s of list) if (String(s).trim().length <= maxLen) ok++;
-  return +(ok / list.length).toFixed(2);
-}
-
-function avgLen(list) {
-  if (!list.length) return 0;
-  const sum = list.reduce((a, s) => a + String(s).trim().length, 0);
-  return +(sum / list.length).toFixed(1);
-}
-
-function p95Len(list) {
-  if (!list.length) return 0;
-  const arr = list
-    .map((s) => String(s).trim().length)
-    .sort((a, b) => a - b);
-  const idx = Math.floor(0.95 * (arr.length - 1));
-  return arr[idx] || 0;
-}
-
-function dupTokenRate(list) {
-  if (!list.length) return 0;
-  let issues = 0;
-  const re = /\b(\w+)\s+\1\b/i;
-  for (const s of list) if (re.test(String(s))) issues++;
-  return +(issues / list.length).toFixed(2);
-}
-
-function arrowComplianceRate(ctas) {
-  if (!ctas.length) return 0;
-  let ok = 0;
-  for (const s of ctas) if (String(s).trim().endsWith("→")) ok++;
-  return +(ok / ctas.length).toFixed(2);
-}
-
-function grammarConfidence(ctas, subs) {
-  function scoreOne(s, isCTA = false) {
-    const t = String(s).trim();
-    let sc = 1.0;
-    if (!t) return 0.0;
-
-    if (!/^[A-Z0-9]/.test(t)) sc -= 0.15;
-
-    if (isCTA) {
-      if (!t.endsWith("→")) sc -= 0.2;
-      if (t.length > 64) sc -= 0.2;
-    } else {
-      if (!/[.!?…]$/.test(t)) sc -= 0.1;
-      const punct = (t.match(/[.!?…]/g) || []).length;
-      if (punct < 1 || punct > 3) sc -= 0.1;
-      if (t.length > 160) sc -= 0.2;
+      if (!heatCounts[w]) heatCounts[w] = {};
+      heatCounts[w][cat] = (heatCounts[w][cat] || 0) + f;
     }
 
-    if (/\b(\w+)\s+\1\b/i.test(t)) sc -= 0.2;
-    if (/[“”‘’]/.test(t)) sc -= 0.05;
-    if (/[^\x00-\x7F]/.test(t) && !t.includes("→")) sc -= 0.05;
+    const ctrWeights = aggregateCtrWeightOverDeals(ctr, active);
 
-    return Math.max(0, +sc.toFixed(2));
-  }
-
-  if (!ctas.length && !subs.length) return 0;
-  const a = ctas.map((s) => scoreOne(s, true));
-  const b = subs.map((s) => scoreOne(s, false));
-  const all = a.concat(b);
-  if (!all.length) return 0;
-
-  const avg = all.reduce((x, y) => x + y, 0) / all.length;
-  return +avg.toFixed(2);
-}
-
-function variance(arr) {
-  if (!arr.length) return 0;
-  const nums = arr.map((s) => String(s).trim().length);
-  const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
-  const v = nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / nums.length;
-  return +v.toFixed(1);
-}
-
-// ───────────────────────────── Representativeness ─────────────────────────────
-function representativenessScore(deal, topKeywordsSet, longTailList) {
-  let score = 0;
-  const title = String(deal.title || "").toLowerCase();
-
-  for (const kw of topKeywordsSet)
-    if (title.includes(kw)) score += 1;
-
-  for (const lt of longTailList)
-    if (title.includes(lt)) score += 1.25;
-
-  if (deal?.seo?.cta) score += 0.25;
-  if (deal?.seo?.subtitle) score += 0.25;
-
-  return score;
-}
-
-// ───────────────────────────── SEO Heatmap Builder ─────────────────────────────
-function buildSeoHeatmap(heatCounts, categoriesCount) {
-  const rows = [];
-
-  for (const [word, byCategory] of Object.entries(heatCounts)) {
-    let total = 0;
-    let dominantCategory = null;
-    let maxVal = 0;
-
-    for (const [cat, val] of Object.entries(byCategory)) {
-      const v = Number(val) || 0;
-      total += v;
-      if (v > maxVal) {
-        maxVal = v;
-        dominantCategory = cat;
-      }
+    const weightedFreq = {};
+    for (const [w, f] of Object.entries(freq)) {
+      weightedFreq[w] = f * (ctrWeights[w] || 1);
     }
 
-    if (!total) continue;
+    const sortedWeighted = Object.entries(weightedFreq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20);
 
-    const spread = Object.keys(byCategory).length / Math.max(1, categoriesCount);
-    const whitespaceScore = +(
-      (1 - spread) *
-      Math.log1p(total)
-    ).toFixed(3);
+    const topKeywords = sortedWeighted.map(([word]) => word);
 
-    rows.push({
-      word,
-      total: +total.toFixed(3),
-      dominantCategory,
-      spread: +spread.toFixed(3),
-      whitespaceScore,
-      byCategory,
-    });
+    const longTailPool = Object.entries(grams3)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([g]) => g);
+
+    const longTail =
+      longTailPool.length >= 5 ? longTailPool.slice(0, 5) : longTailPool;
+
+    const churnRate =
+      archived.length + active.length
+        ? +(archived.length / Math.max(1, archived.length + active.length)).toFixed(3)
+        : 0;
+
+    const opportunity =
+      clamp01(titleEntropy * 0.45 + (1 - ctaAvg / 64) * 0.25 + (1 - subAvg / 160) * 0.2 +
+      (longTail.length ? 0.1 : 0));
+
+    categoryOppScores.push(opportunity);
+
+    categories[cat] = {
+      key: cat,
+      activeCount: nActive,
+      archivedCount: archived.length,
+      titleEntropy,
+      ctaEntropy,
+      subEntropy,
+      ctaHealth: {
+        avgLen: ctaAvg,
+        p95Len: p95Len(ctas),
+        within64Pct: withinLimitRate(ctas, 64),
+        arrowPct: arrowComplianceRate(ctas),
+        dupTokenPct: dupTokenRate(ctas),
+        variance: variance(ctas),
+      },
+      subtitleHealth: {
+        avgLen: subAvg,
+        p95Len: p95Len(subs),
+        within160Pct: withinLimitRate(subs, 160),
+        twoSentencePct: twoSentenceRate(subs),
+        dupTokenPct: dupTokenRate(subs),
+        variance: variance(subs),
+      },
+      referralIntegrity: referralStats(active),
+      freq,
+      rarity,
+      topKeywords,
+      longTail,
+      repExample:
+        active.length > 0
+          ? active
+              .map((d) =>
+                representativenessScore(
+                  d,
+                  new Set(topKeywords),
+                  longTail
+                )
+              )
+              .sort((a, b) => b - a)[0] || 0
+          : 0,
+      opportunityScore: +(opportunity * 100).toFixed(1),
+    };
   }
 
-  rows.sort(
-    (a, b) =>
-      b.whitespaceScore - a.whitespaceScore ||
-      b.total - a.total ||
-      (a.word < b.word ? -1 : 1)
-  );
-
-  return rows.slice(0, 50);
-}
-
-// ───────────────────────────── Core handler ─────────────────────────────
-export default async function handler(req, res) {
-
-  const t0 = Date.now();
-
-  // Local → Feed → CACHE fallback
-  let silos = loadLocalSilos();
-  if (!Object.keys(silos).length) {
-    const feed = loadJson(FEED_PATH, []);
-    silos =
-      Array.isArray(feed) && feed.length
-        ? aggregateFromFeed(feed)
-        : fallbackSilosFromCache();
-  }
-
-  const ctr = loadJson(CTR_PATH, {
-    byDeal: {},
-    byCategory: {},
-    recent: [],
-  });
-
-  const prevSnap = loadJson(SNAP_PATH, {
-    analysedAt: null,
-    categories: {},
-    _freqByCat: {},
-    _slugsByCat: {},
-  });
-
-  // Previous global frequencies
-  const prevFreqGlobal = {};
-  for (const freqObj of Object.values(prevSnap._freqByCat || {})) {
-    for (const [w, f] of Object.entries(freqObj || {})) {
-      prevFreqGlobal[w] = (prevFreqGlobal[w] || 0) + Number(f || 0);
-    }
-  }
-
-  const categories = {};
-  const globalCTAs = [];
-  const globalSubs = [];
-  const globalSlugs = new Set();
-  const currentFreqGlobal = {};
-  const heatCounts = {};
-  const categoryOppScores = [];
-
-  for (const [catKey, itemsRaw] of Object.entries(silos)) {
-
-    const cat = String(catKey || "software").toLowerCase();
-
-    // All items → apply dealActive (v1.2) for active-only analytics
-    const items = (itemsRaw || []).map((d) => ({
-      title: d.title || "Untitled",
-      slug:
-        d.slug ||
-        (d.title || "")
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, "")
-          .trim()
-          .replace(/\s+/g, "-"),
-      category: (d.category || cat).toLowerCase(),
-      seo: d.seo || {},
-      archived: d.archived || false,
-      url: d.url || d.link || null,
-      referralUrl: d.referralUrl || null,
-      image: d.image || null,
-    }));
-
-    const active = items.filter((d) => isActiveDeal(d));
-    const archived = items.filter((d) => !isActiveDeal(d));
-    const nActive = active.length;
-  // ───────────────────────────── Global stats ─────────────────────────────
   const globalRising = globalRisers(currentFreqGlobal, prevFreqGlobal);
+
   const topGlobalRisers = globalRising.slice(0, 20).map(
     ({ word, lift, cur, prev }) => ({
       word,
@@ -914,13 +659,11 @@ export default async function handler(req, res) {
     .filter((d) => !d.archived);
   const globalReferral = referralStats(allActive);
 
-  // Global SEO heatmap (white-space radar)
   const seoHeatmap = buildSeoHeatmap(
     heatCounts,
     Object.keys(categories).length || 1
   );
 
-  // Global Opportunity Score (0–100)
   const avgCatOpp =
     categoryOppScores.length
       ? categoryOppScores.reduce((a, b) => a + b, 0) /
@@ -933,7 +676,6 @@ export default async function handler(req, res) {
         seoHeatmap.length
       : 0;
 
-  // Normalise whitespace ~ [0, 1] assuming typical 0–5 range
   const whitespaceNorm = clamp01(avgWhitespace / 5);
 
   const globalOppRaw =
@@ -942,7 +684,6 @@ export default async function handler(req, res) {
     clamp01(globalOppRaw) * 100
   );
 
-  // Global health aggregates
   const global = {
     engineVersion: CTA_ENGINE_VERSION || "v10.x",
     totalCategories: Object.keys(categories).length,
@@ -977,14 +718,11 @@ export default async function handler(req, res) {
     topGlobalRisers,
     topGlobalFrequent,
     referralIntegrity: globalReferral,
-
-    // v6.5 — Global Opportunity / Heatmap
     opportunityScore: globalOpportunityScore,
     avgCategoryOpportunityScore: +avgCatOpp.toFixed(1),
     seoHeatmap,
   };
 
-  // ───────────────────────────── Snapshot for next run ─────────────────────────────
   const _freqByCat = {};
   const _slugsByCat = {};
   for (const [cat, items] of Object.entries(silos)) {
@@ -998,7 +736,7 @@ export default async function handler(req, res) {
   }
 
   const result = {
-    source: "Insight Pulse v6.5 (strict opportunity mode)",
+    source: "Insight Pulse v6.6 (strict opportunity mode)",
     analysedAt: isoNow(),
     durationMs: Date.now() - t0,
     categories,
@@ -1010,4 +748,3 @@ export default async function handler(req, res) {
   saveJson(SNAP_PATH, result);
   res.json(result);
 }
-
