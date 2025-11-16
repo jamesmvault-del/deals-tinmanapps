@@ -1,23 +1,36 @@
 // /api/cta-dump.js
-// TinmanApps — CTA & Subtitle Exporter v6.0
-// “Entropy Integrity Edition — Semantic-Aware, Diagnostic-Ready”
+// TinmanApps — CTA & Subtitle Exporter v7.2
+// “Momentum-Aware Entropy Grid — Learning-Ready Diagnostics”
 // ───────────────────────────────────────────────────────────────────────────────
-// Alignment for CTA Engine v11.x / CTA Evolver v4.x / Learning Governor v4.x
+// Alignment for:
+//   • CTA Engine v11.2+
+//   • CTA Evolver v4.2+
+//   • Learning Governor v4.x
+//   • Insight Pulse v6.5 “Opportunity Brain”
 //
 // Guarantees:
 // • ACTIVE-ONLY dataset (archived excluded)
 // • Deterministic ordering (category → title)
 // • Category-level diagnostics:
-//     - Duplication counts (CTA + subtitle)
+//     - Duplication counts + rates (CTA + subtitle)
 //     - Shannon entropy (CTA + subtitle strings)
 //     - Token-level entropy (CTA + subtitle tokens)
 //     - Length stats + variance (CTA + subtitle)
 //     - Duplicate-token rate (“work work”, “boost boost”)
 //     - Semantic cluster distribution (via semanticCluster)
-// • Global unified ?all=1 export (flat array + global diagnostics)
-// • Backwards-compatible schema: existing fields preserved, advanced block added
-// • Context-safe sanitisation (no HTML fragments, no stray whitespace)
-// • Render-safe (FS-only), zero mutation, cron-safe
+// • Global diagnostics:
+//     - True global stats (all deals combined)
+//     - Category-weighted diagnostics (by deal share per category)
+//     - Top duplicated CTA / subtitle phrases (global)
+// • Momentum-aware overlay (if /data/insight-latest.json exists):
+//     - Per-category momentum + opportunityScore + entropySignal
+//     - Global momentum stats (average momentum & opportunityScore)
+// • Unified ?all=1 mode:
+//     - Flat array export with global + per-category diagnostics
+// • Default mode:
+//     - Per-category export + per-category diagnostics only
+//
+// Render-safe: FS-only, read-only, zero mutation.
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
@@ -28,6 +41,7 @@ import { detectCluster } from "../lib/semanticCluster.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../data");
+const INSIGHT_PATH = path.join(DATA_DIR, "insight-latest.json");
 
 // ───────────────────────────────────────────────────────────────
 // Helpers
@@ -137,15 +151,41 @@ function semanticClusterDistribution(items = []) {
   };
 }
 
+function loadJsonSafe(p, fallback = null) {
+  try {
+    const raw = fs.readFileSync(p, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function topDuplicates(list = [], limit = 10) {
+  const counts = {};
+  for (const s of list) {
+    const t = sanitize(s);
+    if (!t) continue;
+    counts[t] = (counts[t] || 0) + 1;
+  }
+  const rows = Object.entries(counts)
+    .filter(([_, c]) => c > 1)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([text, count]) => ({ text, count }));
+  return rows;
+}
+
 // ───────────────────────────────────────────────────────────────
 // Diagnostics (category + global)
 // ───────────────────────────────────────────────────────────────
-function computeDiagnostics(items = []) {
+function computeDiagnostics(items = [], includeTopLocal = false) {
   if (!items.length) {
     return {
       total: 0,
       dupCTAs: 0,
       dupSubs: 0,
+      dupRateCTA: 0,
+      dupRateSub: 0,
       entropyCTA: 0,
       entropySub: 0,
       advanced: {
@@ -161,6 +201,8 @@ function computeDiagnostics(items = []) {
           entropy: 0,
           dominantCluster: null,
         },
+        topDupCTAs: [],
+        topDupSubs: [],
       },
     };
   }
@@ -174,8 +216,14 @@ function computeDiagnostics(items = []) {
 
   const dupCTAs = total - uniqueCTAs;
   const dupSubs = total - uniqueSubs;
+  const dupRateCTA = +((dupCTAs / total) || 0).toFixed(2);
+  const dupRateSub = +((dupSubs / total) || 0).toFixed(2);
+
   const entropyCTA = shannonEntropy(ctas);
   const entropySub = shannonEntropy(subs);
+
+  const topDupCTAs = includeTopLocal ? topDuplicates(ctas, 5) : [];
+  const topDupSubs = includeTopLocal ? topDuplicates(subs, 5) : [];
 
   const advanced = {
     tokenEntropyCTA: tokenEntropy(ctas),
@@ -185,18 +233,134 @@ function computeDiagnostics(items = []) {
     dupWordRateCTA: dupWordRate(ctas),
     dupWordRateSub: dupWordRate(subs),
     semanticClusters: semanticClusterDistribution(items),
+    topDupCTAs,
+    topDupSubs,
   };
 
-  return { total, dupCTAs, dupSubs, entropyCTA, entropySub, advanced };
+  return {
+    total,
+    dupCTAs,
+    dupSubs,
+    dupRateCTA,
+    dupRateSub,
+    entropyCTA,
+    entropySub,
+    advanced,
+  };
+}
+
+// Build category-weighted diagnostics from per-category stats
+function buildWeightedDiagnostics(perCategoryDiagnostics = {}, summary = {}) {
+  const totalDeals =
+    Object.values(summary).reduce((a, b) => a + b, 0) || 1;
+
+  let entropyCTA = 0;
+  let entropySub = 0;
+  let tokenEntropyCTA = 0;
+  let tokenEntropySub = 0;
+  let dupRateCTA = 0;
+  let dupRateSub = 0;
+  let dupWordRateCTA = 0;
+  let dupWordRateSub = 0;
+
+  for (const [cat, diag] of Object.entries(perCategoryDiagnostics)) {
+    const weight = (summary[cat] || 0) / totalDeals;
+    if (!weight) continue;
+
+    entropyCTA += (diag.entropyCTA || 0) * weight;
+    entropySub += (diag.entropySub || 0) * weight;
+    tokenEntropyCTA += (diag.advanced?.tokenEntropyCTA || 0) * weight;
+    tokenEntropySub += (diag.advanced?.tokenEntropySub || 0) * weight;
+    dupRateCTA += (diag.dupRateCTA || 0) * weight;
+    dupRateSub += (diag.dupRateSub || 0) * weight;
+    dupWordRateCTA += (diag.advanced?.dupWordRateCTA || 0) * weight;
+    dupWordRateSub += (diag.advanced?.dupWordRateSub || 0) * weight;
+  }
+
+  return {
+    entropyCTA: +entropyCTA.toFixed(2),
+    entropySub: +entropySub.toFixed(2),
+    tokenEntropyCTA: +tokenEntropyCTA.toFixed(2),
+    tokenEntropySub: +tokenEntropySub.toFixed(2),
+    dupRateCTA: +dupRateCTA.toFixed(2),
+    dupRateSub: +dupRateSub.toFixed(2),
+    dupWordRateCTA: +dupWordRateCTA.toFixed(2),
+    dupWordRateSub: +dupWordRateSub.toFixed(2),
+  };
+}
+
+// Momentum overlay using Insight Pulse v6.5 snapshot (if present)
+function buildMomentumOverlay(summary = {}) {
+  const snapshot = loadJsonSafe(INSIGHT_PATH, null);
+  const totalDeals =
+    Object.values(summary).reduce((a, b) => a + b, 0) || 1;
+
+  const perCategory = {};
+  const momentumVals = [];
+  const oppVals = [];
+
+  for (const [cat, count] of Object.entries(summary)) {
+    const weight = +(count / totalDeals).toFixed(3);
+    const src = snapshot?.categories?.[cat] || null;
+
+    const momentum =
+      src && typeof src.momentum === "number" ? src.momentum : null;
+    const opportunityScore =
+      src && src.opportunity && typeof src.opportunity.score === "number"
+        ? src.opportunity.score
+        : null;
+    const entropySignal =
+      src && src.opportunity && typeof src.opportunity.entropySignal === "number"
+        ? src.opportunity.entropySignal
+        : null;
+
+    if (momentum !== null) momentumVals.push(momentum);
+    if (opportunityScore !== null) oppVals.push(opportunityScore);
+
+    perCategory[cat] = {
+      weight,
+      momentum,
+      opportunityScore,
+      entropySignal,
+    };
+  }
+
+  const avgMomentum =
+    momentumVals.length
+      ? +(
+          momentumVals.reduce((a, b) => a + b, 0) / momentumVals.length
+        ).toFixed(3)
+      : null;
+
+  const avgOpportunityScore =
+    oppVals.length
+      ? +(
+          oppVals.reduce((a, b) => a + b, 0) / oppVals.length
+        ).toFixed(1)
+      : null;
+
+  return {
+    available: !!snapshot,
+    perCategory,
+    stats: {
+      avgMomentum,
+      avgOpportunityScore,
+    },
+  };
 }
 
 // ───────────────────────────────────────────────────────────────
 // Handler
 // ───────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const files = fs
-    .readdirSync(DATA_DIR)
-    .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+  let files = [];
+  try {
+    files = fs
+      .readdirSync(DATA_DIR)
+      .filter((f) => f.startsWith("appsumo-") && f.endsWith(".json"));
+  } catch {
+    files = [];
+  }
 
   const allMode = req.query.all === "1" || req.query.all === "true";
   const perCategory = {};
@@ -209,7 +373,9 @@ export default async function handler(req, res) {
   for (const file of files) {
     const cat = file.replace("appsumo-", "").replace(".json", "");
     try {
-      const raw = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), "utf8"));
+      const raw = JSON.parse(
+        fs.readFileSync(path.join(DATA_DIR, file), "utf8")
+      );
       const active = raw
         .filter((d) => !d.archived)
         .map((d) => ({
@@ -222,58 +388,61 @@ export default async function handler(req, res) {
 
       perCategory[cat] = active;
       combined.push(...active);
-      diagnostics[cat] = computeDiagnostics(active);
+      diagnostics[cat] = computeDiagnostics(active, false);
     } catch (err) {
       console.warn(`⚠️ Failed to parse ${file}:`, err.message);
       perCategory[cat] = [];
-      diagnostics[cat] = {
-        total: 0,
-        dupCTAs: 0,
-        dupSubs: 0,
-        entropyCTA: 0,
-        entropySub: 0,
-        advanced: {
-          tokenEntropyCTA: 0,
-          tokenEntropySub: 0,
-          lengthCTA: { avg: 0, min: 0, max: 0, variance: 0 },
-          lengthSub: { avg: 0, min: 0, max: 0, variance: 0 },
-          dupWordRateCTA: 0,
-          dupWordRateSub: 0,
-          semanticClusters: {
-            counts: {},
-            distribution: {},
-            entropy: 0,
-            dominantCluster: null,
-          },
-        },
-      };
+      diagnostics[cat] = computeDiagnostics([], false);
     }
   }
+
+  const summary = {};
+  for (const [cat, items] of Object.entries(perCategory)) {
+    summary[cat] = items.length;
+  }
+
+  // Momentum overlay via Insight Pulse (if available)
+  const momentumOverlay = buildMomentumOverlay(summary);
 
   // ───────────────────────────────────────────────────────────────
   // Unified Mode (?all=1) → flattened global export
   // ───────────────────────────────────────────────────────────────
   if (allMode) {
-    const summary = {};
-    for (const [cat, items] of Object.entries(perCategory)) summary[cat] = items.length;
-
     const sorted = combined.sort((a, b) => {
       if (a.category === b.category) return a.title.localeCompare(b.title);
       return a.category.localeCompare(b.category);
     });
 
-    const globalDiag = computeDiagnostics(sorted);
+    // True global diagnostics (all deals)
+    const globalDiag = computeDiagnostics(sorted, true);
+
+    // Category-weighted diagnostics
+    const weightedDiag = buildWeightedDiagnostics(diagnostics, summary);
+
+    // Global top duplicates (phrases)
+    const globalTopDupCTAs = globalDiag.advanced.topDupCTAs;
+    const globalTopDupSubs = globalDiag.advanced.topDupSubs;
 
     const payload = {
-      source: "TinmanApps CTA Engine",
-      version: CTA_ENGINE_VERSION || "v11.x",
+      source: "TinmanApps CTA Engine — Diagnostic Export",
+      version: CTA_ENGINE_VERSION || "v11.2.x",
+      mode: "learning-aware-diagnostic",
       generated: new Date().toISOString(),
       totalDeals: sorted.length,
       categories: Object.keys(summary).length,
       summary,
       diagnostics: {
-        global: globalDiag,
+        global: {
+          ...globalDiag,
+          advanced: {
+            ...globalDiag.advanced,
+            topDupCTAs: globalTopDupCTAs,
+            topDupSubs: globalTopDupSubs,
+          },
+        },
+        globalWeighted: weightedDiag,
         perCategory: diagnostics,
+        momentum: momentumOverlay,
       },
       deals: sorted,
     };
@@ -290,11 +459,15 @@ export default async function handler(req, res) {
   res.status(200).send(
     JSON.stringify(
       {
-        source: "TinmanApps CTA Engine",
-        version: CTA_ENGINE_VERSION || "v11.x",
+        source: "TinmanApps CTA Engine — Diagnostic Export",
+        version: CTA_ENGINE_VERSION || "v11.2.x",
+        mode: "learning-aware-diagnostic",
         generated: new Date().toISOString(),
         categories: perCategory,
-        diagnostics,
+        diagnostics: {
+          perCategory: diagnostics,
+          momentum: momentumOverlay,
+        },
       },
       null,
       2
