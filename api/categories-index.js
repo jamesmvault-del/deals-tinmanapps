@@ -1,9 +1,19 @@
 // /api/categories-index.js
-// TinmanApps — Category Index v11.0 “SEO Health Pack Edition”
+// TinmanApps — Category Index v12.0 “Momentum-Weighted SEO Index Edition”
 // ───────────────────────────────────────────────────────────────────────────────
-// • Fully aligned with updateFeed v10.x + Insight Pulse v6 + CTA Engine
-// • Counts ONLY ACTIVE (non-archived) deals
-// • Adds Pack-B SEO metrics extracted from insight-latest.json:
+// Fully aligned with:
+//   • updateFeed v11.1
+//   • FeedNormalizer v7.0
+//   • DealActive v3
+//   • Insight Pulse v6.5 (Opportunity Brain)
+//   • CTA Engine v11.2
+//   • Homepage + categories.js + sitemap.js (canonical taxonomy)
+//
+// Guarantees:
+// • ACTIVE-ONLY counts (DealActive v3 rules)
+// • Momentum-aware ordering (optional via ?sort=momentum)
+// • Referral integrity health per category
+// • SEO Pack-B metrics:
 //     - topKeywords[0..4]
 //     - longTail[0..4]
 //     - momentum
@@ -11,22 +21,23 @@
 //     - ctaAvgLen
 //     - subAvgLen
 //     - dupTokenRate
-// • Deterministic taxonomy + stable ordering
-// • Lightweight, Render-safe, zero mutation
+//     - opportunityScore
+// • JSON-LD export for external indexing
+// • Deterministic, render-safe, zero mutation
 // ───────────────────────────────────────────────────────────────────────────────
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { CTA_ENGINE_VERSION } from "../lib/ctaEngine.js";
+import { isActiveDeal } from "../lib/dealActive.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "../data");
-
 const INSIGHT_PATH = path.join(DATA_DIR, "insight-latest.json");
 
-// MASTER TAXONOMY — MUST remain synced with categories.js + homepage + sitemap
+// Canonical taxonomy — must match homepage, categories.js & sitemap.js
 const CATEGORIES = [
   { slug: "software",     name: "Software Tools" },
   { slug: "marketing",    name: "Marketing & Sales Tools" },
@@ -41,8 +52,8 @@ const CATEGORIES = [
 
 // Safe JSON loader
 function loadJsonSafe(file) {
+  const full = path.join(DATA_DIR, file);
   try {
-    const full = path.join(DATA_DIR, file);
     if (!fs.existsSync(full)) return [];
     return JSON.parse(fs.readFileSync(full, "utf8"));
   } catch {
@@ -50,7 +61,7 @@ function loadJsonSafe(file) {
   }
 }
 
-// Safe object loader
+// Insight Pulse loader
 function loadInsights() {
   try {
     if (!fs.existsSync(INSIGHT_PATH)) return null;
@@ -60,27 +71,29 @@ function loadInsights() {
   }
 }
 
-// Compute duplicate-token rate for a list of strings
+// Duplicate-token rate
 function dupTokenRate(strings = []) {
   if (!strings.length) return 0;
-  let bad = 0;
   const re = /\b(\w+)\s+\1\b/i;
-  for (const s of strings) if (re.test(String(s))) bad++;
+  let bad = 0;
+  for (const s of strings) {
+    if (re.test(String(s))) bad++;
+  }
   return +(bad / strings.length).toFixed(3);
 }
 
-// Compute average length safely
+// Average length
 function avgLen(strings = []) {
   if (!strings.length) return 0;
   const sum = strings.reduce((a, s) => a + String(s).trim().length, 0);
   return +(sum / strings.length).toFixed(1);
 }
 
-// Extract active CTA+subtitle health from silo entries
-function extractActiveHealth(activeItems) {
+// CTA/sub health extraction
+function extractActiveHealth(items = []) {
   const ctas = [];
   const subs = [];
-  for (const d of activeItems) {
+  for (const d of items) {
     const cta = d?.seo?.cta;
     const sub = d?.seo?.subtitle;
     if (cta) ctas.push(cta);
@@ -93,31 +106,72 @@ function extractActiveHealth(activeItems) {
   };
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
+// Referral integrity classifier
+function referralIntegrity(items = []) {
+  let missing = 0;
+  let masked = 0;
+  let external = 0;
+
+  for (const d of items) {
+    const r = d.referralUrl || "";
+    if (!r) {
+      missing++;
+      continue;
+    }
+    if (r.startsWith("https://deals.tinmanapps.com/api/track")) {
+      masked++;
+    } else if (/^https?:\/\//i.test(r)) {
+      external++;
+    } else {
+      missing++;
+    }
+  }
+  const total = items.length || 1;
+  const pct = (n) => +(n / total).toFixed(2);
+
+  return {
+    total,
+    masked,
+    external,
+    missing,
+    maskedPct: pct(masked),
+    externalPct: pct(external),
+    missingPct: pct(missing),
+  };
+}
+
+// ───────────────────────────────────────────────────────────────
 // Handler
-// ───────────────────────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────────
 export default function handler(req, res) {
   try {
     const timestamp = new Date().toISOString();
     const insight = loadInsights();
 
-    const categories = CATEGORIES.map((c) => {
+    const rows = CATEGORIES.map((c) => {
       const raw = loadJsonSafe(`appsumo-${c.slug}.json`);
-      const active = raw.filter((d) => !d.archived);
 
-      // Pack B Health: CTA + Subtitle health
+      // Active deals using DealActive v3 (strict)
+      const active = raw.filter((d) => isActiveDeal(d));
+
+      // CTA/subtitle health
       const health = extractActiveHealth(active);
 
-      // Insight Pulse fields
-      const fromInsight = insight?.categories?.[c.slug] || {};
-      const topKeywords = Array.isArray(fromInsight.topKeywords)
-        ? fromInsight.topKeywords.slice(0, 5)
+      // Insight Pulse data
+      const from = insight?.categories?.[c.slug] || {};
+      const topKeywords = Array.isArray(from.topKeywords)
+        ? from.topKeywords.slice(0, 5)
         : [];
-      const longTail = Array.isArray(fromInsight.longTail)
-        ? fromInsight.longTail.slice(0, 5)
+      const longTail = Array.isArray(from.longTail)
+        ? from.longTail.slice(0, 5)
         : [];
-      const momentum = Number(fromInsight.momentum || 0);
-      const churnRate = Number(fromInsight?.churn?.churnRate || 0);
+
+      const momentum = Number(from.momentum || 0);
+      const churnRate = Number(from?.churn?.churnRate || 0);
+      const opportunityScore = Number(from?.opportunity?.score || 0);
+
+      // Referral health
+      const referral = referralIntegrity(active);
 
       return {
         slug: c.slug,
@@ -128,42 +182,59 @@ export default function handler(req, res) {
         longTail,
         momentum,
         churnRate,
+        opportunityScore,
         ctaAvgLen: health.ctaAvgLen,
         subAvgLen: health.subAvgLen,
         dupTokenRate: health.dupTokenRate,
+        referralIntegrity: referral,
       };
     });
 
-    // JSON-LD (SEO dashboards + external services)
+    // Optional momentum sort
+    let output = rows;
+    if (req.query.sort === "momentum") {
+      output = [...rows].sort(
+        (a, b) =>
+          b.momentum - a.momentum ||
+          b.opportunityScore - a.opportunityScore ||
+          a.slug.localeCompare(b.slug)
+      );
+    }
+
+    // JSON-LD export
     const ld = {
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: "TinmanApps Category Index",
-      numberOfItems: categories.length,
-      itemListElement: categories.map((c, i) => ({
+      numberOfItems: output.length,
+      itemListElement: output.map((cat, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        name: c.name,
-        url: `https://deals.tinmanapps.com/categories/${c.slug}`,
+        name: cat.name,
+        url: `https://deals.tinmanapps.com/categories/${cat.slug}`,
       })),
     };
 
     const payload = {
       source: "TinmanApps SEO Core",
-      version: "v11.0",
+      version: "v12.0",
       engineVersion: CTA_ENGINE_VERSION,
       generated: timestamp,
-      totalCategories: categories.length,
-      categories,
+      sortMode: req.query.sort || "none",
+      totalCategories: output.length,
+      categories: output,
       structuredData: ld,
     };
 
     res.setHeader("Content-Type", "application/json");
-    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=120");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=600, stale-while-revalidate=120"
+    );
     res.status(200).json(payload);
 
     console.log(
-      `✅ [CategoryIndex v11] Generated ${categories.length} categories • Engine:${CTA_ENGINE_VERSION}`
+      `✅ [CategoryIndex v12] Delivered ${output.length} categories • Engine:${CTA_ENGINE_VERSION}`
     );
   } catch (err) {
     console.error("❌ [CategoryIndex] Error:", err);
