@@ -3,23 +3,24 @@
 // -----------------------------------------------------------------------------
 // LIVE-ONLY VERSION — Uses:
 // • Live silos (appsumo-*.json) — ACTIVE deals only
-// • Insight Pulse v6.5 (momentum + scarcity + entropy + long-tail + risers)
-// • rankingEngine v4.0 (momentumWeight, scarcityWeight, entropyWeight)
+// • Insight Pulse v6.5+ (momentum + scarcity + entropy + long-tail + risers)
+// • rankingEngine v4.0 (momentumWeight, scarcityWeight, entropyWeight, activity)
 //
 // KEY GUARANTEES:
-// • Zero placeholder counts
-// • Zero placeholder images
-// • No synthetic or assumed data
+// • Zero synthetic / placeholder counts (all from real silos)
+// • Image fallback only when no live image (placeholder.webp under /assets)
+// • No synthetic data, no guessing
 // • Fully deterministic ordering
-// • 100% Render-safe (read-only)
-// • No referral leakage
+// • 100% Render-safe (read-only FS)
+// • No referral leakage (home only touches category counts/images)
 // • SEO-optimised WebPage + ItemList JSON-LD
-// • Uses categoryOrderingWeights → stable, self-optimising ranking
 // -----------------------------------------------------------------------------
+
 
 import fs from "fs";
 import path from "path";
 import url from "url";
+import { isActiveDeal } from "../lib/dealActive.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "../data");
@@ -89,10 +90,10 @@ function computeCategoryScore(insight, key, activeCount) {
   const scarcity = Number(c.scarcity || 0);      // 0..1
   const entropy  = Number(c.titleEntropy || 0);  // 0..1
 
-  // Normalise activeCount roughly into 0..1
+  // Normalise activeCount roughly into 0..1 (tuned for your dataset)
   const activity = Math.min(1, activeCount / 250);
 
-  // v4.0 weights (stable, tuned for your real dataset)
+  // v4.0 weights
   const wMomentum = 0.40;
   const wScarcity = 0.35;
   const wEntropy  = 0.20;
@@ -108,192 +109,12 @@ function computeCategoryScore(insight, key, activeCount) {
 }
 
 // -----------------------------------------------------------------------------
-// Homepage SEO via Insight Pulse — Tone 3 moderate
+// SEO metadata builder (Insight Pulse → homepage meta) — Tone 3 moderate
 // -----------------------------------------------------------------------------
 function deriveSeoFromInsight(insight) {
   const canonical = `${SITE_ORIGIN}/`;
 
-  if (!insight?.global) {
-    return {
-      title: "Live AppSumo Deals by Category",
-      description:
-        "Browse live AppSumo lifetime deals organised by category — refreshed automatically from real AppSumo data.",
-      canonical,
-      ogTitle: "Live AppSumo Deals — Updated Automatically",
-      ogDescription:
-        "Explore every active AppSumo deal by category, updated live.",
-      keywords: [],
-      trendPhrase: "",
-      longTailSample: "",
-      analysedAt: null,
-    };
-  }
-
-  const analysedAt = insight.analysedAt || null;
-
-  // Rising global keywords
-  const rising = Array.isArray(insight.global.topGlobalRisers)
-    ? insight.global.topGlobalRisers
-    : [];
-  const topWords = rising.slice(0, 5).map((r) => r.word).filter(Boolean);
-
-  const trendPhrase = topWords.slice(0, 3).join(", ");
-
-  // Long-tail surfacing
-  const cats = insight.categories || {};
-  const enriched = Object.entries(cats).map(([k, v]) => ({
-    key: k,
-    momentum: Number(v.momentum || 0),
-    scarcity: Number(v.scarcity || 0),
-    longTail: Array.isArray(v.longTail) ? v.longTail : [],
-  }));
-
-  enriched.sort((a, b) => {
-    const aScore = a.momentum * 0.5 + a.scarcity * 0.5;
-    const bScore = b.momentum * 0.5 + b.scarcity * 0.5;
-    return bScore - aScore;
-  });
-
-  const longTailPool = [];
-  for (const c of enriched.slice(0, 3)) {
-    for (const g of c.longTail) {
-      if (typeof g === "string" && g.length >= 10) longTailPool.push(g);
-      if (longTailPool.length >= 4) break;
-    }
-    if (longTailPool.length >= 4) break;
-  }
-
-  const longTailSample = longTailPool[0] || "";
-
-  // Title
-  const base = "Live AppSumo Deals by Category";
-  const title = trendPhrase
-    ? `${base} — ${trendPhrase}`
-    : `${base} — Updated Daily`;
-
-  // Description
-  let description =
-    "Browse live AppSumo lifetime deals by category, updated from real AppSumo silos.";
-  if (trendPhrase && longTailSample) {
-    description = `Explore live AppSumo lifetime deals organised by category — currently surfacing rising demand around ${trendPhrase} and long-tail signals like “${longTailSample}”.`;
-  } else if (trendPhrase) {
-    description = `Explore live AppSumo deals by category — with Insight Pulse surfacing rising topics like ${trendPhrase}.`;
-  } else if (longTailSample) {
-    description = `Explore live AppSumo deals by category — highlighting long-tail phrases such as “${longTailSample}”.`;
-  }
-
-  return {
-    title,
-    description,
-    canonical,
-    ogTitle: "Live AppSumo Deals — Insight-Driven Categories",
-    ogDescription:
-      "Real AppSumo category data, updated automatically with real usage signals.",
-    keywords: topWords,
-    trendPhrase,
-    longTailSample,
-    analysedAt,
-  };
-}
-
-// -----------------------------------------------------------------------------
-// JSON-LD builder — WebPage + ItemList
-// -----------------------------------------------------------------------------
-function buildJsonLd(blocks, seoMeta) {
-  const webPageLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: seoMeta.title,
-    url: seoMeta.canonical,
-    description: seoMeta.description,
-    inLanguage: "en",
-    isPartOf: {
-      "@type": "WebSite",
-      name: "AppSumo Deals Index",
-      url: SITE_ORIGIN,
-    },
-    about: seoMeta.trendPhrase
-      ? [`AppSumo lifetime deals`, seoMeta.trendPhrase]
-      : ["AppSumo lifetime deals"],
-    keywords: seoMeta.keywords,
-    dateModified: seoMeta.analysedAt || undefined,
-  };
-
-  const itemListLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "AppSumo Deals by Category",
-    url: seoMeta.canonical,
-    itemListOrder: "http://schema.org/ItemListOrderDescending",
-    numberOfItems: blocks.length,
-    itemListElement: blocks.map((b, idx) => ({
-      "@type": "ListItem",
-      position: idx + 1,
-      url: `${SITE_ORIGIN}/categories/${b.key}`,
-      name: b.label,
-      additionalProperty: [
-        {
-          "@type": "PropertyValue",
-          name: "activeDeals",
-          value: b.count,
-        },
-        {
-          "@type": "PropertyValue",
-          name: "categoryScore",
-          value: b.score,
-        },
-      ],
-    })),
-  };
-
-  return { webPageLd, itemListLd };
-}
-
-// -----------------------------------------------------------------------------
-// Build live blocks — using new rankingEngine v4.0
-// -----------------------------------------------------------------------------
-function buildCategoryBlocks(insight) {
-  return Object.entries(CATEGORIES).map(([key, label]) => {
-    // Load real live silo data (no placeholders)
-    const silo = loadJsonSafe(`appsumo-${key}.json`, []);
-
-    // Apply strict active resolver
-    const active = silo.filter((d) => !d.archived && !String(d.status).toLowerCase().includes("sold"));
-    const first = active[0];
-
-    // Compute rankingEngine v4.0 category score
-    const score = computeCategoryScore(insight, key, active.length);
-
-    // Insight hint (top keyword or long-tail)
-    let hint = "";
-    const ci = insight?.categories?.[normCatKey(key)];
-    if (ci) {
-      const kws = Array.isArray(ci.topKeywords) ? ci.topKeywords : [];
-      const lt = Array.isArray(ci.longTail) ? ci.longTail : [];
-      hint =
-        (lt.find((g) => typeof g === "string" && g.length >= 12) ||
-          kws[0] ||
-          "") + "";
-    }
-
-    return {
-      key,
-      label,
-      count: active.length,
-      img: first?.image || `${SITE_ORIGIN}/assets/placeholder.webp`,
-      score,
-      hint,
-    };
-  });
-}
-
-// -----------------------------------------------------------------------------
-// SEO metadata builder (Insight Pulse → homepage meta)
-// -----------------------------------------------------------------------------
-function deriveSeoFromInsight(insight) {
-  const canonical = `${SITE_ORIGIN}/`;
-
-  // No insight yet → fallback safe mode
+  // No insight yet → safe fallback
   if (!insight?.global) {
     return {
       title: "Live AppSumo Deals by Category — Auto-Refreshed",
@@ -408,7 +229,7 @@ function buildJsonLd(blocks, seoMeta) {
     "@type": "ItemList",
     name: "AppSumo Deals by Category",
     url: seoMeta.canonical,
-    itemListOrder: "http://schema.org/ItemListOrderAscending",
+    itemListOrder: "http://schema.org/ItemListOrderDescending",
     numberOfItems: blocks.length,
     itemListElement: blocks.map((b, idx) => ({
       "@type": "ListItem",
@@ -423,8 +244,8 @@ function buildJsonLd(blocks, seoMeta) {
         },
         {
           "@type": "PropertyValue",
-          name: "insightBoost",
-          value: b.boost,
+          name: "categoryScore",
+          value: b.score,
         },
       ],
     })),
@@ -435,17 +256,17 @@ function buildJsonLd(blocks, seoMeta) {
 
 // -----------------------------------------------------------------------------
 // Category block generator — LIVE DATA ONLY
-// rankingEngine v4.0 (momentum × scarcity × CTA health × title entropy)
+// Uses dealActive v3.0 + rankingEngine v4.0
 // -----------------------------------------------------------------------------
 function buildCategoryBlocks(insight) {
   return Object.entries(CATEGORIES).map(([key, label]) => {
     // Load silo live data
     const silo = loadJsonSafe(`appsumo-${key}.json`, []);
 
-    // Only active deals
-    const active = silo.filter((d) => !d.archived);
+    // Only active deals using central canonical resolver
+    const active = silo.filter((d) => isActiveDeal(d));
 
-    // First deal → *actual* product image (never placeholder unless empty)
+    // First *truly live* product image; fallback to placeholder.webp
     const firstLive = active.find((d) => d.image) || active[0];
 
     // Insight fragment
@@ -469,7 +290,7 @@ function buildCategoryBlocks(insight) {
     }
 
     // rankingEngine v4.0 — weighted adaptive score
-    const boost = computeCategoryScore(catInsight);
+    const score = computeCategoryScore(insight, key, active.length);
 
     return {
       key,
@@ -477,11 +298,72 @@ function buildCategoryBlocks(insight) {
       count: active.length,
       img:
         firstLive?.image ||
-        `${SITE_ORIGIN}/assets/fallback.webp`, // but never a fake/semantic placeholder
+        `${SITE_ORIGIN}/assets/placeholder.webp`,
       hint,
-      boost,
+      score,
     };
   });
+}
+
+// -----------------------------------------------------------------------------
+// MAIN HANDLER
+// -----------------------------------------------------------------------------
+export default async function handler(req, res) {
+  try {
+    const insight = loadInsight();
+
+    // Derive SEO meta from live Insight Pulse snapshot
+    const seoMeta = deriveSeoFromInsight(insight);
+
+    // Build live category blocks (ACTIVE DEALS ONLY, rankingEngine v4.0)
+    const blocks = buildCategoryBlocks(insight || {});
+
+    // Sort by category score (descending) — hot categories rise to top
+    blocks.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    const { webPageLd, itemListLd } = buildJsonLd(blocks, seoMeta);
+
+    // Short subheading line referencing Insight Pulse
+    const analysedText = seoMeta.analysedAt
+      ? `Insight Pulse updated at ${new Date(
+          seoMeta.analysedAt
+        )
+          .toISOString()
+          .slice(0, 10)}`
+      : "Insight Pulse monitoring live categories";
+
+    const trendLine =
+      seoMeta.trendPhrase || seoMeta.longTailSample
+        ? `Currently surfacing rising demand around ${
+            seoMeta.trendPhrase || "live deal activity"
+          }${
+            seoMeta.longTailSample
+              ? ` and long-tail phrases like “${seoMeta.longTailSample}”.`
+              : "."
+          }`
+        : "Auto-refreshed from live AppSumo category silos.";
+
+    // -------------------------------------------------------------------------
+    // HTML (SEO-optimised, lightweight, Insight-aware)
+    // -------------------------------------------------------------------------
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${escapeHtml(seoMeta.title)}</title>
+<meta name="description" content="${escapeHtml(seoMeta.description)}" />
+<link rel="canonical" href="${escapeHtml(seoMeta.canonical)}" />
+
+<meta property="og:title" content="${escapeHtml(seoMeta.ogTitle)}" />
+<meta property="og:description" content="${escapeHtml(seoMeta.ogDescription)}" />
+<meta property="og:image" content="${SITE_ORIGIN}/assets/placeholder.webp" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${escapeHtml(seoMeta.canonical)}" />
+${
+  seoMeta.keywords.length
+    ? `<meta name="keywords" content="${escapeHtml(seoMeta.keywords.join(", "))}" />`
+    : ""
 }
 
 <style>
@@ -596,15 +478,14 @@ ${JSON.stringify(itemListLd)}
   </header>
 
   <section class="grid">
-
-  ${blocks
+${blocks
   .map((b) => {
     const hintLine = b.hint
       ? `<div class="hint">Trending: ${escapeHtml(b.hint)}</div>`
       : "";
     const boostLine =
-      b.boost && b.boost > 0.01
-        ? `<div class="boost">Insight boost: ${b.boost.toFixed(2)}</div>`
+      b.score && b.score > 0.01
+        ? `<div class="boost">Category score: ${b.score.toFixed(2)}</div>`
         : "";
     return `
     <a class="card" href="/categories/${escapeHtml(b.key)}">
@@ -623,7 +504,6 @@ ${JSON.stringify(itemListLd)}
 
     res.setHeader("Content-Type", "text/html");
     res.send(html);
-
   } catch (err) {
     console.error("❌ Home render error:", err);
     res.status(500).send("Internal server error.");
